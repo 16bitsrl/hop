@@ -204,12 +204,12 @@ export function SeriesChart({ data, title }: { data: Summary | undefined; title?
               {series.length > 45 ? (
                 <AreaChart {...common}>
                   {axes}
-                  <Area type="monotone" dataKey="clicks" stroke="var(--accent)" strokeWidth={2} fill="var(--accent)" fillOpacity={0.14} />
+                  <Area isAnimationActive={false} type="monotone" dataKey="clicks" stroke="var(--accent)" strokeWidth={2} fill="var(--accent)" fillOpacity={0.14} />
                 </AreaChart>
               ) : (
                 <BarChart {...common}>
                   {axes}
-                  <Bar dataKey="clicks" fill="var(--accent)" radius={[3, 3, 0, 0]} maxBarSize={36} />
+                  <Bar isAnimationActive={false} dataKey="clicks" fill="var(--accent)" radius={[3, 3, 0, 0]} maxBarSize={36} />
                 </BarChart>
               )}
             </ResponsiveContainer>
