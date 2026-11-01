@@ -50,5 +50,7 @@
   "smtp_password_required": "Inserisci di nuovo la password della posta per usare un altro server o utente di posta.",
   "last_admin": "Deve esserci sempre almeno un amministratore attivo.",
   "folder_not_yours_inside": "Questa cartella contiene link o cartelle di altre persone, quindi può eliminarla solo un amministratore.",
+  "bad_origin": "Questa richiesta non arriva dall'app hop. Ricarica la pagina e riprova.",
+  "unsupported_media_type": "Questa richiesta non è stata capita. Ricarica la pagina e riprova.",
   "too_many_keys": "Hai troppe chiavi attive. Revocane una prima."
 }

@@ -50,5 +50,7 @@
   "smtp_password_required": "Enter the mail password again to use a different mail server or user.",
   "last_admin": "There must always be at least one active administrator.",
   "folder_not_yours_inside": "This folder contains links or folders that belong to other people, so only an administrator can delete it.",
+  "bad_origin": "This request did not come from the hop app. Reload the page and try again.",
+  "unsupported_media_type": "This request was not understood. Reload the page and try again.",
   "too_many_keys": "You have too many active keys. Revoke one first."
 }

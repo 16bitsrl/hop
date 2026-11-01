@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { csrfGuard } from "../auth/csrf";
 import { sessionMiddleware } from "../auth/session";
 import type { AppEnv } from "../env";
 import { auditRoutes } from "./audit";
@@ -23,6 +24,9 @@ import { testDataRoutes } from "./test-data";
 
 /** All JSON API routes, mounted at /api. Feature modules register here. */
 export const apiRoutes = new Hono<AppEnv>();
+
+// Changes made with a cookie must come from the app's own origin.
+apiRoutes.use("*", csrfGuard);
 
 // Every API request knows who is calling (`c.var.user`, null when signed out).
 apiRoutes.use("*", sessionMiddleware);

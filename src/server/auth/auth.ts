@@ -29,6 +29,7 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
   return betterAuth({
     secret: config.authSecret,
     baseURL: config.appUrl,
+    trustedOrigins: [new URL(config.appUrl).origin],
     database: drizzleAdapter(db, { provider: "sqlite", schema }),
     advanced: {
       backgroundTasks: { handler: (p) => platform.waitUntil(p) },

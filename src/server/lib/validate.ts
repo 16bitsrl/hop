@@ -4,6 +4,11 @@ import type { z } from "zod";
 
 /** Parses and validates a JSON body. Throws a 400 with `{ error: "invalid_request", fields }`. */
 export async function parseJson<S extends z.ZodType>(c: Context, schema: S): Promise<z.infer<S>> {
+  // A plain HTML form (or text/plain) can be sent cross-site without a preflight; JSON cannot.
+  const type = (c.req.header("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+  if (type !== "application/json" && !type.endsWith("+json")) {
+    throw new HTTPException(415, { res: c.json({ error: "unsupported_media_type" }, 415) });
+  }
   const raw = await c.req.json().catch(() => null);
   const result = schema.safeParse(raw);
   if (!result.success) {
