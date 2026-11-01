@@ -222,6 +222,20 @@ export const linkTags = sqliteTable(
   (t) => [primaryKey({ columns: [t.linkId, t.tagId] }), index("link_tags_tag_idx").on(t.tagId)],
 );
 
+/** Password guesses on protected links, per link and visitor (hashed address). Not part of a backup. */
+export const linkPasswordAttempts = sqliteTable(
+  "link_password_attempts",
+  {
+    linkId: text("link_id")
+      .notNull()
+      .references(() => links.id, { onDelete: "cascade" }),
+    ipHash: text("ip_hash").notNull(),
+    count: integer("count").notNull(),
+    windowStart: integer("window_start").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.linkId, t.ipHash] })],
+);
+
 /* ------------------------------------------------------------------ */
 /* Clicks                                                              */
 /* ------------------------------------------------------------------ */

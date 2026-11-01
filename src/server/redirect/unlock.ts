@@ -13,9 +13,13 @@ export function unlockCookieName(linkId: string): string {
   return `hop_unlock_${linkId.replace(/[^A-Za-z0-9_-]/g, "")}`;
 }
 
-export async function createUnlockCookie(secret: string, linkId: string, domainId: string, secure: boolean) {
+/**
+ * The signature covers the link's current password hash, so setting a new password ends every
+ * earlier unlock.
+ */
+export async function createUnlockCookie(secret: string, linkId: string, domainId: string, secure: boolean, passwordHash: string) {
   const exp = Math.floor(Date.now() / 1000) + TTL_SECONDS;
-  const sig = await sign(secret, `unlock|${domainId}|${linkId}|${exp}`);
+  const sig = await sign(secret, `unlock|${domainId}|${linkId}|${exp}|${passwordHash}`);
   return (
     `${unlockCookieName(linkId)}=${exp}.${sig}; Max-Age=${TTL_SECONDS}; Path=/; HttpOnly; SameSite=Lax` +
     (secure ? "; Secure" : "")
@@ -27,6 +31,7 @@ export async function hasValidUnlock(
   cookieHeader: string | null,
   linkId: string,
   domainId: string,
+  passwordHash: string,
 ): Promise<boolean> {
   if (!cookieHeader) return false;
   const name = unlockCookieName(linkId);
@@ -36,7 +41,7 @@ export async function hasValidUnlock(
     const [expStr, sig] = rest.join("=").split(".");
     const exp = Number(expStr);
     if (!sig || !Number.isFinite(exp) || exp < Date.now() / 1000) return false;
-    return sig === (await sign(secret, `unlock|${domainId}|${linkId}|${exp}`));
+    return sig === (await sign(secret, `unlock|${domainId}|${linkId}|${exp}|${passwordHash}`));
   }
   return false;
 }

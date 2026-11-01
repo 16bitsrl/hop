@@ -22,6 +22,13 @@
       "when": 1793537306858,
       "tag": "0002_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793537393660,
+      "tag": "0003_link_password_attempts",
+      "breakpoints": true
     }
   ]
 }

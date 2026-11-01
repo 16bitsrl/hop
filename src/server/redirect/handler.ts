@@ -4,6 +4,8 @@ import { domains, links } from "../db/schema";
 import type { AppEnv } from "../env";
 import { verifyLinkPassword } from "../lib/password";
 import { publicStatsUrl } from "../stats/public";
+import { limiterIp } from "../auth/client-ip";
+import { clearPasswordAttempts, ipDigest, takePasswordAttempt } from "./attempts";
 import { recordClick } from "./clicks";
 import {
   classifyUserAgent,
@@ -90,8 +92,12 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   }
 
   const secret = platform.config.authSecret;
-  if (link.passwordHash && !(await hasValidUnlock(secret, req.headers.get("cookie"), link.id, domain.id))) {
+  if (link.passwordHash && !(await hasValidUnlock(secret, req.headers.get("cookie"), link.id, domain.id, link.passwordHash))) {
     if (req.method !== "POST") return passwordPage(lang, false);
+    // Each guess costs a slow hash, so the number of guesses is capped before any hashing happens.
+    const ipHash = await ipDigest(secret, limiterIp(platform, req));
+    const { blockedFor } = await takePasswordAttempt(platform.db, link.id, ipHash);
+    if (blockedFor !== null) return passwordPage(lang, "locked", blockedFor);
     let password = "";
     try {
       const form = await req.formData();
@@ -100,7 +106,8 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
       /* treated as wrong password */
     }
     if (!(await verifyLinkPassword(password, link.passwordHash))) return passwordPage(lang, true);
-    const cookie = await createUnlockCookie(secret, link.id, domain.id, url.protocol === "https:");
+    await clearPasswordAttempts(platform.db, link.id, ipHash);
+    const cookie = await createUnlockCookie(secret, link.id, domain.id, url.protocol === "https:", link.passwordHash);
     return new Response(null, {
       status: 303,
       headers: { location: url.pathname + url.search, "set-cookie": cookie, "cache-control": "no-store" },

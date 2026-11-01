@@ -33,6 +33,7 @@ const T = {
     passwordLabel: "Password",
     passwordButton: "Continue",
     passwordError: "That password is not correct. Try again.",
+    passwordLocked: "Too many attempts. Please wait a few minutes and try again.",
     openingTitle: "Opening the app",
     openingText: "If nothing happens, we will take you to the website.",
     openingLink: "Go to the website",
@@ -51,6 +52,7 @@ const T = {
     passwordLabel: "Password",
     passwordButton: "Continua",
     passwordError: "La password non è corretta. Riprova.",
+    passwordLocked: "Troppi tentativi. Aspetta qualche minuto e riprova.",
     openingTitle: "Apertura dell'app",
     openingText: "Se non succede nulla, ti portiamo al sito web.",
     openingLink: "Vai al sito web",
@@ -97,8 +99,12 @@ export const landingPage = (lang: Lang) => simple(lang, T[lang].landingTitle, T[
 export const notFoundPage = (lang: Lang) => simple(lang, T[lang].notFoundTitle, T[lang].notFoundText, 404);
 export const expiredPage = (lang: Lang) => simple(lang, T[lang].expiredTitle, T[lang].expiredText, 410);
 
-export function passwordPage(lang: Lang, error: boolean): Response {
+export function passwordPage(lang: Lang, error: boolean | "locked", retryAfter = 0): Response {
   const t = T[lang];
+  if (error === "locked") {
+    const body = `<h1>${t.passwordTitle}</h1><p class="err" role="alert">${t.passwordLocked}</p>`;
+    return htmlResponse(shell(lang, t.passwordTitle, body), 429, { "cache-control": "no-store", "retry-after": String(retryAfter) });
+  }
   const body = `<h1>${t.passwordTitle}</h1><p>${t.passwordText}</p><form method="post">${
     error ? `<p class="err" role="alert">${t.passwordError}</p>` : ""
   }<label for="p">${t.passwordLabel}</label><input id="p" name="password" type="password" autocomplete="off" autofocus required><button type="submit">${t.passwordButton}</button></form>`;
