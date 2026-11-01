@@ -7,6 +7,12 @@ import { settingsRoutes } from "./settings";
 import { testAuthRoutes } from "./test-auth";
 import { userRoutes } from "./users";
 import { testLinksRoutes } from "./test-links";
+import { domainRoutes } from "./domains";
+import { linkSettingsRoutes } from "./link-settings";
+import { linksRoutes } from "./links";
+import { mediaRoutes } from "./media";
+import { taxonomyRoutes } from "./taxonomy";
+import { testPagesRoutes } from "./test-pages";
 
 /** All JSON API routes, mounted at /api. Feature modules register here. */
 export const apiRoutes = new Hono<AppEnv>();
@@ -21,5 +27,12 @@ apiRoutes.route("/", authRoutes);
 apiRoutes.route("/", userRoutes);
 apiRoutes.route("/", settingsRoutes);
 apiRoutes.route("/", auditRoutes);
+// Area B: links, domains, tags, folders, blocked destinations, media.
+apiRoutes.route("/", linksRoutes);
+apiRoutes.route("/", domainRoutes);
+apiRoutes.route("/", taxonomyRoutes);
+apiRoutes.route("/", linkSettingsRoutes);
+apiRoutes.route("/", mediaRoutes);
+apiRoutes.route("/_test", testPagesRoutes);
 apiRoutes.route("/_test", testAuthRoutes);
 apiRoutes.route("/_test", testLinksRoutes);

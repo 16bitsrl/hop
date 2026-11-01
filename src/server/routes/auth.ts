@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createAuth } from "../auth/auth";
 import { requireUser } from "../auth/permissions";
 import { countUsers, createUserWithPassword } from "../auth/users";
-import { user } from "../db/schema";
+import { domains, user } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { getAuthSettings, getOidcSettings, isOidcConfigured } from "../lib/settings";
@@ -61,7 +61,7 @@ authRoutes.post("/setup", async (c) => {
 });
 
 function publicUser(u: typeof user.$inferSelect) {
-  return { id: u.id, name: u.name, email: u.email, role: u.role, locale: u.locale, image: u.image };
+  return { id: u.id, name: u.name, email: u.email, role: u.role, locale: u.locale, image: u.image, defaultDomainId: u.defaultDomainId };
 }
 
 authRoutes.get("/me", (c) => c.json({ user: c.var.user ? publicUser(c.var.user) : null }));
@@ -69,11 +69,16 @@ authRoutes.get("/me", (c) => c.json({ user: c.var.user ? publicUser(c.var.user) 
 const meBody = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   locale: z.enum(["en", "it"]).nullable().optional(),
+  defaultDomainId: z.string().min(1).nullable().optional(),
 });
 
 authRoutes.patch("/me", requireUser, async (c) => {
   const body = await parseJson(c, meBody);
   const me = c.var.user!;
+  if (body.defaultDomainId) {
+    const exists = await c.var.platform.db.select({ id: domains.id }).from(domains).where(eq(domains.id, body.defaultDomainId)).get();
+    if (!exists) return c.json({ error: "invalid_request", fields: ["defaultDomainId"] }, 400);
+  }
   await c.var.platform.db
     .update(user)
     .set({ ...body, updatedAt: new Date() })

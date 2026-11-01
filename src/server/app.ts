@@ -3,6 +3,7 @@ import type { AppEnv } from "./env";
 import type { Platform } from "./platform/types";
 import { apiRoutes } from "./routes";
 import { handleShortDomain } from "./redirect/handler";
+import { serveMedia } from "./routes/media";
 
 /**
  * Builds the HTTP app. `serveAssets` serves the SPA (and static files) on the app host.
@@ -28,6 +29,7 @@ export function createApp(opts: {
 
   app.get("/healthz", (c) => c.json({ ok: true }));
   app.route("/api", apiRoutes);
+  app.get("/media/:file", serveMedia);
 
   app.all("*", (c) => opts.serveAssets(c.req.raw));
 
