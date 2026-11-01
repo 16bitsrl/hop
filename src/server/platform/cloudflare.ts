@@ -11,6 +11,8 @@ export interface CloudflareEnv {
   AUTH_SECRET: string;
   SAFE_BROWSING_KEY?: string;
   METRICS_TOKEN?: string;
+  /** "1" only in the test environment: enables /api/_test helpers. */
+  TEST_MODE?: string;
   SMTP_HOST?: string;
   SMTP_PORT?: string;
   SMTP_USER?: string;
@@ -47,6 +49,7 @@ export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): P
       authSecret: env.AUTH_SECRET,
       safeBrowsingKey: env.SAFE_BROWSING_KEY,
       metricsToken: env.METRICS_TOKEN,
+      testMode: env.TEST_MODE === "1",
     },
     geo(req) {
       const cf = (req as Request & { cf?: IncomingRequestCfProperties }).cf;

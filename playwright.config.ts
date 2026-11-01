@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-export const APP = "http://app.localhost:8799";
+const port = Number(process.env.HOP_TEST_PORT ?? 8799);
+export const APP = `http://app.localhost:${port}`;
 /** Short domain used in tests; registered by the test fixtures. */
-export const SHORT = "http://s.localhost:8799";
+export const SHORT = `http://s.localhost:${port}`;
 
 export default defineConfig({
   testDir: "e2e",
@@ -14,7 +15,7 @@ export default defineConfig({
   use: { baseURL: APP, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "CLOUDFLARE_ENV=test pnpm exec vite dev",
+    command: `CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
     url: `${APP}/healthz`,
     reuseExistingServer: false,
     timeout: 120_000,

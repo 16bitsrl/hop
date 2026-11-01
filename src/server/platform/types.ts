@@ -38,6 +38,8 @@ export interface Config {
   safeBrowsingKey?: string;
   /** Optional bearer token protecting /metrics. */
   metricsToken?: string;
+  /** True only in the dedicated test environment. */
+  testMode: boolean;
 }
 
 /** Everything the app needs from the runtime. */
