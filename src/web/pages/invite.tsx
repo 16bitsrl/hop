@@ -65,7 +65,7 @@ export function InvitePage() {
         </Field>
         <Field label={t("invite.password")} hint={t("invite.passwordHint")}>
           {(id) => (
-            <Input id={id} type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
         </Field>
         {error && (

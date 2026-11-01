@@ -44,7 +44,7 @@ export function ResetPasswordPage() {
       <form onSubmit={submit} className="flex flex-col gap-3.5">
         <Field label={t("reset.newPassword")} hint={t("reset.hint")}>
           {(id) => (
-            <Input id={id} type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
         </Field>
         {error && (

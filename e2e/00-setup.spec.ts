@@ -23,6 +23,9 @@ test("first run asks for the first admin, then the app opens", async ({ page, re
     data: { name: "Other", email: "other@example.test", password: "another-password" },
   });
   expect(again.status()).toBe(409);
+  // Passwords longer than 128 characters are refused up front (they could never sign in).
+  const tooLong = await request.post("/api/setup", { data: { name: "Other", email: "other@example.test", password: "x".repeat(129) } });
+  expect(tooLong.status()).toBe(400);
   await page.goto("/setup");
   await expect(page).not.toHaveURL(/\/setup$/);
 });

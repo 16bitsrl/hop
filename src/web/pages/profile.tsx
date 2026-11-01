@@ -176,7 +176,7 @@ function PasswordCard() {
           </Field>
           <Field label={t("password.new")} hint={t("password.hint")} error={error}>
             {(id) => (
-              <Input id={id} type="password" autoComplete="new-password" required minLength={8} value={next} onChange={(e) => setNext(e.target.value)} />
+              <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={next} onChange={(e) => setNext(e.target.value)} />
             )}
           </Field>
           <div>

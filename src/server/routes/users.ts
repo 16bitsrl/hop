@@ -153,7 +153,7 @@ userRoutes.get("/invites/by-token/:token", async (c) => {
   return c.json({ email: invite.email, role: invite.role });
 });
 
-const acceptBody = z.object({ name: z.string().trim().min(1).max(100), password: z.string().min(8).max(200) });
+const acceptBody = z.object({ name: z.string().trim().min(1).max(100), password: z.string().min(8).max(128) });
 
 userRoutes.post("/invites/by-token/:token/accept", async (c) => {
   const invite = await findInvite(c, c.req.param("token"));

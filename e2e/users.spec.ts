@@ -142,3 +142,21 @@ test("the audit log records user actions and can be filtered", async ({ page, re
   await expect(page.getByRole("row", { name: /Role changed/ }).first()).toBeVisible();
   await api.dispose();
 });
+
+test("an invitation cannot set a password that the sign-in would refuse", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  const invite = await (await api.post("/api/invites", { data: { email: "long.password@example.test", role: "member" } })).json();
+  const token = new URL(invite.url).pathname.split("/").pop();
+  const tooLong = await request.post(`/api/invites/by-token/${token}/accept`, { data: { name: "Long", password: "p".repeat(129) } });
+  expect(tooLong.status()).toBe(400);
+  const longest = "q".repeat(128);
+  const ok = await request.post(`/api/invites/by-token/${token}/accept`, { data: { name: "Long", password: longest } });
+  expect(ok.ok(), await ok.text()).toBeTruthy();
+  const signIn = await request.post("/api/auth/sign-in/email", {
+    data: { email: "long.password@example.test", password: longest },
+    headers: { origin: APP },
+  });
+  expect(signIn.ok()).toBeTruthy();
+  await api.dispose();
+});
