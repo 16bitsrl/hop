@@ -100,9 +100,10 @@ export function YourlsImport() {
         {step.kind === "choose" && (
           <>
             <Field label={t("yourls.file")} hint={t("yourls.fileHint")} error={step.error}>
-              {(id) => (
+              {(id, aria) => (
                 <input
                   id={id}
+                  {...aria}
                   type="file"
                   accept=".sql,.gz,application/sql,application/gzip,text/plain"
                   onChange={(e) => {
