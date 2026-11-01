@@ -15,6 +15,7 @@
   --accent-hover: #0c6a50;
   --accent-fg: #ffffff;
   --danger: #c2362b;
+  --danger-fg: #ffffff;
   --danger-soft: #fbeceb;
   --success: #17703f;
   --success-soft: #e6f4ec;
@@ -37,6 +38,7 @@
   --accent-hover: #55d3a9;
   --accent-fg: #06150f;
   --danger: #f0746a;
+  --danger-fg: #1f0806;
   --danger-soft: #2c1816;
   --success: #5ccf92;
   --success-soft: #11251a;
@@ -59,6 +61,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-fg: var(--accent-fg);
   --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
