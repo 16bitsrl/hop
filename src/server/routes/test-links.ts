@@ -58,3 +58,15 @@ testLinksRoutes.get("/clicks", async (c) => {
   const rows = await c.var.platform.db.select().from(clicks).where(eq(clicks.linkId, linkId)).orderBy(clicks.id);
   return c.json(rows);
 });
+
+/** GET /link-counters?linkId= -> { clickCount, lastClickedAt } straight from the links row. */
+testLinksRoutes.get("/link-counters", async (c) => {
+  const linkId = c.req.query("linkId");
+  if (!linkId) return c.json({ error: "linkId required" }, 400);
+  const row = await c.var.platform.db
+    .select({ clickCount: links.clickCount, lastClickedAt: links.lastClickedAt })
+    .from(links)
+    .where(eq(links.id, linkId))
+    .get();
+  return c.json(row ?? null);
+});

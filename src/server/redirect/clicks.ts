@@ -1,7 +1,7 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import { isbot } from "isbot";
 import { clicks, links } from "../db/schema";
-import type { Platform } from "../platform/types";
+import type { DB, Platform } from "../platform/types";
 import { classifyUserAgent, isPreviewCrawler, parseLanguage } from "./destination";
 
 const hex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -20,8 +20,30 @@ export async function visitorHash(authSecret: string, ip: string | null, ua: str
   return hex(digest).slice(0, 16);
 }
 
-/** Records a click and bumps the link counters. Never throws. */
-export async function recordClick(platform: Platform, req: Request, linkId: string, target: string): Promise<void> {
+/** Link-preview crawlers and other robots. They are logged, but never counted as visits. */
+export function isBotUa(ua: string | null | undefined): boolean {
+  return isPreviewCrawler(ua) || isbot(ua ?? "");
+}
+
+/**
+ * Uses one visit of a link with a click limit, atomically: in a single statement the counter moves only
+ * while it is below the limit. False means somebody else took the last visit.
+ */
+export async function consumeVisit(db: DB, linkId: string, now = new Date()): Promise<boolean> {
+  const rows = await db
+    .update(links)
+    .set({ clickCount: sql`${links.clickCount} + 1`, lastClickedAt: now })
+    .where(and(eq(links.id, linkId), or(isNull(links.maxClicks), lt(links.clickCount, links.maxClicks))))
+    .returning({ id: links.id });
+  return rows.length > 0;
+}
+
+/**
+ * Records a click in the log. `links.clickCount` counts people only: bots are logged (flagged `bot`)
+ * but leave the counter alone. When `counted` is true the visit was already added by `consumeVisit`.
+ * Never throws.
+ */
+export async function recordClick(platform: Platform, req: Request, linkId: string, target: string, counted = false): Promise<void> {
   try {
     const ua = req.headers.get("user-agent");
     const info = classifyUserAgent(ua);
@@ -36,6 +58,7 @@ export async function recordClick(platform: Platform, req: Request, linkId: stri
       }
     }
     const now = new Date();
+    const bot = isBotUa(ua);
     await platform.db.insert(clicks).values({
       linkId,
       ts: now,
@@ -48,15 +71,17 @@ export async function recordClick(platform: Platform, req: Request, linkId: stri
       os: info.os,
       browser: info.browser,
       language: parseLanguage(req.headers.get("accept-language")),
-      bot: isPreviewCrawler(ua) || isbot(ua ?? ""),
+      bot,
       visitorHash: await visitorHash(platform.config.authSecret, platform.clientIp(req), ua, now),
       target,
       source: "live",
     });
-    await platform.db
-      .update(links)
-      .set({ clickCount: sql`${links.clickCount} + 1`, lastClickedAt: now })
-      .where(eq(links.id, linkId));
+    if (!bot && !counted) {
+      await platform.db
+        .update(links)
+        .set({ clickCount: sql`${links.clickCount} + 1`, lastClickedAt: now })
+        .where(eq(links.id, linkId));
+    }
   } catch (err) {
     console.error("click logging failed", err);
   }

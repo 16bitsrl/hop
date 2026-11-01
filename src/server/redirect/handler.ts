@@ -6,7 +6,7 @@ import { verifyLinkPassword } from "../lib/password";
 import { publicStatsUrl } from "../stats/public";
 import { limiterIp } from "../auth/client-ip";
 import { clearPasswordAttempts, ipDigest, takePasswordAttempt } from "./attempts";
-import { recordClick } from "./clicks";
+import { consumeVisit, isBotUa, recordClick } from "./clicks";
 import {
   classifyUserAgent,
   isHttpUrl,
@@ -124,8 +124,16 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   if (!isHttpUrl(dest.url)) return notFound();
   const target = link.forwardQuery ? mergeQuery(dest.url, url.searchParams) : dest.url;
 
+  // A link with a click limit gives out its visits one at a time, before redirecting, so parallel
+  // requests cannot all get through. Bots and preview crawlers never use a visit.
+  let counted = false;
+  if (link.maxClicks != null && req.method === "GET" && !isBotUa(ua)) {
+    if (!(await consumeVisit(platform.db, link.id))) return fallbackOr(() => expiredPage(lang));
+    counted = true;
+  }
+
   const log = () => {
-    if (req.method === "GET") platform.waitUntil(recordClick(platform, req, link.id, dest.target));
+    if (req.method === "GET") platform.waitUntil(recordClick(platform, req, link.id, dest.target, counted));
   };
 
   if (isPreviewCrawler(ua) && (link.ogTitle || link.ogDescription || link.ogImage)) {

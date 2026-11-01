@@ -212,3 +212,42 @@ test("only http(s) destinations are followed", async ({ request }) => {
   await seed(request, { slug, url: "javascript:alert(1)" });
   expect((await get(request, slug)).status()).toBe(404);
 });
+
+const counters = async (request: APIRequestContext, linkId: string) =>
+  (await (await request.get(`/api/_test/link-counters?linkId=${linkId}`)).json()) as { clickCount: number };
+
+test("a link with a click limit lets exactly that many visitors through, even in parallel", async ({ request }) => {
+  const slug = uniq("race");
+  const l = await seed(request, { slug, url: "https://example.com/limited", maxClicks: 1 });
+  const answers = await Promise.all(Array.from({ length: 8 }, () => get(request, slug)));
+  const statuses = answers.map((r) => r.status()).sort();
+  expect(statuses.filter((s) => s === 302)).toHaveLength(1);
+  expect(statuses.filter((s) => s === 410)).toHaveLength(7);
+  await clicks(request, l.id, 1);
+  expect((await counters(request, l.id)).clickCount).toBe(1);
+});
+
+test("link preview bots and crawlers do not use up the click limit or the click counter", async ({ request }) => {
+  const slug = uniq("bots");
+  const l = await seed(request, { slug, url: "https://example.com/limited", maxClicks: 1 });
+  const slack = await get(request, slug, { "user-agent": "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)" });
+  expect(slack.status()).toBe(302);
+  const generic = await get(request, slug, { "user-agent": "Googlebot/2.1 (+http://www.google.com/bot.html)" });
+  expect(generic.status()).toBe(302);
+  const rows = await clicks(request, l.id, 2);
+  expect(rows.every((r) => !!r.bot)).toBe(true);
+  expect((await counters(request, l.id)).clickCount).toBe(0);
+  // A person can still use the one allowed visit.
+  expect((await get(request, slug)).status()).toBe(302);
+  expect((await get(request, slug)).status()).toBe(410);
+  expect((await counters(request, l.id)).clickCount).toBe(1);
+});
+
+test("on links without a limit, bots are logged but only people count", async ({ request }) => {
+  const slug = uniq("botcount");
+  const l = await seed(request, { slug, url: "https://example.com/a" });
+  await get(request, slug, { "user-agent": "Slackbot-LinkExpanding 1.0" });
+  await get(request, slug);
+  await clicks(request, l.id, 2);
+  await expect.poll(async () => (await counters(request, l.id)).clickCount).toBe(1);
+});

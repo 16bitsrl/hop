@@ -192,6 +192,7 @@ export const links = sqliteTable(
     ogDescription: text("og_description"),
     ogImage: text("og_image"),
     publicStats: integer("public_stats", { mode: "boolean" }).notNull().default(false),
+    /** Visits by people (bots are only in `clicks`, flagged `bot`); a YOURLS import starts it at the old lifetime total. Also what `maxClicks` is compared with. */
     clickCount: integer("click_count").notNull().default(0),
     lastClickedAt: integer("last_clicked_at", { mode: "timestamp_ms" }),
     /** Broken link check (J5). */
