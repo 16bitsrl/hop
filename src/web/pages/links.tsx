@@ -326,7 +326,10 @@ export function LinksPage() {
                         <CopyIcon />
                       </button>
                     </div>
-                    {l.title && <p className="truncate text-[13px] text-muted">{l.title}</p>}
+                    {/* Always there, so every row has the same height. */}
+                    <p className="truncate text-[13px] text-muted" aria-hidden={!l.title}>
+                      {l.title || "\u00a0"}
+                    </p>
                   </Td>
                   <Td className="max-w-48">
                     <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="block truncate text-muted hover:text-fg hover:underline">
