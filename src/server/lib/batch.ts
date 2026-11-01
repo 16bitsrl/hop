@@ -5,7 +5,8 @@ import type { DB } from "../platform/types";
 
 /*
  * Many statements in one round trip. D1 sends them as a single batch (one subrequest instead of
- * one per statement); runtimes without batch support run them one after the other.
+ * one per statement). Each D1 batch is atomic; on SQLite the whole call runs in one transaction,
+ * so a failure leaves nothing half written.
  * Keep every use of D1's batch API in this file.
  */
 
@@ -22,9 +23,17 @@ export async function runBatch(db: DB, statements: BatchItem<"sqlite">[]): Promi
     }
     return out;
   }
-  for (const s of statements) out.push(await s);
+  // better-sqlite3: synchronous, so no other request can slip a statement in.
+  (db as unknown as SyncDb).transaction(() => {
+    for (const s of statements) {
+      const q = s as unknown as { run(): unknown; all(): unknown[]; config?: { returning?: unknown } };
+      out.push(q.config?.returning ? q.all() : q.run());
+    }
+  });
   return out;
 }
+
+type SyncDb = { transaction<T>(fn: () => T): T; run(query: SQL): unknown };
 
 type D1Like = {
   prepare(sql: string): { bind(...values: unknown[]): unknown };
@@ -48,5 +57,8 @@ export async function runRawBatch(db: DB, statements: SQL[]): Promise<void> {
     }
     return;
   }
-  for (const s of statements) await db.run(s);
+  const sync = db as unknown as SyncDb;
+  sync.transaction(() => {
+    for (const s of statements) sync.run(s);
+  });
 }
