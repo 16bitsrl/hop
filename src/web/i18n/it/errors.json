@@ -37,5 +37,6 @@
   "image_too_large": "L'immagine è troppo grande. Il limite è 2 MB.",
   "csv_empty": "Il file è vuoto.",
   "csv_missing_url": "Il file deve avere una colonna chiamata url.",
-  "csv_too_many_rows": "Il file ha troppe righe. Il limite è 500."
+  "csv_too_many_rows": "Il file ha troppe righe. Il limite è 500.",
+  "invalid_range": "Il periodo non è valido."
 }

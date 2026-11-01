@@ -4,7 +4,8 @@
   "tabs": {
     "signin": "Accesso",
     "email": "Email",
-    "links": "Link"
+    "links": "Link",
+    "stats": "Statistiche"
   },
   "password": {
     "title": "Accesso con password",
