@@ -1,4 +1,5 @@
 /** Page title and description for a destination (A3). */
+import { isPrivateHost, safeFetch } from "../lib/safe-fetch";
 
 export type PageMeta = { title: string | null; description: string | null; image: string | null };
 
@@ -41,16 +42,7 @@ export function parseHtmlMeta(html: string): PageMeta {
 
 const MAX_BYTES = 256 * 1024;
 
-/** Hosts a server-side fetch must never reach (outside of tests). */
-export function isPrivateHost(hostname: string): boolean {
-  const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
-  if (h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) return h.includes(":");
-  const m = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(h);
-  if (!m) return false;
-  const [a, b] = [Number(m[1]), Number(m[2])];
-  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
-}
+export { isPrivateHost };
 
 /** Fetches the page (5 s timeout, first 256 KB) and extracts its metadata. Never throws. */
 export async function fetchPageMeta(
@@ -59,12 +51,11 @@ export async function fetchPageMeta(
 ): Promise<PageMeta | null> {
   try {
     const target = new URL(url);
-    if (target.protocol !== "http:" && target.protocol !== "https:") return null;
-    if (!opts.allowPrivate && isPrivateHost(target.hostname)) return null;
-    const res = await (opts.fetchImpl ?? fetch)(target.href, {
+    const res = await safeFetch(target, {
       headers: { accept: "text/html,application/xhtml+xml", "user-agent": "Mozilla/5.0 (compatible; hop-link-preview/1.0)" },
-      redirect: "follow",
       signal: AbortSignal.timeout(5000),
+      allowPrivate: opts.allowPrivate,
+      fetchImpl: opts.fetchImpl,
     });
     if (!res.ok) return null;
     const type = res.headers.get("content-type") ?? "";

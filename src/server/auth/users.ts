@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { runBatch } from "../db/batch";
 import { account, invites, user, type Role } from "../db/schema";
 import type { Platform } from "../platform/types";
 import { createAuth } from "./auth";
@@ -39,7 +40,7 @@ export async function createUserWithPassword(
   const passwordHash = await ctx.password.hash(input.password);
   const id = crypto.randomUUID();
   const now = new Date();
-  await platform.db.batch([
+  await runBatch(platform.db, [
     platform.db.insert(user).values({
       id,
       name: input.name,

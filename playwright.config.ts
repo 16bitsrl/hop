@@ -15,7 +15,11 @@ export default defineConfig({
   use: { baseURL: APP, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `node e2e/prepare-db.mjs && CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
+    // HOP_RUNTIME=node runs the same suite against the Node/SQLite build; the default is Workers.
+    command:
+      process.env.HOP_RUNTIME === "node"
+        ? `pnpm build:node && HOP_TEST_PORT=${port} node e2e/start-node.mjs`
+        : `node e2e/prepare-db.mjs && CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
     url: `${APP}/healthz`,
     reuseExistingServer: false,
     timeout: 120_000,

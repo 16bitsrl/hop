@@ -21,35 +21,21 @@ export async function resolveSmtp(platform: Platform): Promise<SmtpConfig | null
   return platform.config.smtp ?? null;
 }
 
-function buildMailer(smtp: SmtpConfig, testMode: boolean): Mailer {
-  if (testMode && smtp.host === TEST_SMTP_HOST) {
+function buildMailer(platform: Platform, smtp: SmtpConfig): Mailer {
+  if (platform.config.testMode && smtp.host === TEST_SMTP_HOST) {
     return {
       async send(mail) {
         testOutbox.push({ ...mail, from: smtp.from, at: Date.now() });
       },
     };
   }
-  return {
-    async send(mail) {
-      const { WorkerMailer } = await import("worker-mailer");
-      await WorkerMailer.send(
-        {
-          host: smtp.host,
-          port: smtp.port,
-          secure: smtp.tls === "ssl",
-          startTls: smtp.tls === "starttls",
-          credentials: smtp.user ? { username: smtp.user, password: smtp.pass ?? "" } : undefined,
-        },
-        { from: smtp.from, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html },
-      );
-    },
-  };
+  return platform.createSmtpMailer(smtp);
 }
 
 /** The mailer to use right now, or null when email is not configured. */
 export async function getMailer(platform: Platform): Promise<Mailer | null> {
   const smtp = await resolveSmtp(platform);
-  return smtp ? buildMailer(smtp, platform.config.testMode) : null;
+  return smtp ? buildMailer(platform, smtp) : null;
 }
 
 export function escapeHtml(s: string): string {

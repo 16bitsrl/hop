@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
-import type { BlobStore, Platform, SmtpConfig } from "./types";
+import { smtpFromEnv } from "./smtp-env";
+import type { BlobStore, Mailer, Platform, SmtpConfig } from "./types";
 
 export interface CloudflareEnv {
   DB: D1Database;
@@ -37,17 +38,21 @@ function r2Store(bucket: R2Bucket): BlobStore {
   };
 }
 
-function smtpFromEnv(env: CloudflareEnv): SmtpConfig | undefined {
-  if (!env.SMTP_HOST) return undefined;
-  const port = Number(env.SMTP_PORT ?? 587);
-  const secure = env.SMTP_SECURE === "1" || env.SMTP_SECURE === "true" || port === 465;
+function workerMailer(smtp: SmtpConfig): Mailer {
   return {
-    host: env.SMTP_HOST,
-    port,
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-    from: env.SMTP_FROM ?? `hop@${env.APP_HOST.split(":")[0]}`,
-    tls: secure ? "ssl" : "starttls",
+    async send(mail) {
+      const { WorkerMailer } = await import("worker-mailer");
+      await WorkerMailer.send(
+        {
+          host: smtp.host,
+          port: smtp.port,
+          secure: smtp.tls === "ssl",
+          startTls: smtp.tls === "starttls",
+          credentials: smtp.user ? { username: smtp.user, password: smtp.pass ?? "" } : undefined,
+        },
+        { from: smtp.from, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html },
+      );
+    },
   };
 }
 
@@ -57,6 +62,7 @@ export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): P
     db: drizzle(env.DB, { schema }),
     blobs: r2Store(env.BLOBS),
     mailer: null, // resolved on demand by getMailer() in src/server/mail
+    createSmtpMailer: workerMailer,
     config: {
       appHost: env.APP_HOST,
       appUrl: env.APP_URL,

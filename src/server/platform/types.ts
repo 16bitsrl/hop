@@ -1,7 +1,11 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type * as schema from "../db/schema";
 
-/** Database handle. Both D1 and better-sqlite3 expose the same async Drizzle API. */
+/**
+ * Database handle. D1 is async and better-sqlite3 is sync, but every query builder is awaitable on
+ * both, so the Node platform hands out its handle under this type. Use `runBatch` (src/server/db/batch.ts)
+ * instead of `db.batch`, which only exists on D1.
+ */
 export type DB = DrizzleD1Database<typeof schema>;
 
 export interface BlobStore {
@@ -62,6 +66,8 @@ export interface Platform {
   blobs: BlobStore;
   /** Always null on creation: resolve it with `getMailer(platform)` from `src/server/mail`. */
   mailer: Mailer | null;
+  /** Sends mail over SMTP with the platform's own client (worker-mailer on Workers, nodemailer on Node). */
+  createSmtpMailer(smtp: SmtpConfig): Mailer;
   config: Config;
   geo(req: Request): Geo;
   clientIp(req: Request): string | null;

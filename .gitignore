@@ -6,3 +6,4 @@ dist
 test-results
 playwright-report
 *.local
+.test-state-node
