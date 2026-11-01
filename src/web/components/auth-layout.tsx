@@ -5,7 +5,7 @@ export function AuthCard({ title, description, children }: { title: string; desc
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="mb-6 flex items-center gap-2">
-        <span className="flex size-7 items-center justify-center rounded-md bg-accent text-sm font-bold text-accent-fg">h</span>
+        <img src="/icon.svg" alt="" className="size-7" />
         <span className="text-lg font-semibold tracking-tight">hop</span>
       </div>
       <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6 shadow-sm">

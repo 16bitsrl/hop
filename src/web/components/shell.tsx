@@ -36,7 +36,7 @@ function NavLink({ item }: { item: NavItem }) {
 function Brand() {
   return (
     <div className="flex items-center gap-2 px-2.5">
-      <span className="flex size-6 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-accent-fg">h</span>
+      <img src="/icon.svg" alt="" className="size-6" />
       <span className="text-[15px] font-semibold tracking-tight">hop</span>
     </div>
   );

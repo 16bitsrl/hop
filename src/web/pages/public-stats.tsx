@@ -16,7 +16,7 @@ export function PublicStatsPage() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-4 px-4 py-8">
       <header className="flex items-center gap-2">
-        <span className="flex size-6 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-accent-fg">h</span>
+        <img src="/icon.svg" alt="" className="size-6" />
         <span className="text-[15px] font-semibold tracking-tight">hop</span>
       </header>
       {notPublic ? (
