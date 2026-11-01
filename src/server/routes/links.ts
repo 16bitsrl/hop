@@ -6,7 +6,7 @@ import { auditLog, blockedDomains, domains, folders, linkTags, links, user } fro
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { parseJson } from "../lib/validate";
-import { CSV_TEMPLATE, readCsvRows, type CsvRow } from "../links/csv";
+import { CSV_TEMPLATE, MAX_BATCH, readCsvRows, type CsvRow } from "../links/csv";
 import { checkSafeBrowsing, isHostBlocked } from "../links/safety";
 import { bulkBody, createLinkBody, updateLinkBody } from "../links/schemas";
 import {
@@ -126,6 +126,7 @@ linksRoutes.post("/links/bulk", requireRole("admin", "member"), async (c) => {
   const { db } = platform;
   const me = c.var.user!;
   const body = await parseJson(c, bulkBody);
+  if (new Set(body.ids).size > MAX_BATCH) return c.json({ error: "batch_too_large", max: MAX_BATCH }, 400);
   if ((body.action === "addTag" || body.action === "removeTag") && !body.tag) return c.json({ error: "invalid_request", fields: ["tag"] }, 400);
   if (body.action === "move") {
     if (body.folderId === undefined) return c.json({ error: "invalid_request", fields: ["folderId"] }, 400);
@@ -182,17 +183,19 @@ linksRoutes.post("/links/bulk", requireRole("admin", "member"), async (c) => {
 /* CSV import                                                        */
 /* ---------------------------------------------------------------- */
 
-const importBody = z.object({ csv: z.string().max(2_000_000) });
+const importBody = z.object({ csv: z.string().max(2_000_000), lineOffset: z.number().int().min(0).max(100_000).optional() });
 
 type ImportRow = CsvRow & { domainId?: string };
 
 /** Reads the file and adds the checks that need the database. */
-async function evaluateImport(c: Context<AppEnv>, csv: string) {
+async function evaluateImport(c: Context<AppEnv>, csv: string, opts: { maxRows?: number; lineOffset?: number } = {}) {
   const platform = c.var.platform;
   const { db } = platform;
   const parsed = readCsvRows(csv);
   if (parsed.error) throw new LinkError(400, parsed.error);
   const rows: ImportRow[] = parsed.rows;
+  if (opts.maxRows !== undefined && rows.length > opts.maxRows) throw new LinkError(400, "batch_too_large");
+  for (const row of rows) row.line += opts.lineOffset ?? 0;
 
   const domainRows = await db.select().from(domains);
   const byHost = new Map(domainRows.map((d) => [d.host, d]));
@@ -246,8 +249,8 @@ linksRoutes.post("/links/import", requireRole("admin", "member"), async (c) => {
   const platform = c.var.platform;
   const { db } = platform;
   const me = c.var.user!;
-  const { csv } = await parseJson(c, importBody);
-  const rows = await evaluateImport(c, csv);
+  const { csv, lineOffset } = await parseJson(c, importBody);
+  const rows = await evaluateImport(c, csv, { maxRows: MAX_BATCH, lineOffset });
 
   const folderIds = new Map<string, string>();
   const allFolders = await db.select().from(folders);

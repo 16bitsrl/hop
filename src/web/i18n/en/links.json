@@ -327,6 +327,7 @@
     "created_other": "{{count}} links created",
     "skipped_one": "{{count}} skipped",
     "skipped_other": "{{count}} skipped",
+    "progress": "Importing: {{done}} of {{total}}",
     "lineProblem": "Line {{line}}: {{problems}}",
     "errors": {
       "invalid_url": "This is not a valid web address.",

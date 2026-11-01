@@ -216,6 +216,27 @@ test.describe("links API", () => {
     expect(del.skipped.map((s: { reason: string }) => s.reason).sort()).toEqual(["forbidden", "not_found"]);
   });
 
+  test("bulk actions and CSV imports are limited to 25 items per request", async ({ request, playwright }) => {
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    await ensureDomain(admin);
+    const ids = Array.from({ length: 26 }, (_, i) => `missing-${i}`);
+    const bulk = await admin.post("/api/links/bulk", { data: { ids, action: "disable" } });
+    expect(bulk.status()).toBe(400);
+    expect(await bulk.json()).toMatchObject({ error: "batch_too_large" });
+    expect((await admin.post("/api/links/bulk", { data: { ids: ids.slice(0, 25), action: "disable" } })).ok()).toBeTruthy();
+
+    const key = uniq("cap");
+    const rows = (n: number) => ["url,slug", ...Array.from({ length: n }, (_, i) => `https://example.com/${i},${key}-${i}`)].join("\n");
+    const tooMany = await admin.post("/api/links/import", { data: { csv: rows(26) } });
+    expect(tooMany.status()).toBe(400);
+    expect(await tooMany.json()).toMatchObject({ error: "batch_too_large" });
+    const ok = await (await admin.post("/api/links/import", { data: { csv: rows(25), lineOffset: 50 } })).json();
+    expect(ok.created).toBe(25);
+    // Line numbers in a report point at the original file.
+    const again = await (await admin.post("/api/links/import", { data: { csv: rows(2), lineOffset: 50 } })).json();
+    expect(again.failed.map((f: { line: number }) => f.line)).toEqual([52, 53]);
+  });
+
   test("CSV import: preview validates rows, import reports a bad row", async ({ request, playwright }) => {
     const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
     await ensureDomain(admin);

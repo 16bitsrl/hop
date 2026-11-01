@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Dialog, Field, Input, Table, TBody, Td, Th, THead, Tr, useToast } from "../../components/ui";
+import { splitCsv } from "../../../shared/csv";
 import { api } from "../../lib/api";
+import { BATCH_SIZE } from "../../lib/batches";
 import { downloadBlob } from "../../lib/clipboard";
 import { errorMessage } from "../../lib/errors";
 
@@ -27,6 +29,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
   const [csv, setCsv] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const check = useMutation({
     mutationFn: (text: string) => api<Preview>("/api/links/import/preview", { body: { csv: text } }),
@@ -38,7 +41,18 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
   });
 
   const run = useMutation({
-    mutationFn: () => api<Result>("/api/links/import", { body: { csv } }),
+    // Long files go in batches (the server takes a few rows per request); the person sees one progress and one report.
+    mutationFn: async () => {
+      const parts = splitCsv(csv, BATCH_SIZE);
+      const total: Result = { created: 0, failed: [] };
+      for (const part of parts) {
+        const r = await api<Result>("/api/links/import", { body: { csv: part.csv, lineOffset: part.lineOffset } });
+        total.created += r.created;
+        total.failed.push(...r.failed);
+        setProgress({ done: Math.min(part.lineOffset + BATCH_SIZE, preview?.rows.length ?? 0), total: preview?.rows.length ?? 0 });
+      }
+      return total;
+    },
     onSuccess: async (r) => {
       setResult(r);
       await queryClient.invalidateQueries({ queryKey: ["links"] });
@@ -46,6 +60,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
       await queryClient.invalidateQueries({ queryKey: ["folders"] });
     },
     onError: (e) => toast.error(errorMessage(tc, e)),
+    onSettled: () => setProgress(null),
   });
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
@@ -135,7 +150,12 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
         </>
       )}
 
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center justify-end gap-2">
+        {progress && progress.total > 0 && (
+          <p role="status" className="mr-auto text-[13px] text-muted">
+            {t("import.progress", { done: progress.done, total: progress.total })}
+          </p>
+        )}
         <Button onClick={onClose}>{tc("cancel")}</Button>
         <Button variant="primary" disabled={!preview || preview.validCount === 0} loading={run.isPending} onClick={() => run.mutate()}>
           {t("import.run", { count: preview?.validCount ?? 0 })}

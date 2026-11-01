@@ -327,6 +327,7 @@
     "created_other": "{{count}} link creati",
     "skipped_one": "{{count}} saltato",
     "skipped_other": "{{count}} saltati",
+    "progress": "Importazione: {{done}} di {{total}}",
     "lineProblem": "Riga {{line}}: {{problems}}",
     "errors": {
       "invalid_url": "Questo non è un indirizzo web valido.",

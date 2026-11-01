@@ -1,3 +1,4 @@
+import { detectDelimiter, parseCsv } from "../../shared/csv";
 import { isHttpUrl } from "../redirect/destination";
 import { isValidSlug } from "./slug";
 
@@ -5,42 +6,10 @@ import { isValidSlug } from "./slug";
 
 export const CSV_COLUMNS = ["url", "slug", "title", "tags", "folder", "notes", "domain"] as const;
 export const MAX_CSV_ROWS = 500;
+/** Rows (and ids) per request that writes: one D1 invocation allows only so many queries. */
+export const MAX_BATCH = 25;
 
-/** RFC 4180 parser: quoted fields, doubled quotes, CRLF, BOM. `delimiter` is "," or ";". */
-export function parseCsv(text: string, delimiter: string = ","): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let quoted = false;
-  const src = text.replace(/^﻿/, "");
-  for (let i = 0; i < src.length; i++) {
-    const ch = src[i]!;
-    if (quoted) {
-      if (ch === '"') {
-        if (src[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else quoted = false;
-      } else field += ch;
-    } else if (ch === '"' && field === "") {
-      quoted = true;
-    } else if (ch === delimiter) {
-      row.push(field);
-      field = "";
-    } else if (ch === "\n" || ch === "\r") {
-      if (ch === "\r" && src[i + 1] === "\n") i++;
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-    } else field += ch;
-  }
-  if (field !== "" || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows.filter((r) => r.some((c) => c.trim() !== ""));
-}
+export { parseCsv };
 
 export type CsvRow = {
   /** Line number in the file (the header is line 1). */
@@ -63,9 +32,7 @@ export const splitTags = (value: string): string[] =>
 
 /** Reads the header, maps columns by name (any order), and runs the checks that need no database. */
 export function readCsvRows(text: string): CsvParseResult {
-  const firstLine = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
-  const delimiter = (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0) ? ";" : ",";
-  const table = parseCsv(text, delimiter);
+  const table = parseCsv(text, detectDelimiter(text));
   if (table.length === 0) return { rows: [], error: "csv_empty" };
   const header = table[0]!.map((h) => h.trim().toLowerCase());
   const col = Object.fromEntries(CSV_COLUMNS.map((name) => [name, header.indexOf(name)])) as Record<(typeof CSV_COLUMNS)[number], number>;

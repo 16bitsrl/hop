@@ -33,6 +33,7 @@ import { StateBadges, TagChip } from "../features/links/parts";
 import { api, qs } from "../lib/api";
 import { copyText } from "../lib/clipboard";
 import { formatDate } from "../lib/cn";
+import { inBatches } from "../lib/batches";
 import { errorMessage } from "../lib/errors";
 import { canCreate, useMe } from "../lib/session";
 import { sharedUrl, takeRememberedShared } from "../lib/share";
@@ -121,8 +122,16 @@ export function LinksPage() {
   });
 
   const bulk = useMutation({
-    mutationFn: (body: { action: BulkAction; tag?: string; folderId?: string | null }) =>
-      api<{ done: number; skipped: { id: string; reason: string }[] }>("/api/links/bulk", { body: { ids: [...selected], ...body } }),
+    // The server takes a few links per request: send the selection in batches and add up the reports.
+    mutationFn: async (body: { action: BulkAction; tag?: string; folderId?: string | null }) => {
+      const total = { done: 0, skipped: [] as { id: string; reason: string }[] };
+      for (const ids of inBatches([...selected])) {
+        const r = await api<{ done: number; skipped: { id: string; reason: string }[] }>("/api/links/bulk", { body: { ids, ...body } });
+        total.done += r.done;
+        total.skipped.push(...r.skipped);
+      }
+      return total;
+    },
     onSuccess: async ({ done, skipped }) => {
       setBulkDialog(null);
       setSelected(new Set());

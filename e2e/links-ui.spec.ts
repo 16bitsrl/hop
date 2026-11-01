@@ -249,6 +249,25 @@ test.describe("links UI", () => {
     expect((await follow(request, `${key}-2`)).status()).toBe(404);
   });
 
+  test("CSV import of a long file runs in batches and ends with one report", async ({ page, request, playwright }) => {
+    const { user } = await setup(request, playwright);
+    const key = uniq("big");
+    await loginAs(page, user, "/links");
+    await page.getByRole("button", { name: "Import CSV" }).click();
+    const dialog = page.getByRole("dialog");
+    const lines = Array.from({ length: 60 }, (_, i) => `${i === 51 ? "not-a-url" : `https://example.com/${i}`},${key}-${i},"Title ${i}, with comma"`);
+    const csv = `url,slug,title\n${lines.join("\n")}\n`;
+    await dialog.getByLabel("CSV file").setInputFiles({ name: "big.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+    await expect(dialog.getByText("59 ready to import")).toBeVisible();
+    await dialog.getByRole("button", { name: "Import 59 links" }).click();
+    await expect(dialog.getByText("59 links created")).toBeVisible({ timeout: 60_000 });
+    await expect(dialog.getByText("1 skipped")).toBeVisible();
+    // Row 52 of the data is line 53 of the file (the header is line 1).
+    await expect(dialog.getByText(/Line 53/)).toBeVisible();
+    expect((await follow(request, `${key}-0`)).headers().location).toBe("https://example.com/0");
+    expect((await follow(request, `${key}-59`)).headers().location).toBe("https://example.com/59");
+  });
+
   test("smart redirects: rules and A/B variants saved from the UI and honoured", async ({ page, request, playwright }) => {
     const { user, api } = await setup(request, playwright);
     const l = await createLink(api, { url: "https://example.com/main" });
