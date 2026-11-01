@@ -103,5 +103,5 @@ One limit: do not import dumps of two different YOURLS installations into the sa
 
 - Turn on the **broken link check** (Settings > Links) to spot old destinations that no longer work.
 - Set a `METRICS_TOKEN` to scrape `GET /metrics` with `Authorization: Bearer <token>` (Prometheus text format).
-- Schedule backups: `GET /api/data/backup?gzip=1` with an admin API key (`Authorization: Bearer hop_...`), or download from Settings > Data.
+- Back up regularly: download from Settings > Data while signed in as an admin (API keys cannot download backups, because a backup holds password hashes and other secrets). For scheduled copies on Cloudflare, export the database with `wrangler d1 export hop --remote --env production --output hop-$(date +%F).sql` and copy the R2 bucket of uploaded images; on Docker, follow the backup step in DEPLOY.md.
   To restore on a new empty installation, open the first-run page and choose **Restore from a backup**.

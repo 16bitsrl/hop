@@ -71,7 +71,7 @@
   },
   "backup": {
     "title": "Backup ed esportazione",
-    "description": "Scarica tutto ciò che hop conosce: link, clic, utenti e relativi metodi di accesso, tag, cartelle, impostazioni e registro attività. Conserva il file in un posto sicuro: contiene dati riservati, come i dati di accesso.",
+    "description": "Scarica link, clic, utenti e relativi metodi di accesso, tag, cartelle, impostazioni e registro attività. Le immagini caricate per le anteprime dei link non sono incluse: conservane tu una copia. Conserva il file in un posto sicuro: contiene dati riservati, come i dati di accesso.",
     "download": "Scarica il backup",
     "csv": "Esporta tutti i link (CSV)",
     "csvHint": "Un foglio di calcolo con una riga per ogni link.",
