@@ -17,7 +17,7 @@
   },
   "filters": {
     "owner": "Owner",
-    "anyOwner": "Everyone",
+    "anyOwner": "Created by anyone",
     "tag": "Tag",
     "anyTag": "All tags",
     "folder": "Folder",

@@ -180,7 +180,7 @@ export function LinksPage() {
 
       <div className="mb-4 flex flex-col gap-3">
         <Input type="search" aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:*:w-auto">
           <OwnerFilter users={users.data ?? []} value={filters.owner} onChange={(id) => setFilter("owner", id)} />
           <Select aria-label={t("filters.tag")} value={filters.tag} onChange={(e) => setFilter("tag", e.target.value)}>
             <option value="">{t("filters.anyTag")}</option>

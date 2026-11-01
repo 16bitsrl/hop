@@ -17,7 +17,7 @@
   },
   "filters": {
     "owner": "Proprietario",
-    "anyOwner": "Tutti",
+    "anyOwner": "Creati da chiunque",
     "tag": "Tag",
     "anyTag": "Tutti i tag",
     "folder": "Cartella",
