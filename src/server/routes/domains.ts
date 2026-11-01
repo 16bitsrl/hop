@@ -46,7 +46,7 @@ async function list(c: { var: AppEnv["Variables"] }) {
       rootUrl: domains.rootUrl,
       notFoundUrl: domains.notFoundUrl,
       createdAt: domains.createdAt,
-      linkCount: sql<number>`(select count(*) from ${links} where ${links.domainId} = ${domains.id})`,
+      linkCount: sql<number>`(select count(*) from "links" as "l" where "l"."domain_id" = "domains"."id")`,
     })
     .from(domains)
     .orderBy(domains.host);

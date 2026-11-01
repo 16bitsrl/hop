@@ -23,7 +23,7 @@ taxonomyRoutes.get("/tags", requireUser, async (c) => {
       id: tags.id,
       name: tags.name,
       color: tags.color,
-      linkCount: sql<number>`(select count(*) from ${linkTags} where ${linkTags.tagId} = ${tags.id})`,
+      linkCount: sql<number>`(select count(*) from "link_tags" as "lt" where "lt"."tag_id" = "tags"."id")`,
     })
     .from(tags)
     .orderBy(tags.name);
@@ -77,7 +77,7 @@ const folderSelect = {
   name: folders.name,
   parentId: folders.parentId,
   createdBy: folders.createdBy,
-  linkCount: sql<number>`(select count(*) from ${links} where ${links.folderId} = ${folders.id})`,
+  linkCount: sql<number>`(select count(*) from "links" as "l" where "l"."folder_id" = "folders"."id")`,
 };
 
 taxonomyRoutes.get("/folders", requireUser, async (c) => {

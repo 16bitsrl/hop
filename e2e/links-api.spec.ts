@@ -133,6 +133,11 @@ test.describe("links API", () => {
     const t2 = tags.find((t) => t.name === `t2${key}`)!;
     expect(t2.color).toMatch(/^#[0-9a-f]{6}$/i);
     expect(t2.linkCount).toBe(2);
+    const folderList = (await (await admin.get("/api/folders")).json()).folders as { id: string; linkCount: number }[];
+    expect(folderList.find((f) => f.id === folder.id)!.linkCount).toBe(1);
+    expect(folderList.find((f) => f.id === sub.id)!.linkCount).toBe(1);
+    const domainList = (await (await admin.get("/api/domains")).json()).domains as { id: string; linkCount: number }[];
+    expect(domainList.find((d) => d.id === a.domainId)!.linkCount).toBeGreaterThanOrEqual(3);
     expect((await search(`q=${key}&tag=${t2.id}`)).sort()).toEqual([a.id, b.id].sort());
     // A folder filter includes its sub-folders.
     expect((await search(`folder=${folder.id}`)).sort()).toEqual([a.id, b.id].sort());
