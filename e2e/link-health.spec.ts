@@ -41,8 +41,10 @@ test("a link is marked broken only after two failed checks in a row, and recover
   const filtered = (await (await api.get(`/api/links?state=broken&domain=${domain.id}`)).json()) as { items: { id: string }[]; total: number };
   expect(filtered.items.map((l) => l.id).sort()).toEqual([gone.id, down.id].sort());
 
-  // The destination comes back: the next check clears it.
-  expect((await api.patch(`/api/links/${gone.id}`, { data: { url: status(200) } })).ok()).toBeTruthy();
+  // The destination comes back: a new address starts with no verdict, and the next check clears it.
+  const edited = await api.patch(`/api/links/${gone.id}`, { data: { url: status(200) } });
+  expect(edited.ok()).toBeTruthy();
+  expect((await edited.json()).link).toMatchObject({ healthStatus: "unknown", healthCode: null, healthCheckedAt: null });
   const checked = await api.post(`/api/links/${gone.id}/check`);
   expect(checked.ok()).toBeTruthy();
   expect((await checked.json()).link).toMatchObject({ healthStatus: "ok", healthCode: 200 });

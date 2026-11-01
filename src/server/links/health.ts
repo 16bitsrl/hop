@@ -92,7 +92,8 @@ export async function checkLink(platform: Platform, link: LinkRow, opts: { confi
   await db
     .update(links)
     .set({ healthStatus: health.status, healthCode: health.code, healthCheckedAt: new Date() })
-    .where(eq(links.id, link.id));
+    // Skip the write if the destination changed while we were checking the old one.
+    .where(and(eq(links.id, link.id), eq(links.url, link.url)));
   return { ...link, healthStatus: health.status, healthCode: health.code, healthCheckedAt: new Date() };
 }
 

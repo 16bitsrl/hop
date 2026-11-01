@@ -45,8 +45,9 @@ linksRoutes.get("/links", async (c) => {
   const platform = c.var.platform;
   const { db } = platform;
   const q = c.req.query();
-  const page = Math.max(1, Number(q.page) || 1);
-  const pageSize = Math.min(PAGE_SIZE_MAX, Math.max(1, Number(q.pageSize) || 25));
+  const whole = (v: string | undefined, fallback: number) => (Number.isFinite(Number(v)) ? Math.floor(Number(v)) || fallback : fallback);
+  const page = Math.min(1_000_000, Math.max(1, whole(q.page, 1)));
+  const pageSize = Math.min(PAGE_SIZE_MAX, Math.max(1, whole(q.pageSize, 25)));
   const now = Date.now();
 
   const where: (SQL | undefined)[] = [];

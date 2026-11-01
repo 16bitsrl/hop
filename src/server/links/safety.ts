@@ -101,8 +101,12 @@ export async function checkDestinations(
   }
   const candidates = [...new Set([...hosts.values()].flatMap(hostAndParents))];
   if (candidates.length > 0) {
-    const rows = await db.select({ host: blockedDomains.host }).from(blockedDomains).where(inArray(blockedDomains.host, candidates));
-    const blocked = new Set(rows.map((r) => r.host));
+    // Stay well under the database limit on bound values per query.
+    const blocked = new Set<string>();
+    for (let i = 0; i < candidates.length; i += 50) {
+      const rows = await db.select({ host: blockedDomains.host }).from(blockedDomains).where(inArray(blockedDomains.host, candidates.slice(i, i + 50)));
+      for (const r of rows) blocked.add(r.host);
+    }
     for (const [url, host] of hosts) {
       if (isHostBlocked(host, blocked)) return { ok: false, error: "destination_blocked", url };
     }

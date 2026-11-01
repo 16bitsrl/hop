@@ -447,4 +447,31 @@ test.describe("links API", () => {
     const svg = await admin.post("/api/media", { data: Buffer.from("<svg/>"), headers: { "content-type": "image/svg+xml" } });
     expect(svg.status()).toBe(400);
   });
+  test("the largest smart link allowed is accepted", async ({ request, playwright }) => {
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    await ensureDomain(admin);
+    const host = (n: number) => `https://a.b.c.d${n}.${uniq("big").toLowerCase()}.example.test/`;
+    const res = await admin.post("/api/links", {
+      data: {
+        url: host(0),
+        rules: Array.from({ length: 20 }, (_, i) => ({ languages: ["it"], url: host(i + 1) })),
+        variants: Array.from({ length: 10 }, (_, i) => ({ url: host(i + 21), weight: 1 })),
+      },
+    });
+    expect(res.status(), await res.text()).toBe(201);
+    await admin.dispose();
+  });
+
+  test("bad folder and odd pagination are client errors, not crashes", async ({ request, playwright }) => {
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    await ensureDomain(admin);
+    const bad = await admin.post("/api/links", { data: { url: "https://example.com/x", folderId: "does-not-exist" } });
+    expect(bad.status()).toBe(400);
+    expect((await bad.json()).error).toBe("unknown_folder");
+    const page = await admin.get("/api/links?page=1.5&pageSize=1.5");
+    expect(page.ok()).toBeTruthy();
+    expect(await page.json()).toMatchObject({ page: 1, pageSize: 1 });
+    expect((await admin.get("/api/links?page=Infinity&pageSize=Infinity")).ok()).toBeTruthy();
+    await admin.dispose();
+  });
 });

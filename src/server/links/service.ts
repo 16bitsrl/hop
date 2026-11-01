@@ -294,6 +294,7 @@ export async function createLinkRecord(
   const { db, config } = platform;
   const domain = await resolveDomain(db, me, opts.domainId ?? input.domainId);
   if (!opts.skipSafety) await assertSafe(platform, destinationUrls(input));
+  await assertFolder(db, input.folderId);
 
   let slug = input.slug ?? null;
   if (slug) {
@@ -361,7 +362,10 @@ export async function updateLinkRecord(platform: Platform, current: LinkRow, inp
   await assertFolder(db, input.folderId);
 
   const set: Partial<typeof links.$inferInsert> = { updatedAt: new Date() };
-  if (input.url !== undefined) set.url = input.url;
+  if (input.url !== undefined && input.url !== current.url) {
+    // A new destination has not been checked yet: the old verdict does not apply to it.
+    Object.assign(set, { url: input.url, healthStatus: "unknown", healthCode: null, healthCheckedAt: null });
+  }
   if (input.title !== undefined) set.title = input.title;
   if (input.notes !== undefined) set.notes = input.notes;
   if (input.folderId !== undefined) set.folderId = input.folderId;
