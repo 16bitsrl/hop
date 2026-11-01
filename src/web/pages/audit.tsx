@@ -18,6 +18,29 @@ type Entry = {
 };
 type AuditResponse = { items: Entry[]; total: number; page: number; pageSize: number; entityTypes: string[]; actions: string[] };
 
+type TFn = (key: string, options?: { defaultValue?: string }) => string;
+
+/** Friendly name of an action code like "link.update"; unknown codes show as they are. */
+function actionLabel(t: TFn, action: string) {
+  return t(`actions.${action.replace(".", "_")}`, { defaultValue: action });
+}
+function entityLabel(t: TFn, type: string) {
+  return t(`entities.${type}`, { defaultValue: type });
+}
+
+/** The thing the entry is about, in words: an email, a name or an address when there is one. */
+function itemLabel(t: TFn, e: Entry) {
+  if (e.entityType === "settings" && e.entityId) return t(`settingsAreas.${e.entityId}`, { defaultValue: e.entityId });
+  if (e.entityType === "data" && e.entityId) return t(`dataItems.${e.entityId}`, { defaultValue: e.entityId });
+  const data = (e.data ?? {}) as Record<string, unknown> & { before?: Record<string, unknown>; after?: Record<string, unknown> };
+  const record = data.after ?? data.before ?? data;
+  for (const key of ["email", "slug", "host", "name"]) {
+    const value = record[key] ?? data[key];
+    if (typeof value === "string" && value) return value;
+  }
+  return null;
+}
+
 export function AuditPage() {
   return (
     <RequireAdmin>
@@ -71,7 +94,7 @@ function AuditContent() {
               <option value="">{t("allTypes")}</option>
               {data?.entityTypes.map((v) => (
                 <option key={v} value={v}>
-                  {v}
+                  {entityLabel(t, v)}
                 </option>
               ))}
             </Select>
@@ -83,7 +106,7 @@ function AuditContent() {
               <option value="">{t("allActions")}</option>
               {data?.actions.map((v) => (
                 <option key={v} value={v}>
-                  {v}
+                  {actionLabel(t, v)}
                 </option>
               ))}
             </Select>
@@ -113,12 +136,15 @@ function AuditContent() {
                   <Tr key={e.id}>
                     <Td className="whitespace-nowrap text-muted">{formatDateTime(e.ts, i18n.language)}</Td>
                     <Td className="whitespace-nowrap">{e.userName ?? t("system")}</Td>
-                    <Td>
-                      <code className="rounded bg-subtle px-1.5 py-0.5 font-mono text-xs">{e.action}</code>
-                    </Td>
+                    <Td className="whitespace-nowrap font-medium">{actionLabel(t, e.action)}</Td>
                     <Td className="text-[13px]">
-                      <span className="text-muted">{e.entityType}</span>
-                      {e.entityId && <span className="ml-1.5 break-all font-mono text-xs">{e.entityId}</span>}
+                      <span className="text-muted">{entityLabel(t, e.entityType)}</span>
+                      {itemLabel(t, e) && <span className="ml-1.5 break-all">{itemLabel(t, e)}</span>}
+                      {e.entityId && e.entityType !== "settings" && e.entityType !== "data" && (
+                        <span className="ml-1.5 break-all font-mono text-xs text-muted" title={e.entityId}>
+                          {e.entityId}
+                        </span>
+                      )}
                     </Td>
                     <Td className="max-w-64 truncate font-mono text-xs text-muted" title={e.data ? JSON.stringify(e.data) : undefined}>
                       {e.data ? JSON.stringify(e.data) : ""}

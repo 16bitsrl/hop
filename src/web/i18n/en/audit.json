@@ -1,5 +1,5 @@
 {
-  "title": "Audit log",
+  "title": "Activity log",
   "description": "Who changed what, and when.",
   "user": "User",
   "type": "Type",
@@ -7,10 +7,71 @@
   "allUsers": "Everyone",
   "allTypes": "All types",
   "allActions": "All actions",
-  "columns": { "when": "When", "user": "User", "action": "Action", "item": "Item", "details": "Details" },
+  "columns": {
+    "when": "When",
+    "user": "User",
+    "action": "Action",
+    "item": "Item",
+    "details": "Details"
+  },
   "empty": "Nothing recorded yet.",
   "emptyFiltered": "No entries match these filters.",
   "system": "System",
   "page": "Page {{page}} of {{pages}}",
-  "total": "{{count}} entries"
+  "total": "{{count}} entries",
+  "actions": {
+    "link_create": "Link created",
+    "link_update": "Link updated",
+    "link_delete": "Link deleted",
+    "domain_create": "Domain added",
+    "domain_update": "Domain updated",
+    "domain_delete": "Domain deleted",
+    "folder_create": "Folder created",
+    "folder_update": "Folder updated",
+    "folder_delete": "Folder deleted",
+    "tag_create": "Tag created",
+    "tag_update": "Tag updated",
+    "tag_delete": "Tag deleted",
+    "blocked_domain_create": "Domain blocked",
+    "blocked_domain_delete": "Domain unblocked",
+    "invite_create": "Invitation created",
+    "invite_revoke": "Invitation revoked",
+    "invite_accept": "Invitation accepted",
+    "key_create": "API key created",
+    "key_revoke": "API key revoked",
+    "user_setup": "First account created",
+    "user_sso_create": "Account created with single sign-on",
+    "user_role": "Role changed",
+    "user_disable": "User disabled",
+    "user_enable": "User enabled",
+    "user_reset_link": "Password reset link created",
+    "settings_update": "Settings changed",
+    "data_export": "Data exported",
+    "data_import": "Links imported",
+    "data_restore": "Backup restored"
+  },
+  "entities": {
+    "link": "Link",
+    "user": "User",
+    "domain": "Domain",
+    "folder": "Folder",
+    "tag": "Tag",
+    "invite": "Invitation",
+    "api_key": "API key",
+    "blocked_domain": "Blocked domain",
+    "settings": "Settings",
+    "data": "Data"
+  },
+  "settingsAreas": {
+    "slugs": "Short link endings",
+    "auth": "Password sign-in",
+    "oidc": "Single sign-on",
+    "smtp": "Email",
+    "stats": "Statistics",
+    "linkHealth": "Broken link check"
+  },
+  "dataItems": {
+    "backup": "Backup",
+    "links.csv": "Links (CSV)"
+  }
 }

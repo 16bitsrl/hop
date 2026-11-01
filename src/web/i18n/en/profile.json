@@ -34,7 +34,7 @@
     "addTitle": "Add a passkey",
     "addText": "Your device will ask you to confirm.",
     "name": "Passkey name",
-    "namePlaceholder": "For example, My laptop",
+    "namePlaceholder": "For example, my laptop",
     "submit": "Add passkey",
     "added": "Passkey added",
     "empty": "You have no passkeys yet.",

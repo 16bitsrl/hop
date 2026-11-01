@@ -17,10 +17,11 @@
     "dashboard": "Dashboard",
     "domains": "Domains",
     "users": "Users",
-    "audit": "Audit log",
+    "audit": "Activity log",
     "settings": "Settings",
     "profile": "Profile",
-    "admin": "Administration"
+    "admin": "Administration",
+    "main": "Main"
   },
   "openMenu": "Open menu",
   "closeMenu": "Close menu",

@@ -12,7 +12,7 @@ test("member and viewer cannot open admin pages or admin APIs", async ({ page, r
     await loginAs(page, user);
     await expect(page.getByRole("link", { name: "Users" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Settings" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Audit log" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Activity log" })).toHaveCount(0);
     for (const path of ["/users", "/settings", "/audit"]) {
       await page.goto(path);
       await expect(page.getByText("You don't have access to this page.")).toBeVisible();
@@ -130,15 +130,15 @@ test("the audit log records user actions and can be filtered", async ({ page, re
   const api = await apiAs(playwright, admin);
   await api.patch(`/api/users/${member.id}`, { data: { role: "viewer" } });
   await loginAs(page, admin, "/audit");
-  await expect(page.getByRole("heading", { name: "Audit log" })).toBeVisible();
-  const row = page.getByRole("row", { name: /user\.role/ }).first();
+  await expect(page.getByRole("heading", { name: "Activity log" })).toBeVisible();
+  const row = page.getByRole("row", { name: /Role changed/ }).first();
   await expect(row).toContainText(admin.name);
   await expect(row).toContainText(member.id);
 
   await page.getByLabel("Action").selectOption("invite.create");
-  await expect(page.getByRole("row", { name: /user\.role/ })).toHaveCount(0);
+  await expect(page.getByRole("row", { name: /Role changed/ })).toHaveCount(0);
   await page.getByLabel("Action").selectOption("");
   await page.getByLabel("User", { exact: true }).selectOption(admin.id);
-  await expect(page.getByRole("row", { name: /user\.role/ }).first()).toBeVisible();
+  await expect(page.getByRole("row", { name: /Role changed/ }).first()).toBeVisible();
   await api.dispose();
 });

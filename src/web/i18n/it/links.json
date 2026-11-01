@@ -33,8 +33,8 @@
   },
   "sort": {
     "created": "Data di creazione",
-    "clicks": "Click",
-    "lastClick": "Ultimo click",
+    "clicks": "Clic",
+    "lastClick": "Ultimo clic",
     "slug": "Finale del link breve"
   },
   "columns": {
@@ -42,7 +42,7 @@
     "destination": "Destinazione",
     "owner": "Proprietario",
     "tags": "Tag",
-    "clicks": "Click",
+    "clicks": "Clic",
     "status": "Stato",
     "actions": "Azioni"
   },
@@ -55,7 +55,7 @@
   "total_other": "{{count}} link",
   "pageOf": "Pagina {{page}} di {{pages}}",
   "card": {
-    "meta": "{{clicks}} click · {{owner}} · {{date}}"
+    "meta": "{{clicks}} clic · {{owner}} · {{date}}"
   },
   "bulk": {
     "selected_one": "{{count}} selezionato",
@@ -96,7 +96,7 @@
     "lookingUp": "Cerco il titolo della pagina..."
   },
   "fields": {
-    "url": "Indirizzo di destinazione",
+    "url": "Destinazione",
     "slug": "Finale del link breve",
     "slugHint": "Lascia vuoto per crearlo in automatico. Lettere, numeri, - e _.",
     "domain": "Dominio",
@@ -107,7 +107,7 @@
     "notesHint": "Le vede solo il tuo team.",
     "redirectType": "Tipo di reindirizzamento",
     "redirectTypeHint": "Lascia 302 se non hai bisogno di un altro tipo.",
-    "forwardQuery": "Inoltra i parametri del visitatore",
+    "forwardQuery": "Inoltra ciò che i visitatori aggiungono al link",
     "forwardQueryHint": "Quello che segue il ? nel link breve viene aggiunto alla destinazione.",
     "password": "Password",
     "passwordHint": "I visitatori devono inserirla prima di essere mandati alla destinazione.",
@@ -116,9 +116,9 @@
     "passwordRemoved": "Password rimossa",
     "expiresAt": "Scade il",
     "expiresAtHint": "Dopo questo momento il link non reindirizza più.",
-    "maxClicks": "Click massimi",
-    "maxClicksHint": "Il link non reindirizza più dopo questo numero di click.",
-    "fallbackUrl": "Indirizzo alternativo",
+    "maxClicks": "Clic massimi",
+    "maxClicksHint": "Il link non reindirizza più dopo questo numero di clic.",
+    "fallbackUrl": "Destinazione alternativa",
     "fallbackUrlHint": "Dove vanno i visitatori quando il link è disattivato o scaduto. Lascia vuoto per mostrare una pagina di errore."
   },
   "folders": {
@@ -154,8 +154,8 @@
     "activeHint": "Disattivalo per fermare il reindirizzamento senza eliminare il link.",
     "status": "Stato",
     "owner": "Creato da",
-    "clicks": "Click",
-    "lastClick": "Ultimo click",
+    "clicks": "Clic",
+    "lastClick": "Ultimo clic",
     "created": "Creato",
     "updated": "Ultima modifica"
   },
@@ -170,10 +170,10 @@
     "remove": "Rimuovi il tag {{name}}"
   },
   "redirectTypes": {
-    "301": "301 Permanente",
-    "302": "302 Temporaneo (consigliato)",
-    "307": "307 Temporaneo, mantiene il metodo",
-    "308": "308 Permanente, mantiene il metodo"
+    "301": "Permanente (301)",
+    "302": "Temporaneo (302, consigliato)",
+    "307": "Temporaneo, mantiene il metodo (307)",
+    "308": "Permanente, mantiene il metodo (308)"
   },
   "smart": {
     "rulesTitle": "Regole",
@@ -199,17 +199,17 @@
     "languages": "Lingue",
     "languagesShort": "lingue",
     "languagesHint": "Codici lingua, come it o en.",
-    "destination": "Indirizzo di destinazione",
-    "destinationShort": "indirizzo di destinazione",
+    "destination": "Destinazione",
+    "destinationShort": "destinazione",
     "appLink": "Link all'app (facoltativo)",
     "appLinkShort": "link all'app",
-    "appLinkHint": "Apre l'app sui telefoni che ce l'hanno. Altrimenti si usa l'indirizzo di destinazione.",
+    "appLinkHint": "Apre l'app sui telefoni che ce l'hanno. Altrimenti si usa la destinazione.",
     "variantsTitle": "Test A/B",
     "variantsHint": "Dividi i visitatori tra più destinazioni. Quando ci sono varianti si usano solo quelle, quindi inserisci anche la destinazione principale.",
     "addVariant": "Aggiungi variante",
     "noVariants": "Nessuna variante. Tutti vanno alla destinazione principale.",
     "variantsMin": "Aggiungi almeno due varianti, oppure rimuovi quella che hai.",
-    "variantUrl": "Indirizzo della variante {{n}}",
+    "variantUrl": "Destinazione della variante {{n}}",
     "variantWeight": "Peso della variante {{n}}",
     "removeVariant": "Rimuovi la variante {{n}}",
     "mainAppTitle": "Link all'app per la destinazione principale",
@@ -284,18 +284,18 @@
     "fields": {
       "host": "Dominio",
       "slug": "Finale del link breve",
-      "url": "Indirizzo di destinazione",
+      "url": "Destinazione",
       "title": "Titolo",
       "notes": "Note",
       "folder": "Cartella",
       "tags": "Tag",
       "redirectType": "Tipo di reindirizzamento",
-      "forwardQuery": "Inoltro dei parametri",
+      "forwardQuery": "Inoltro delle aggiunte",
       "enabled": "Attivo",
       "hasPassword": "Con password",
       "expiresAt": "Scade il",
-      "maxClicks": "Click massimi",
-      "fallbackUrl": "Indirizzo alternativo",
+      "maxClicks": "Clic massimi",
+      "fallbackUrl": "Destinazione alternativa",
       "rules": "Regole",
       "variants": "Varianti A/B",
       "appUrl": "Link all'app",

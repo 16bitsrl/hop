@@ -18,7 +18,7 @@
     "visitors": "Unique visitors",
     "visitorsHint": "Each person is counted once a day",
     "bots": "Bot clicks",
-    "botsHint": "Automated visits, like link checkers and crawlers",
+    "botsHint": "Automated visits, like link checks and search engines",
     "links": "Links",
     "linksHint": "In total"
   },
@@ -43,7 +43,7 @@
     "other": "Other"
   },
   "breakdown": {
-    "referrers": "Referrers",
+    "referrers": "Traffic sources",
     "countries": "Countries",
     "cities": "Cities",
     "devices": "Devices",

@@ -82,7 +82,7 @@ test.describe("share target and bookmarklet", () => {
   test("the bookmarklet is shown on the API help page", async ({ page, request }) => {
     const user = await createUser(request, { role: "member" });
     await loginAs(page, user, "/api-help");
-    await expect(page.getByRole("heading", { name: "Bookmarklet" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Shorten from your browser" })).toBeVisible();
     await expect(page.getByText("javascript:", { exact: false })).toBeVisible();
   });
 });

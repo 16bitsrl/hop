@@ -71,7 +71,7 @@
   },
   "backup": {
     "title": "Backup and export",
-    "description": "Download everything hop knows: links, clicks, users and their sign-in methods, tags, folders, settings and the audit log. Keep the file somewhere safe: it contains password hashes.",
+    "description": "Download everything hop knows: links, clicks, users and their sign-in methods, tags, folders, settings and the activity log. Keep the file somewhere safe: it contains private data, such as sign-in details.",
     "download": "Download backup",
     "csv": "Export all links (CSV)",
     "csvHint": "A spreadsheet with one row per link.",

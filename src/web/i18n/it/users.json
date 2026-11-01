@@ -2,9 +2,15 @@
   "title": "Utenti",
   "description": "Le persone che possono accedere a hop.",
   "invite": "Invita utente",
-  "columns": { "user": "Utente", "role": "Ruolo", "status": "Stato", "actions": "Azioni", "expires": "Scade" },
+  "columns": {
+    "user": "Utente",
+    "role": "Ruolo",
+    "status": "Stato",
+    "actions": "Azioni",
+    "expires": "Scade"
+  },
   "roleFor": "Ruolo di {{email}}",
-  "roleHelp": "Gli amministratori gestiscono tutto. I membri creano e modificano i propri link. Chi ha solo lettura può soltanto guardare.",
+  "roleHelp": "Gli amministratori gestiscono tutto. I membri creano e modificano i propri link. Chi ha il ruolo di sola lettura può solo guardare.",
   "active": "Attivo",
   "disabled": "Disattivato",
   "you": "Tu",

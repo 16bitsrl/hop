@@ -62,7 +62,7 @@
       "text": "401 means the key is missing, wrong or revoked. 403 means your role can't do that. 400 comes with a list of the fields to fix."
     },
     "bookmarklet": {
-      "title": "Bookmarklet",
+      "title": "Shorten from your browser",
       "text": "Save the code below as a bookmark. When you are on a page you want to shorten, click the bookmark and hop opens with the address already filled in. On Android you can also share a page to hop from the share menu once the app is installed."
     }
   }

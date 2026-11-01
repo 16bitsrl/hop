@@ -107,7 +107,7 @@
     "notesHint": "Only your team sees these.",
     "redirectType": "Redirect type",
     "redirectTypeHint": "Leave it on 302 unless you know you need another one.",
-    "forwardQuery": "Pass on the visitor's query parameters",
+    "forwardQuery": "Pass along what visitors add to the link",
     "forwardQueryHint": "Anything after the ? in the short link is added to the destination.",
     "password": "Password",
     "passwordHint": "Visitors must enter it before they are sent to the destination.",
@@ -118,7 +118,7 @@
     "expiresAtHint": "After this moment the link stops redirecting.",
     "maxClicks": "Maximum clicks",
     "maxClicksHint": "The link stops redirecting after this many clicks.",
-    "fallbackUrl": "Fallback URL",
+    "fallbackUrl": "Backup destination",
     "fallbackUrlHint": "Where visitors go when the link is off or expired. Leave empty to show a not-found page."
   },
   "folders": {
@@ -170,10 +170,10 @@
     "remove": "Remove tag {{name}}"
   },
   "redirectTypes": {
-    "301": "301 Permanent",
-    "302": "302 Temporary (recommended)",
-    "307": "307 Temporary, keeps the request method",
-    "308": "308 Permanent, keeps the request method"
+    "301": "Permanent (301)",
+    "302": "Temporary (302, recommended)",
+    "307": "Temporary, keeps the request method (307)",
+    "308": "Permanent, keeps the request method (308)"
   },
   "smart": {
     "rulesTitle": "Rules",
@@ -290,12 +290,12 @@
       "folder": "Folder",
       "tags": "Tags",
       "redirectType": "Redirect type",
-      "forwardQuery": "Pass on query parameters",
+      "forwardQuery": "Pass along additions",
       "enabled": "Active",
       "hasPassword": "Password protected",
       "expiresAt": "Expires on",
       "maxClicks": "Maximum clicks",
-      "fallbackUrl": "Fallback URL",
+      "fallbackUrl": "Backup destination",
       "rules": "Rules",
       "variants": "A/B variants",
       "appUrl": "App link",

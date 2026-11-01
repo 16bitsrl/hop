@@ -2,7 +2,7 @@
   "title": "Dati",
   "yourls": {
     "title": "Importa da YOURLS",
-    "description": "Porta qui i tuoi link e tutto lo storico dei clic da un file di backup di YOURLS. Non si perde nulla: ogni link mantiene suffisso, destinazione, titolo, data di creazione e numero di clic.",
+    "description": "Porta qui i tuoi link e tutto lo storico dei clic da un file di backup di YOURLS. Non si perde nulla: ogni link mantiene finale, destinazione, titolo, data di creazione e numero di clic.",
     "file": "File di backup di YOURLS",
     "fileHint": "Scegli il file .sql (o .sql.gz) esportato dal database di YOURLS. Viene letto nel tuo browser e inviato a hop a piccole parti, quindi anche i file grandi vanno bene.",
     "reading": "Lettura del file in corso…",
@@ -27,7 +27,7 @@
       "title": "Come importare",
       "domain": "Dominio breve",
       "domainHint": "I link importati funzioneranno su questo dominio.",
-      "noDomains": "Aggiungi prima un dominio breve (in Domini), poi torna qui.",
+      "noDomains": "Aggiungi prima un dominio breve in «Domini», poi torna qui.",
       "owner": "Proprietario dei link importati",
       "redirectType": "Tipo di reindirizzamento",
       "redirectHint": "Il 302 fa passare ogni visita da hop, così tutti i clic vengono contati. È quello che faceva il tuo YOURLS.",
@@ -35,9 +35,9 @@
       "timeZoneHint": "YOURLS salva le date in UTC, quindi lascia questo valore a meno che tu sappia che il tuo server ha salvato l'ora locale. Se le date importate sembrano sfasate di qualche ora, prova il tuo fuso orario, per esempio Europe/Rome.",
       "timeZoneInvalid": "Questo fuso orario non è valido.",
       "checking": "Controllo dei link esistenti…",
-      "conflicts_one": "{{count}} link del file usa già lo stesso suffisso su questo dominio.",
-      "conflicts_other": "{{count}} link del file usano già lo stesso suffisso su questo dominio.",
-      "noConflicts": "Nessun link di questo dominio usa gli stessi suffissi.",
+      "conflicts_one": "{{count}} link del file usa già lo stesso finale su questo dominio.",
+      "conflicts_other": "{{count}} link del file usano già lo stesso finale su questo dominio.",
+      "noConflicts": "Nessun link di questo dominio usa gli stessi finali.",
       "skip": "Salta i link esistenti",
       "skipHint": "Lascia com'è ciò che c'è già. Neanche i loro clic vengono importati.",
       "overwrite": "Sostituisci i link esistenti",
@@ -62,7 +62,7 @@
       "check": "Su {{host}} ci sono ora {{links}} link, con {{clicks}} clic contati e {{history}} clic nello storico.",
       "problems": "Questi link non sono stati importati:",
       "reasons": {
-        "invalid_slug": "il suffisso contiene caratteri non consentiti",
+        "invalid_slug": "il finale contiene caratteri non consentiti",
         "invalid_url": "la destinazione non è un indirizzo web valido"
       },
       "viewLinks": "Vedi i link",
@@ -71,7 +71,7 @@
   },
   "backup": {
     "title": "Backup ed esportazione",
-    "description": "Scarica tutto ciò che hop conosce: link, clic, utenti e relativi metodi di accesso, tag, cartelle, impostazioni e registro delle attività. Conserva il file in un posto sicuro: contiene le password in forma cifrata.",
+    "description": "Scarica tutto ciò che hop conosce: link, clic, utenti e relativi metodi di accesso, tag, cartelle, impostazioni e registro attività. Conserva il file in un posto sicuro: contiene dati riservati, come i dati di accesso.",
     "download": "Scarica il backup",
     "csv": "Esporta tutti i link (CSV)",
     "csvHint": "Un foglio di calcolo con una riga per ogni link.",

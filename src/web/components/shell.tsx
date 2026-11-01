@@ -59,7 +59,7 @@ function SidebarContent({ onSignOut }: { onSignOut: () => void }) {
   return (
     <div className="flex h-full flex-col gap-4 py-4">
       <Brand />
-      <nav className="flex flex-1 flex-col gap-0.5 px-2" aria-label="Main">
+      <nav className="flex flex-1 flex-col gap-0.5 px-2" aria-label={t("nav.main")}>
         {main.map((i) => (
           <NavLink key={i.to} item={i} />
         ))}
