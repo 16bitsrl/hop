@@ -98,6 +98,7 @@ function toJson(
     lastClickedAt: r.lastClickedAt,
     healthStatus: r.healthStatus,
     healthCode: r.healthCode,
+    healthCheckedAt: r.healthCheckedAt,
     states: linkStates(r),
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,

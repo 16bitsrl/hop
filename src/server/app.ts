@@ -4,6 +4,8 @@ import type { Platform } from "./platform/types";
 import { apiRoutes } from "./routes";
 import { handleShortDomain } from "./redirect/handler";
 import { serveMedia } from "./routes/media";
+import { checkDatabase, healthReport } from "./ops/health";
+import { collectStats, formatMetrics, metricsAuthorized } from "./ops/metrics";
 
 /**
  * Builds the HTTP app. `serveAssets` serves the SPA (and static files) on the app host.
@@ -27,7 +29,19 @@ export function createApp(opts: {
     await next();
   });
 
-  app.get("/healthz", (c) => c.json({ ok: true }));
+  app.get("/healthz", async (c) => {
+    const { status, body } = healthReport(await checkDatabase(c.var.platform.db));
+    return c.json(body, status);
+  });
+  app.get("/metrics", async (c) => {
+    const token = c.var.platform.config.metricsToken;
+    if (!token) return c.notFound();
+    if (!metricsAuthorized(c.req.header("authorization"), token)) {
+      return c.text("unauthorized", 401, { "www-authenticate": 'Bearer realm="metrics"' });
+    }
+    const text = formatMetrics(await collectStats(c.var.platform.db));
+    return c.body(text, 200, { "content-type": "text/plain; version=0.0.4; charset=utf-8", "cache-control": "no-store" });
+  });
   app.route("/api", apiRoutes);
   app.get("/media/:file", serveMedia);
 

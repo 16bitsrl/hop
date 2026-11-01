@@ -241,8 +241,14 @@ export const clicks = sqliteTable(
     /** Which destination served: "main", "rule:<i>", "variant:<i>". */
     target: text("target"),
     source: text("source").$type<"live" | "import">().notNull().default("live"),
+    /** Identity of an imported click ("yourls:<domain id>:<click id>"): importing twice never duplicates. */
+    importKey: text("import_key"),
   },
-  (t) => [index("clicks_link_ts_idx").on(t.linkId, t.ts), index("clicks_ts_idx").on(t.ts)],
+  (t) => [
+    index("clicks_link_ts_idx").on(t.linkId, t.ts),
+    index("clicks_ts_idx").on(t.ts),
+    uniqueIndex("clicks_import_key_uq").on(t.importKey),
+  ],
 );
 
 /* ------------------------------------------------------------------ */

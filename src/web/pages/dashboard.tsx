@@ -12,6 +12,7 @@ import {
   SeriesChart,
   useStatsControls,
 } from "../features/stats/components";
+import { BrokenLinksCard } from "../features/data/health";
 import { useFormat } from "../features/stats/format";
 import { exportUrl, useDashboard } from "../features/stats/queries";
 import type { Dashboard } from "../features/stats/types";
@@ -50,6 +51,7 @@ export function DashboardPage() {
           <RecentLinks data={data} />
           <LinksByOwner data={data} />
         </div>
+        <BrokenLinksCard />
       </div>
     </>
   );

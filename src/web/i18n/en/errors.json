@@ -38,5 +38,11 @@
   "csv_empty": "The file is empty.",
   "csv_missing_url": "The file needs a column called url.",
   "csv_too_many_rows": "The file has too many rows. The limit is 500.",
-  "invalid_range": "The date range is not valid."
+  "invalid_range": "The date range is not valid.",
+  "unknown_owner": "That user doesn't exist.",
+  "not_empty": "This installation already has accounts, so a backup can't be restored here.",
+  "restore_failed": "The backup could not be restored. The file may be damaged.",
+  "restore_incomplete": "The backup file is incomplete. Some data is missing.",
+  "invalid_backup": "This doesn't look like a hop backup.",
+  "too_many_keys": "You have too many active keys. Revoke one first."
 }

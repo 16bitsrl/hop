@@ -1,0 +1,123 @@
+{
+  "title": "Data",
+  "yourls": {
+    "title": "Import from YOURLS",
+    "description": "Bring your links and their full click history from a YOURLS backup file. Nothing is lost: every link keeps its ending, destination, title, creation date and click count.",
+    "file": "YOURLS backup file",
+    "fileHint": "Choose the .sql file (or .sql.gz) exported from your YOURLS database. It is read in your browser and sent to hop in small parts, so large files are fine.",
+    "reading": "Reading the file…",
+    "readFailed": "We couldn't read this file.",
+    "noLinks": "We couldn't find any YOURLS links in this file. Make sure it is a backup of your YOURLS database.",
+    "summary": {
+      "title": "What is in the file",
+      "links": "Links",
+      "clicks": "Clicks",
+      "firstClick": "First click",
+      "lastClick": "Last click",
+      "orphans": "Clicks without a link",
+      "orphansHint": "They belong to short links that are not in the file, so they will not be imported.",
+      "lifetime": "Clicks counted on the links",
+      "lifetimeHint": "The running total kept by YOURLS. It can differ a little from the clicks listed in the history.",
+      "prefix": "Table prefix",
+      "none": "none"
+    },
+    "continue": "Continue",
+    "back": "Back",
+    "options": {
+      "title": "How to import",
+      "domain": "Short domain",
+      "domainHint": "The imported links will work on this domain.",
+      "noDomains": "Add a short domain first (in Domains), then come back here.",
+      "owner": "Owner of imported links",
+      "redirectType": "Redirect type",
+      "redirectHint": "302 sends every visit through hop, so all clicks are counted. It matches what your YOURLS was doing.",
+      "timeZone": "Time zone of the dates",
+      "timeZoneHint": "YOURLS saves dates in UTC, so leave this as is unless you know your server saved local time. If imported dates look a few hours off, try your local time zone, for example Europe/Rome.",
+      "timeZoneInvalid": "This time zone is not valid.",
+      "checking": "Checking existing links…",
+      "conflicts_one": "{{count}} link in the file already uses the same ending on this domain.",
+      "conflicts_other": "{{count}} links in the file already use the same ending on this domain.",
+      "noConflicts": "No link on this domain uses the same endings.",
+      "skip": "Skip existing links",
+      "skipHint": "Keep what is already there. Their clicks are not imported either.",
+      "overwrite": "Replace existing links",
+      "overwriteHint": "Update them with the data from the file. Use this to finish an interrupted import: clicks that were already imported are never duplicated.",
+      "start": "Start import"
+    },
+    "progress": {
+      "title": "Importing…",
+      "links": "Links: {{done}} of {{total}}",
+      "clicks": "Clicks: {{done}} of {{total}}",
+      "keepOpen": "Keep this page open until it finishes."
+    },
+    "report": {
+      "title": "Import finished",
+      "created": "Links created",
+      "updated": "Links updated",
+      "skipped": "Links skipped",
+      "failed": "Links not imported",
+      "clicks": "Clicks imported",
+      "duplicates": "Clicks already imported",
+      "orphans": "Clicks without a link",
+      "check": "On {{host}} there are now {{links}} links, with {{clicks}} clicks counted and {{history}} clicks in the history.",
+      "problems": "These links could not be imported:",
+      "reasons": {
+        "invalid_slug": "the ending contains characters that are not allowed",
+        "invalid_url": "the destination is not a valid web address"
+      },
+      "viewLinks": "View links",
+      "again": "Import another file"
+    }
+  },
+  "backup": {
+    "title": "Backup and export",
+    "description": "Download everything hop knows: links, clicks, users and their sign-in methods, tags, folders, settings and the audit log. Keep the file somewhere safe: it contains password hashes.",
+    "download": "Download backup",
+    "csv": "Export all links (CSV)",
+    "csvHint": "A spreadsheet with one row per link.",
+    "started": "Your download has started."
+  },
+  "restore": {
+    "title": "Restore a backup",
+    "description": "A backup can only be restored into a new, empty installation. Before creating the first account, open the first-run page and choose “Restore from a backup”.",
+    "link": "Restore from a backup",
+    "page": {
+      "title": "Restore from a backup",
+      "description": "Choose a backup file downloaded from hop. Everything in it will be restored, including accounts and passwords.",
+      "file": "Backup file",
+      "submit": "Restore",
+      "working": "Restoring…",
+      "progress": "{{done}} of {{total}} items",
+      "done": "Backup restored",
+      "doneText": "Your links, clicks and accounts are back. Sign in with your usual account.",
+      "signIn": "Sign in",
+      "notEmpty": "This installation already has accounts, so a backup can't be restored here. Restoring only works on a new, empty installation.",
+      "invalidFile": "This doesn't look like a hop backup.",
+      "back": "Back to setup"
+    }
+  },
+  "health": {
+    "title": "Broken link check",
+    "description": "hop regularly visits the destination of each link. A link is marked as broken after two failed checks in a row, so a short outage doesn't raise a false alarm.",
+    "enabled": "Check destinations",
+    "enabledHint": "Visits each active link now and then to see if the page still works.",
+    "every": "Check each link every",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "save": "Apply",
+    "dashboardTitle": "Broken links",
+    "dashboardEmpty": "No broken links. Everything we checked works.",
+    "viewAll": "View all ({{count}})",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "destination": "Destination check",
+    "notChecked": "Not checked yet",
+    "ok": "Working",
+    "broken": "Broken",
+    "failing": "Failed once, will be checked again",
+    "code": "Answer {{code}}",
+    "noAnswer": "No answer",
+    "checkedAt": "checked {{when}}",
+    "result": "Check finished"
+  }
+}

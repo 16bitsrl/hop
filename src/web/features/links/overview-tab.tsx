@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Card, CardBody, CopyButton, Switch } from "../../components/ui";
 import { formatDateTime } from "../../lib/cn";
+import { LinkHealth } from "../data/health";
 import { foldersQuery, usePatchLink, type Link } from "./api";
 import { StateBadges, TagChip } from "./parts";
 
@@ -16,6 +17,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function OverviewTab({ link }: { link: Link }) {
   const { t, i18n } = useTranslation("links");
+  const tData = useTranslation("data").t;
   const folders = useQuery(foldersQuery);
   const patch = usePatchLink(link.id);
   const folder = folders.data?.find((f) => f.id === link.folderId);
@@ -59,6 +61,9 @@ export function OverviewTab({ link }: { link: Link }) {
               <div className="flex flex-wrap gap-1.5">
                 <StateBadges states={link.states} />
               </div>
+            </Row>
+            <Row label={tData("health.destination")}>
+              <LinkHealth link={link} />
             </Row>
             <Row label={t("fields.tags")}>
               {link.tags.length ? (
