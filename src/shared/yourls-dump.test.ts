@@ -151,3 +151,28 @@ describe("mysqlDateToMs", () => {
     expect(mysqlDateToMs(null)).toBeNull();
   });
 });
+
+describe("large dumps", () => {
+  it("reads tens of thousands of click rows in streamed chunks", () => {
+    const rows: string[] = [];
+    for (let i = 1; i <= 60_000; i++) {
+      rows.push(`(${i},'2021-03-04 05:06:07','kw${i % 176}','https://t.co/abc?x=it\\'s','Mozilla/5.0 (X11; Linux x86_64)','203.0.113.${i % 250}','IT')`);
+    }
+    let text = "";
+    for (let i = 0; i < rows.length; i += 1500) text += `INSERT INTO \`yourls_log\` VALUES ${rows.slice(i, i + 1500).join(",")};\n`;
+    let n = 0;
+    let last: YourlsLogRow | null = null;
+    const p = new YourlsDumpParser({
+      onLog: (r) => {
+        n++;
+        last = r;
+      },
+    });
+    const started = performance.now();
+    for (let i = 0; i < text.length; i += 65_536) p.push(text.slice(i, i + 65_536));
+    p.end();
+    expect(n).toBe(60_000);
+    expect(last).toMatchObject({ clickId: 60_000, referrer: "https://t.co/abc?x=it's", country: "IT" });
+    expect(performance.now() - started).toBeLessThan(5000);
+  });
+});
