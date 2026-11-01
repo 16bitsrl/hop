@@ -11,6 +11,7 @@ import {
   CopyIcon,
   Dialog,
   EmptyState,
+  ErrorState,
   Field,
   Input,
   LinkIcon,
@@ -264,6 +265,10 @@ export function LinksPage() {
 
       {list.isPending ? (
         <PageSpinner />
+      ) : list.isError ? (
+        <Card>
+          <ErrorState onRetry={() => list.refetch()} retrying={list.isFetching} />
+        </Card>
       ) : items.length === 0 ? (
         <Card>
           <EmptyState

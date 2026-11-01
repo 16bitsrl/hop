@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { setLanguage, type Language } from "../i18n";
 import { authClient } from "../lib/auth-client";
@@ -101,16 +101,19 @@ export function Shell() {
   const { t } = useTranslation();
   const me = useMe();
   const [drawer, setDrawer] = useState(false);
+  const drawerRef = useRef<HTMLDialogElement>(null);
+  const drawerId = useId();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => setDrawer(false), [pathname]);
 
-  // Escape closes the menu on a phone.
+  // The menu on a phone is a native modal dialog: it takes focus, keeps Tab inside, makes the page
+  // behind it inert and gives focus back to the menu button when it closes.
   useEffect(() => {
-    if (!drawer) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const el = drawerRef.current;
+    if (!el) return;
+    if (drawer && !el.open) el.showModal();
+    if (!drawer && el.open) el.close();
   }, [drawer]);
 
   // The user's saved language wins over the browser's.
@@ -136,6 +139,8 @@ export function Shell() {
           type="button"
           onClick={() => setDrawer(true)}
           aria-label={t("openMenu")}
+          aria-expanded={drawer}
+          aria-controls={drawerId}
           className="rounded-md p-2 text-muted hover:bg-subtle hover:text-fg"
         >
           <MenuIcon />
@@ -143,22 +148,37 @@ export function Shell() {
         <Brand />
       </header>
 
-      {drawer && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label={t("openMenu")}>
-          <div className="absolute inset-0 bg-black/45" onClick={() => setDrawer(false)} />
-          <div className="absolute inset-y-0 left-0 w-64 max-w-[85%] animate-[hop-slide_160ms_ease-out] border-r border-line bg-surface shadow-xl">
+      <dialog
+        ref={drawerRef}
+        id={drawerId}
+        aria-label={t("openMenu")}
+        onCancel={(e) => {
+          e.preventDefault();
+          setDrawer(false);
+        }}
+        onClose={() => setDrawer(false)}
+        onMouseDown={(e) => {
+          if (e.target === drawerRef.current) setDrawer(false);
+        }}
+        className={cn(
+          "fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-64 max-w-[85%] border-0 border-r border-line bg-surface p-0 text-fg shadow-xl",
+          "open:animate-[hop-slide_160ms_ease-out] backdrop:bg-black/45 lg:hidden",
+        )}
+      >
+        {drawer && (
+          <>
             <button
               type="button"
               onClick={() => setDrawer(false)}
               aria-label={t("closeMenu")}
-              className={cn("absolute right-2 top-3 rounded-md p-2 text-muted hover:bg-subtle hover:text-fg")}
+              className="absolute right-2 top-3 rounded-md p-2 text-muted hover:bg-subtle hover:text-fg"
             >
               <CloseIcon />
             </button>
             <SidebarContent onSignOut={signOut} />
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </dialog>
 
       <main className="min-w-0 px-4 py-6 sm:px-8 lg:py-8">
         <div className="mx-auto max-w-5xl">

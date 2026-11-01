@@ -10,6 +10,7 @@ import {
   CopyButton,
   Dialog,
   EmptyState,
+  ErrorState,
   Field,
   Input,
   PageSpinner,
@@ -326,6 +327,8 @@ function ResetDialog({ user, onClose }: { user: UserRow; onClose: () => void }) 
             </div>
           )}
         </Field>
+      ) : link.isError ? (
+        <ErrorState onRetry={() => link.refetch()} retrying={link.isFetching} />
       ) : (
         <PageSpinner />
       )}

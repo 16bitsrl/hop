@@ -12,6 +12,9 @@
   "next": "Next",
   "none": "None",
   "unknown": "Unknown",
+  "loadFailed": "This couldn't be loaded.",
+  "loadFailedHint": "Check your connection and try again.",
+  "retry": "Try again",
   "nav": {
     "links": "Links",
     "dashboard": "Dashboard",

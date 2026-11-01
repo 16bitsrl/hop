@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, CardBody, CardHeader, CopyButton, Field, Input, PageSpinner, Select, Switch, Tabs, useToast } from "../components/ui";
+import { Button, Card, CardBody, CardHeader, CopyButton, ErrorState, Field, Input, PageSpinner, Select, Switch, TabPanel, Tabs, useToast } from "../components/ui";
 import { DataTab } from "../features/data/data-tab";
 import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
@@ -41,12 +41,14 @@ export function SettingsPage() {
 function SettingsContent() {
   const { t } = useTranslation("settings");
   const [tab, setTab] = useState<"signin" | "email" | "links" | "stats" | "data">("signin");
-  const { data } = useQuery(settingsQuery);
+  const { data, isError, isFetching, refetch } = useQuery(settingsQuery);
+  const tabsId = useId();
 
   return (
     <>
       <PageHeader title={t("title")} description={t("description")} />
       <Tabs
+        id={tabsId}
         tabs={[
           { id: "signin", label: t("tabs.signin") },
           { id: "email", label: t("tabs.email") },
@@ -57,14 +59,26 @@ function SettingsContent() {
         value={tab}
         onChange={setTab}
       />
-      <div className="mt-6 flex flex-col gap-6">
+      <TabPanel id={tabsId} value={tab} className="mt-6 flex flex-col gap-6">
         {tab === "links" ? (
           <>
             <LinksSettings />
             <HealthSettingsCard />
           </>
-        ) : tab === "stats" ? <RetentionCard /> : tab === "data" ? <DataTab /> : !data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
-      </div>
+        ) : tab === "stats" ? (
+          <RetentionCard />
+        ) : tab === "data" ? (
+          <DataTab />
+        ) : data ? (
+          tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />
+        ) : isError ? (
+          <Card>
+            <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+          </Card>
+        ) : (
+          <PageSpinner />
+        )}
+      </TabPanel>
     </>
   );
 }
