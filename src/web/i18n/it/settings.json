@@ -1,7 +1,7 @@
 {
   "title": "Impostazioni",
   "description": "Come si accede e come hop invia le email.",
-  "tabs": { "signin": "Accesso", "email": "Email" },
+  "tabs": { "signin": "Accesso", "email": "Email", "stats": "Statistiche" },
   "password": {
     "title": "Accesso con password",
     "allow": "Consenti l'accesso con password",

@@ -17,5 +17,6 @@
   "wrong_credentials": "Email o password errate.",
   "not_allowed": "Questo account non può accedere qui.",
   "invalid_token": "Questo link non è più valido.",
-  "passkey_failed": "Non è stato possibile usare la passkey. Riprova o accedi in un altro modo."
+  "passkey_failed": "Non è stato possibile usare la passkey. Riprova o accedi in un altro modo.",
+  "invalid_range": "Il periodo non è valido."
 }

@@ -1,7 +1,7 @@
 {
   "title": "Settings",
   "description": "How people sign in and how hop sends email.",
-  "tabs": { "signin": "Sign-in", "email": "Email" },
+  "tabs": { "signin": "Sign-in", "email": "Email", "stats": "Statistics" },
   "password": {
     "title": "Password sign-in",
     "allow": "Allow signing in with a password",

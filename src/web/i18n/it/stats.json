@@ -1,0 +1,95 @@
+{
+  "range": {
+    "label": "Periodo",
+    "24h": "24 ore",
+    "7d": "7 giorni",
+    "30d": "30 giorni",
+    "90d": "90 giorni",
+    "12m": "12 mesi",
+    "all": "Sempre",
+    "custom": "Personalizzato",
+    "from": "Dal",
+    "to": "Al",
+    "invalid": "La data iniziale deve precedere quella finale."
+  },
+  "includeBots": "Includi i bot",
+  "kpi": {
+    "clicks": "Click",
+    "visitors": "Visitatori unici",
+    "visitorsHint": "Ogni persona è contata una volta al giorno",
+    "bots": "Click dei bot",
+    "botsHint": "Visite automatiche, come controlli dei link e crawler",
+    "links": "Link",
+    "linksHint": "In totale"
+  },
+  "chart": {
+    "title": "Click nel tempo",
+    "label": "Click nel tempo, {{clicks}} in totale",
+    "clicks_one": "{{formatted}} click",
+    "clicks_other": "{{formatted}} click"
+  },
+  "empty": {
+    "title": "Nessun click in questo periodo",
+    "hint": "Prova un periodo più lungo, oppure condividi il link per ricevere le prime visite."
+  },
+  "noData": "Ancora niente da mostrare.",
+  "unknown": "Sconosciuto",
+  "direct": "Diretto",
+  "share": "Quota",
+  "devices": {
+    "desktop": "Computer",
+    "mobile": "Telefono",
+    "tablet": "Tablet",
+    "other": "Altro"
+  },
+  "breakdown": {
+    "referrers": "Provenienza",
+    "countries": "Paesi",
+    "cities": "Città",
+    "devices": "Dispositivi",
+    "os": "Sistemi operativi",
+    "browsers": "Browser",
+    "languages": "Lingue"
+  },
+  "targets": {
+    "title": "Destinazioni",
+    "main": "Destinazione principale",
+    "rule": "Regola {{n}}",
+    "variant": "Variante {{name}}"
+  },
+  "export": {
+    "summary": "Esporta riepilogo (CSV)",
+    "clicks": "Esporta click (CSV)"
+  },
+  "page": {
+    "title": "Statistiche del link",
+    "backToDashboard": "Torna alla dashboard"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Come stanno andando tutti i tuoi link.",
+    "topLinks": "Link più cliccati",
+    "recent": "Link creati di recente",
+    "byOwner": "Link per autore",
+    "link": "Link",
+    "created": "Creato",
+    "createdBy": "Creato da",
+    "owner": "Autore",
+    "links": "Link",
+    "noOwner": "Nessun autore",
+    "noLinks": "Ancora nessun link."
+  },
+  "public": {
+    "title": "Statistiche pubbliche",
+    "off": "Queste statistiche non sono pubbliche",
+    "offHint": "Chi ha creato questo link non ha condiviso le sue statistiche."
+  },
+  "retention": {
+    "title": "Statistiche",
+    "description": "Per quanto tempo hop conserva lo storico di ogni click. I totali di ciascun link non vengono mai cancellati.",
+    "days": "Conserva lo storico dei click per (giorni)",
+    "hint": "I click più vecchi vengono eliminati in automatico. Lascia vuoto per conservare tutto.",
+    "forever": "Per sempre",
+    "save": "Salva impostazioni statistiche"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "range": {
+    "label": "Date range",
+    "24h": "24 hours",
+    "7d": "7 days",
+    "30d": "30 days",
+    "90d": "90 days",
+    "12m": "12 months",
+    "all": "All time",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To",
+    "invalid": "The start date must be before the end date."
+  },
+  "includeBots": "Include bots",
+  "kpi": {
+    "clicks": "Clicks",
+    "visitors": "Unique visitors",
+    "visitorsHint": "Each person is counted once a day",
+    "bots": "Bot clicks",
+    "botsHint": "Automated visits, like link checkers and crawlers",
+    "links": "Links",
+    "linksHint": "In total"
+  },
+  "chart": {
+    "title": "Clicks over time",
+    "label": "Clicks over time, {{clicks}} in total",
+    "clicks_one": "{{formatted}} click",
+    "clicks_other": "{{formatted}} clicks"
+  },
+  "empty": {
+    "title": "No clicks in this period",
+    "hint": "Try a longer period, or share the link to get the first visits."
+  },
+  "noData": "Nothing to show yet.",
+  "unknown": "Unknown",
+  "direct": "Direct",
+  "share": "Share",
+  "devices": {
+    "desktop": "Desktop",
+    "mobile": "Mobile",
+    "tablet": "Tablet",
+    "other": "Other"
+  },
+  "breakdown": {
+    "referrers": "Referrers",
+    "countries": "Countries",
+    "cities": "Cities",
+    "devices": "Devices",
+    "os": "Operating systems",
+    "browsers": "Browsers",
+    "languages": "Languages"
+  },
+  "targets": {
+    "title": "Destinations",
+    "main": "Main destination",
+    "rule": "Rule {{n}}",
+    "variant": "Variant {{name}}"
+  },
+  "export": {
+    "summary": "Export summary (CSV)",
+    "clicks": "Export clicks (CSV)"
+  },
+  "page": {
+    "title": "Link statistics",
+    "backToDashboard": "Back to the dashboard"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "How all your links are doing.",
+    "topLinks": "Top links",
+    "recent": "Recently created links",
+    "byOwner": "Links by owner",
+    "link": "Link",
+    "created": "Created",
+    "createdBy": "Created by",
+    "owner": "Owner",
+    "links": "Links",
+    "noOwner": "No owner",
+    "noLinks": "No links yet."
+  },
+  "public": {
+    "title": "Public statistics",
+    "off": "These statistics are not public",
+    "offHint": "The owner of this link hasn't shared its statistics."
+  },
+  "retention": {
+    "title": "Statistics",
+    "description": "How long hop keeps the history of every click. Totals on each link are never deleted.",
+    "days": "Keep click history for (days)",
+    "hint": "Older clicks are deleted automatically. Leave empty to keep everything.",
+    "forever": "Forever",
+    "save": "Save statistics settings"
+  }
+}

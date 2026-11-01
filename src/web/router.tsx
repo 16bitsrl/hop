@@ -10,8 +10,10 @@ import { DomainsPage } from "./pages/domains";
 import { ForgotPasswordPage } from "./pages/forgot-password";
 import { InvitePage } from "./pages/invite";
 import { LinksPage } from "./pages/links";
+import { LinkStatsPage } from "./pages/link-stats";
 import { LoginPage } from "./pages/login";
 import { ProfilePage } from "./pages/profile";
+import { PublicStatsPage } from "./pages/public-stats";
 import { ResetPasswordPage } from "./pages/reset-password";
 import { SettingsPage } from "./pages/settings";
 import { SetupPage } from "./pages/setup";
@@ -79,6 +81,9 @@ const inviteRoute = createRoute({
   component: InvitePage,
 });
 
+// Public statistics of a link (when its owner turned them on): no sign-in, no shell.
+const publicStatsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/s/$linkId", component: PublicStatsPage });
+
 /* ---------------- signed-in pages (inside the shell) ---------------- */
 
 const appRoute = createRoute({
@@ -110,6 +115,7 @@ const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: "/das
 const domainsRoute = createRoute({ getParentRoute: () => appRoute, path: "/domains", component: DomainsPage });
 const usersRoute = createRoute({ getParentRoute: () => appRoute, path: "/users", component: UsersPage });
 const auditRoute = createRoute({ getParentRoute: () => appRoute, path: "/audit", component: AuditPage });
+const linkStatsRoute = createRoute({ getParentRoute: () => appRoute, path: "/stats/$linkId", component: LinkStatsPage });
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: "/settings", component: SettingsPage });
 const profileRoute = createRoute({ getParentRoute: () => appRoute, path: "/profile", component: ProfilePage });
 
@@ -119,7 +125,8 @@ const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([indexRoute, linksRoute, dashboardRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute]),
+  publicStatsRoute,
+  appRoute.addChildren([indexRoute, linksRoute, dashboardRoute, linkStatsRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {

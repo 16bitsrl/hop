@@ -57,9 +57,9 @@ test("link statistics: KPIs, range switch, bots toggle, breakdowns", async ({ pa
 
   // Custom range.
   await range.getByRole("button", { name: "Custom" }).click();
-  const ymd = (ms: number) => new Date(ms).toISOString().slice(0, 10);
-  await page.getByLabel("From").fill(ymd(now - 4 * DAY));
-  await page.getByLabel("To").fill(ymd(now));
+  const ymd = (ms: number) => new Date(ms).toLocaleDateString("sv-SE");
+  await page.getByLabel("From", { exact: true }).fill(ymd(now - 4 * DAY));
+  await page.getByLabel("To", { exact: true }).fill(ymd(now));
   await expect(value(page, "clicks")).toHaveText("3");
 
   // CSV downloads are plain links.
@@ -138,25 +138,25 @@ test("dashboard: range picker changes every number", async ({ page, request }) =
   const range = page.getByRole("group", { name: "Date range" });
   const iceland = page.getByTestId("breakdown-countries").getByRole("row", { name: /Iceland/ });
   await range.getByRole("button", { name: "24 hours" }).click();
-  await expect(iceland).toContainText("1");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("1");
   await range.getByRole("button", { name: "7 days" }).click();
-  await expect(iceland).toContainText("3");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("3");
   await range.getByRole("button", { name: "30 days" }).click();
-  await expect(iceland).toContainText("7");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("7");
   await range.getByRole("button", { name: "90 days" }).click();
-  await expect(iceland).toContainText("15");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("15");
   await range.getByRole("button", { name: "12 months" }).click();
-  await expect(iceland).toContainText("31");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("31");
   await range.getByRole("button", { name: "All time" }).click();
-  await expect(iceland).toContainText("63");
+  await expect(iceland.getByRole("cell").nth(1)).toHaveText("63");
 
   // Top links, recently created links, links by owner.
-  await expect(page.getByTestId("dash-top-links")).toContainText("Dash probe");
+  await expect(page.getByTestId("breakdown-top-links")).toContainText("Dash probe");
   await expect(page.getByTestId("dash-recent")).toContainText(l2.slug);
-  await expect(page.getByTestId("dash-owners").getByRole("row", { name: new RegExp(owned) })).toContainText("2");
+  await expect(page.getByTestId("dash-owners").getByRole("row", { name: new RegExp(owned) }).getByRole("cell").nth(1)).toHaveText("2");
 
   // A top link opens its statistics.
-  await page.getByTestId("dash-top-links").getByRole("link", { name: "Dash probe" }).click();
+  await page.getByTestId("breakdown-top-links").getByRole("link", { name: "Dash probe" }).click();
   await expect(page).toHaveURL(new RegExp(`/stats/${l.id}$`));
 });
 

@@ -10,7 +10,8 @@ import { bucketFormat, bucketKeys, chooseBucket, offsetSegments, type Bucket } f
  * (distinct day + hash pairs), summed over the range.
  */
 
-const DAY_MS = 86_400_000;
+/** Inlined (not bound) so SQLite divides integers. */
+const DAY = sql.raw(String(86_400_000));
 const TOP = 10;
 
 export type Filter = {
@@ -60,7 +61,7 @@ export async function totals(db: DB, f: Filter) {
     SELECT COUNT(*) AS n FROM (
       SELECT 1 FROM clicks
       WHERE ${where(f)} AND visitor_hash IS NOT NULL
-      GROUP BY ts / ${DAY_MS}, visitor_hash
+      GROUP BY ts / ${DAY}, visitor_hash
     )`);
   return {
     clicks: f.bots ? num(row?.total) : num(row?.humans),
@@ -111,7 +112,7 @@ export async function cities(db: DB, f: Filter, limit = TOP): Promise<CityRow[]>
 export async function targetCounts(db: DB, f: Filter) {
   const rows = await db.all<{ t: string; clicks: number; visitors: number }>(sql`
     SELECT COALESCE(NULLIF(target, ''), 'main') AS t, COUNT(*) AS clicks,
-           COUNT(DISTINCT CASE WHEN visitor_hash IS NULL THEN NULL ELSE (ts / ${DAY_MS}) || ':' || visitor_hash END) AS visitors
+           COUNT(DISTINCT CASE WHEN visitor_hash IS NULL THEN NULL ELSE (ts / ${DAY}) || ':' || visitor_hash END) AS visitors
     FROM clicks WHERE ${where(f)} GROUP BY t`);
   return rows.map((r) => ({ target: r.t, clicks: num(r.clicks), visitors: num(r.visitors) }));
 }
