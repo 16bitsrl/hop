@@ -97,16 +97,17 @@ const PARALLEL = 5;
 export async function dueLinks(db: DB, recheckDays: number, now: number, limit = BATCH): Promise<LinkRow[]> {
   const cutoff = now - recheckDays * 86_400_000;
   const failing = sql`(${links.healthCode} = 0 or ${links.healthCode} = 404 or ${links.healthCode} = 410 or ${links.healthCode} >= 500)`;
+  const retry = sql`(${links.healthStatus} != 'broken' and ${failing})`;
   return db
     .select()
     .from(links)
     .where(
       and(
         eq(links.enabled, true),
-        sql`(${links.healthCheckedAt} is null or ${links.healthCheckedAt} < ${cutoff} or (${links.healthStatus} != 'broken' and ${failing}))`,
+        sql`(${links.healthCheckedAt} is null or ${links.healthCheckedAt} < ${cutoff} or ${retry})`,
       ),
     )
-    .orderBy(sql`${links.healthCheckedAt} is not null`, links.healthCheckedAt, sql`${links.createdAt} desc`)
+    .orderBy(sql`case when ${retry} then 0 when ${links.healthCheckedAt} is null then 1 else 2 end`, links.healthCheckedAt, sql`${links.createdAt} desc`)
     .limit(limit);
 }
 
