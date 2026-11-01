@@ -15,7 +15,7 @@ export default defineConfig({
   use: { baseURL: APP, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
+    command: `node e2e/prepare-db.mjs && CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
     url: `${APP}/healthz`,
     reuseExistingServer: false,
     timeout: 120_000,

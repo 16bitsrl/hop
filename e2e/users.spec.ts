@@ -117,7 +117,7 @@ test("a disabled user cannot sign in and loses the session", async ({ page, brow
   await victimPage.reload();
   await expect(victimPage).toHaveURL(/\/login$/);
   await loginViaUi(victimPage, victim);
-  await expect(victimPage.getByText("Wrong email or password.")).toBeVisible();
+  await expect(victimPage.getByText("This account is not allowed to sign in here.")).toBeVisible();
   await victimCtx.close();
 
   await page.getByRole("row", { name: new RegExp(victim.email) }).getByRole("button", { name: "Enable" }).click();

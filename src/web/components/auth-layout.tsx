@@ -1,4 +1,3 @@
-import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 /** Centered card used by sign-in, setup, invite and password pages. */
@@ -16,8 +15,4 @@ export function AuthCard({ title, description, children }: { title: string; desc
       </div>
     </div>
   );
-}
-
-export function PublicLayout() {
-  return <Outlet />;
 }

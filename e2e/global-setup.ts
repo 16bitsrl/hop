@@ -1,10 +1,6 @@
-import { execSync } from "node:child_process";
-import { rmSync } from "node:fs";
-
-/** Fresh, dedicated test database for every run. Never touches dev data. */
-export default function globalSetup() {
-  rmSync(".test-state", { recursive: true, force: true });
-  execSync("pnpm exec wrangler d1 migrations apply DB --local --env test --persist-to .test-state", {
-    stdio: "inherit",
-  });
-}
+/**
+ * The test database is recreated by e2e/prepare-db.mjs, which is part of the webServer command in
+ * playwright.config.ts: the server starts before this hook runs, so resetting the files here
+ * would pull them from under the running server.
+ */
+export default function globalSetup() {}
