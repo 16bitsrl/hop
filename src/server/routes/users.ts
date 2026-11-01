@@ -2,7 +2,7 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { requireRole, requireUser, sessionOnly } from "../auth/permissions";
-import { createResetLink, createUserWithPassword, findUserByEmail, randomToken, sha256Hex } from "../auth/users";
+import { createResetLink, createUserWithPassword, findUserByEmail, randomToken, sha256Hex, updateUserAccess } from "../auth/users";
 import { invites, session, user } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
@@ -45,10 +45,7 @@ userRoutes.patch("/users/:id", ...adminSession, async (c) => {
   const { db } = c.var.platform;
   const target = await db.select().from(user).where(eq(user.id, id)).get();
   if (!target) return fail(c, 404, "not_found");
-  await db
-    .update(user)
-    .set({ ...body, updatedAt: new Date() })
-    .where(eq(user.id, id));
+  if (!(await updateUserAccess(db, id, body))) return fail(c, 409, "last_admin");
   if (body.disabled) await db.delete(session).where(eq(session.userId, id));
   if (body.role && body.role !== target.role) {
     await audit(c, { action: "user.role", entityType: "user", entityId: id, data: { before: target.role, after: body.role, email: target.email } });

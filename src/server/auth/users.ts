@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { runBatch } from "../db/batch";
 import { account, invites, user, type Role } from "../db/schema";
 import type { Platform } from "../platform/types";
@@ -84,4 +84,38 @@ export async function createResetLink(platform: Platform, userId: string): Promi
     expiresAt: new Date(Date.now() + 60 * 60 * 1000),
   });
   return `${platform.config.appUrl}/reset-password?token=${token}`;
+}
+
+/**
+ * Changes a user's role and/or disabled flag in ONE statement that refuses to leave the installation
+ * without an enabled admin (two admins demoting each other at the same moment cannot both win).
+ * Returns false when nothing was changed because of that rule.
+ */
+export async function updateUserAccess(
+  db: Platform["db"],
+  id: string,
+  change: { role?: Role; disabled?: boolean },
+): Promise<boolean> {
+  const current = await db.select({ role: user.role, disabled: user.disabled }).from(user).where(eq(user.id, id)).get();
+  if (!current) return false;
+  const role = change.role ?? current.role;
+  const disabled = change.disabled ?? current.disabled;
+  const staysEnabledAdmin = role === "admin" && !disabled;
+  const rows = await db
+    .update(user)
+    .set({ ...change, updatedAt: new Date() })
+    .where(
+      and(
+        eq(user.id, id),
+        or(
+          // nobody loses admin rights here...
+          sql`${staysEnabledAdmin ? 1 : 0} = 1`,
+          sql`not (${user.role} = 'admin' and ${user.disabled} = 0)`,
+          // ...or another enabled admin is left.
+          sql`exists (select 1 from ${user} as other where other.id <> ${id} and other.role = 'admin' and other.disabled = 0)`,
+        ),
+      ),
+    )
+    .returning({ id: user.id });
+  return rows.length > 0;
 }

@@ -48,5 +48,6 @@
   "restore_in_progress": "A restore is already running here. Wait a few minutes and try again.",
   "batch_too_large": "That is too much to do in one go. Try again with fewer items.",
   "smtp_password_required": "Enter the mail password again to use a different mail server or user.",
+  "last_admin": "There must always be at least one active administrator.",
   "too_many_keys": "You have too many active keys. Revoke one first."
 }

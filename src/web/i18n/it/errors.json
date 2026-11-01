@@ -48,5 +48,6 @@
   "restore_in_progress": "Qui c'è già un ripristino in corso. Aspetta qualche minuto e riprova.",
   "batch_too_large": "È troppo da fare in un colpo solo. Riprova con meno elementi.",
   "smtp_password_required": "Inserisci di nuovo la password della posta per usare un altro server o utente di posta.",
+  "last_admin": "Deve esserci sempre almeno un amministratore attivo.",
   "too_many_keys": "Hai troppe chiavi attive. Revocane una prima."
 }
