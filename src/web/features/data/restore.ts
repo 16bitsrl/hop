@@ -7,10 +7,10 @@ const CHUNK_ROWS = 400;
 type Row = { t: string; r: Record<string, string | number | null> };
 type Line = { format?: string; version?: number; t?: string; r?: Row["r"]; end?: boolean; counts?: Record<string, number> };
 
-async function post(path: string, body: unknown, token?: string): Promise<unknown> {
+async function post(path: string, body: unknown, headers: Record<string, string> = {}): Promise<unknown> {
   const res = await fetch(path, {
     method: "POST",
-    headers: { "content-type": "application/json", ...(token ? { "x-restore-token": token } : {}) },
+    headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
   const text = await res.text();
@@ -45,7 +45,7 @@ async function* lines(file: File): AsyncGenerator<string> {
 }
 
 /** Restores the file. Throws ApiError (server refused) or InvalidBackupError (not a hop backup). */
-export async function restoreBackup(file: File, onProgress: (done: number, total: number) => void): Promise<void> {
+export async function restoreBackup(file: File, onProgress: (done: number, total: number) => void, setupToken = ""): Promise<void> {
   // First pass: validate the header and the footer, and count the rows.
   let total = 0;
   let header = false;
@@ -65,12 +65,13 @@ export async function restoreBackup(file: File, onProgress: (done: number, total
   }
   if (!header || !counts) throw new InvalidBackupError();
 
-  const { token } = (await post("/api/restore/start", {})) as { token: string };
+  const { token } = (await post("/api/restore/start", {}, setupToken ? { "x-setup-token": setupToken } : {})) as { token: string };
+  const auth = { "x-restore-token": token };
   let done = 0;
   let batch: Row[] = [];
   const flush = async () => {
     if (batch.length === 0) return;
-    await post("/api/restore/rows", { rows: batch }, token);
+    await post("/api/restore/rows", { rows: batch }, auth);
     done += batch.length;
     batch = [];
     onProgress(done, total);
@@ -83,5 +84,5 @@ export async function restoreBackup(file: File, onProgress: (done: number, total
     if (batch.length >= CHUNK_ROWS) await flush();
   }
   await flush();
-  await post("/api/restore/finish", { counts }, token);
+  await post("/api/restore/finish", { counts }, auth);
 }

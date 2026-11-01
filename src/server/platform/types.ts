@@ -53,6 +53,8 @@ export interface Config {
   safeBrowsingKey?: string;
   /** Optional bearer token protecting /metrics. */
   metricsToken?: string;
+  /** Optional secret required for first-run setup and restore (recommended on public deployments). */
+  setupToken?: string;
   /** True only in the dedicated test environment. */
   testMode: boolean;
   /** SMTP from environment variables (the settings screen takes precedence). */

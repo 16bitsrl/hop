@@ -14,8 +14,9 @@ Settings used by both:
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_SECURE` | no | Outgoing email. Can also be set in the app (Settings), which takes precedence |
 | `SAFE_BROWSING_KEY` | no | Google Safe Browsing key for destination checks |
 | `METRICS_TOKEN` | no | Bearer token protecting `/metrics` |
+| `SETUP_TOKEN` | recommended on public deployments | Secret asked for by first-run setup and by restore. Without it, whoever opens a fresh deployment first becomes the admin. Workers: `wrangler secret put SETUP_TOKEN`. Container: environment variable. Remove it after setup if you like; it only matters while the installation has no accounts |
 
-The first person to open the app host sees the setup page and becomes the admin.
+The first person to open the app host sees the setup page and becomes the admin. On a deployment that is reachable from the internet before you finish setup, set `SETUP_TOKEN` so that only someone who knows it can create the first account (or restore a backup).
 
 ## Cloudflare
 

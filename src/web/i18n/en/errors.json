@@ -44,5 +44,7 @@
   "restore_failed": "The backup could not be restored. The file may be damaged.",
   "restore_incomplete": "The backup file is incomplete. Some data is missing.",
   "invalid_backup": "This doesn't look like a hop backup.",
+  "invalid_setup_token": "The setup token is missing or wrong.",
+  "restore_in_progress": "A restore is already running here. Wait a few minutes and try again.",
   "too_many_keys": "You have too many active keys. Revoke one first."
 }

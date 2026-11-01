@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,8 @@ export function SetupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [setupToken, setSetupToken] = useState("");
+  const { data: config } = useQuery(appConfigQuery);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -26,7 +28,7 @@ export function SetupPage() {
     setBusy(true);
     setError(null);
     try {
-      await api("/api/setup", { body: { name, email, password } });
+      await api("/api/setup", { body: { name, email, password, ...(setupToken ? { setupToken } : {}) } });
       const { error: err } = await authClient.signIn.email({ email, password });
       if (err) throw new Error(err.message);
       queryClient.removeQueries({ queryKey: appConfigQuery.queryKey });
@@ -49,9 +51,14 @@ export function SetupPage() {
         </Field>
         <Field label={t("setup.password")} hint={t("setup.passwordHint")}>
           {(id) => (
-            <Input id={id} type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
         </Field>
+        {config?.setupTokenRequired && (
+          <Field label={t("setup.setupToken")} hint={t("setup.setupTokenHint")}>
+            {(id) => <Input id={id} type="password" autoComplete="off" required value={setupToken} onChange={(e) => setSetupToken(e.target.value)} />}
+          </Field>
+        )}
         {error && (
           <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-[13px] text-danger">
             {error}

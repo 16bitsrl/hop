@@ -61,6 +61,7 @@ export function parseNodeEnv(env: Env): NodeSettings {
       authSecret,
       safeBrowsingKey: env.SAFE_BROWSING_KEY || undefined,
       metricsToken: env.METRICS_TOKEN || undefined,
+      setupToken: env.SETUP_TOKEN || undefined,
       testMode: env.TEST_MODE === "1",
       smtp: smtpFromEnv({ ...env, APP_HOST: appHost }),
     },

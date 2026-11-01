@@ -9,6 +9,10 @@ test("first run asks for the first admin, then the app opens", async ({ page, re
   await page.getByLabel("Name").fill("First Admin");
   await page.getByLabel("Email").fill("first-admin@example.test");
   await page.getByLabel("Password").fill("a-long-first-password");
+  await page.getByLabel("Setup token").fill("wrong-token");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("alert")).toContainText("setup token");
+  await page.getByLabel("Setup token").fill("test-setup-token");
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/links$/);

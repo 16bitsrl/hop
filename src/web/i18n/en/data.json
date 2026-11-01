@@ -85,6 +85,7 @@
       "title": "Restore from a backup",
       "description": "Choose a backup file downloaded from hop. Everything in it will be restored, including accounts and passwords.",
       "file": "Backup file",
+      "setupToken": "Setup token",
       "submit": "Restore",
       "working": "Restoring…",
       "progress": "{{done}} of {{total}} items",

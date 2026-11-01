@@ -15,6 +15,7 @@ Object.assign(process.env, {
   APP_URL: `http://app.localhost:${port}`,
   AUTH_SECRET: "test-secret-test-secret-test-secret-123",
   METRICS_TOKEN: "test-metrics-token",
+  SETUP_TOKEN: "test-setup-token",
   TEST_MODE: "1",
 });
 

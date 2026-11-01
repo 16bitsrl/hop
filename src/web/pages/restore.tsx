@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field } from "../components/ui";
+import { Button, Field, Input } from "../components/ui";
 import { InvalidBackupError, restoreBackup } from "../features/data/restore";
 import { errorMessage } from "../lib/errors";
 import { appConfigQuery } from "../lib/session";
@@ -12,9 +12,11 @@ import { appConfigQuery } from "../lib/session";
 export function RestorePage() {
   const { t } = useTranslation("data");
   const tc = useTranslation().t;
+  const tAuth = useTranslation("auth").t;
   const queryClient = useQueryClient();
   const { data: config } = useQuery({ ...appConfigQuery, staleTime: 0 });
   const [file, setFile] = useState<File | null>(null);
+  const [setupToken, setSetupToken] = useState("");
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -25,7 +27,7 @@ export function RestorePage() {
     setError(null);
     setProgress({ done: 0, total: 0 });
     try {
-      await restoreBackup(file, (d, total) => setProgress({ done: d, total }));
+      await restoreBackup(file, (d, total) => setProgress({ done: d, total }), setupToken);
       queryClient.removeQueries();
       setDone(true);
     } catch (err) {
@@ -74,6 +76,11 @@ export function RestorePage() {
             />
           )}
         </Field>
+        {config?.setupTokenRequired && (
+          <Field label={t("restore.page.setupToken")} hint={tAuth("setup.setupTokenHint")}>
+            {(id) => <Input id={id} type="password" autoComplete="off" required value={setupToken} onChange={(e) => setSetupToken(e.target.value)} />}
+          </Field>
+        )}
         {progress && (
           <div role="status" className="flex flex-col gap-1.5">
             <progress className="h-2 w-full" max={progress.total || 1} value={progress.done} />

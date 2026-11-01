@@ -3,7 +3,9 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { createAuth } from "../auth/auth";
 import { requireUser } from "../auth/permissions";
+import { setupTokenOk } from "../auth/setup-token";
 import { countUsers, createUserWithPassword } from "../auth/users";
+import { clearRestores, restoreRunning, RESTORE_ACTIVE } from "../data/restore-state";
 import { domains, user } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
@@ -39,6 +41,7 @@ authRoutes.get("/app-config", async (c) => {
   ]);
   return c.json({
     setupRequired: users === 0,
+    setupTokenRequired: users === 0 && !!c.var.platform.config.setupToken,
     passwordLogin: auth.passwordLogin,
     oidc: isOidcConfigured(oidc) ? { label: oidc.label } : null,
     mailConfigured: !!mailer,
@@ -48,14 +51,22 @@ authRoutes.get("/app-config", async (c) => {
 const setupBody = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.email(),
-  password: z.string().min(8).max(200),
+  password: z.string().min(8).max(128),
+  setupToken: z.string().max(500).optional(),
 });
 
 /** First run: creates the first admin. Closed as soon as any user exists. */
 authRoutes.post("/setup", async (c) => {
   const body = await parseJson(c, setupBody);
+  const { db, config } = c.var.platform;
   if ((await countUsers(c.var.platform)) > 0) return fail(c, 409, "setup_done");
-  const admin = await createUserWithPassword(c.var.platform, { ...body, role: "admin" });
+  if (!(await setupTokenOk(config.setupToken, body.setupToken))) return fail(c, 403, "invalid_setup_token");
+  // A restore that is loading data owns the installation. One that only started is cancelled.
+  if (await restoreRunning(db, [RESTORE_ACTIVE])) return fail(c, 409, "restore_in_progress");
+  await clearRestores(db);
+  const { name, email, password } = body;
+  const admin = await createUserWithPassword(c.var.platform, { name, email, password, role: "admin" });
+  await clearRestores(db);
   await audit(c, { action: "user.setup", entityType: "user", entityId: admin.id, data: { email: admin.email } });
   return c.json({ ok: true });
 });

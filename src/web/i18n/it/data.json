@@ -85,6 +85,7 @@
       "title": "Ripristina da un backup",
       "description": "Scegli un file di backup scaricato da hop. Verrà ripristinato tutto, compresi account e password.",
       "file": "File di backup",
+      "setupToken": "Codice di configurazione",
       "submit": "Ripristina",
       "working": "Ripristino in corso…",
       "progress": "{{done}} di {{total}} elementi",

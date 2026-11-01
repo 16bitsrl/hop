@@ -13,6 +13,6 @@ export async function parseJson<S extends z.ZodType>(c: Context, schema: S): Pro
   return result.data;
 }
 
-export function fail(c: Context, status: 400 | 401 | 403 | 404 | 409 | 502, error: string) {
+export function fail(c: Context, status: 400 | 401 | 403 | 404 | 409 | 413 | 429 | 502, error: string) {
   return c.json({ error }, status);
 }

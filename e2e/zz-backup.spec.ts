@@ -2,10 +2,13 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
+import { APP } from "../playwright.config";
 import { apiAs, createUser, loginViaUi } from "./helpers";
 import { createLink, ensureDomain, SHORT_HOST, uniq } from "./links-helpers";
 import { DAY, seedClicks } from "./stats-helpers";
 
+const SETUP_TOKEN = "test-setup-token";
+const setupHeaders = { "x-setup-token": SETUP_TOKEN };
 const METRICS = { headers: { authorization: "Bearer test-metrics-token" } };
 const gauges = async (request: APIRequestContext) => {
   const text = await (await request.get("/metrics", METRICS)).text();
@@ -52,7 +55,7 @@ test("the backup is NDJSON with every table, a footer with counts, and no sessio
 
 test("restore is refused when the installation already has users", async ({ request }) => {
   await createUser(request, { role: "admin" });
-  expect((await request.post("/api/restore/start")).status()).toBe(409);
+  expect((await request.post("/api/restore/start", { headers: setupHeaders })).status()).toBe(409);
   expect((await request.post("/api/restore/rows", { data: { rows: [] }, headers: { "x-restore-token": "nope" } })).status()).toBe(401);
   expect((await request.post("/api/restore/finish", { data: { counts: {} } })).status()).toBe(401);
 });
@@ -83,6 +86,7 @@ test("export, wipe, restore: links, clicks and logins come back", async ({ page,
   await page.getByRole("link", { name: "Restore from a backup" }).click();
   await expect(page).toHaveURL(/\/restore/);
   await page.getByLabel("Backup file").setInputFiles(file);
+  await page.getByLabel("Setup token").fill(SETUP_TOKEN);
   await page.getByRole("button", { name: "Restore" }).click();
   await expect(page.getByTestId("restore-done")).toBeVisible({ timeout: 90_000 });
 
@@ -109,6 +113,41 @@ test("export, wipe, restore: links, clicks and logins come back", async ({ page,
   await Promise.all([withKey.dispose(), restoredApi.dispose(), api.dispose()]);
 });
 
+test("a restore token does not outlive setup, restores cannot be hijacked, and one restore runs at a time", async ({ request }) => {
+  expect((await request.post("/api/_test/wipe")).ok()).toBeTruthy();
+  const userRow = (email: string) => ({ t: "user", r: { id: crypto.randomUUID(), name: "Evil", email, email_verified: 1, role: "admin", disabled: 0, created_at: 1, updated_at: 1 } });
+  const setupRequired = async () => ((await (await request.get("/api/app-config")).json()) as { setupRequired: boolean }).setupRequired;
+
+  // Starting needs the setup token when one is configured.
+  expect((await request.post("/api/restore/start")).status()).toBe(403);
+  expect((await request.post("/api/restore/start", { headers: { "x-setup-token": "wrong" } })).status()).toBe(403);
+  const first = ((await (await request.post("/api/restore/start", { headers: setupHeaders })).json()) as { token: string }).token;
+  // A second restore cannot break the running one.
+  expect((await request.post("/api/restore/start", { headers: setupHeaders })).status()).toBe(409);
+
+  // First-run setup needs the setup token too, and ends the pending restore.
+  const body = { name: "Real Admin", email: "real-admin@example.test", password: "a-long-real-password" };
+  expect((await request.post("/api/setup", { data: body })).status()).toBe(403);
+  expect((await request.post("/api/setup", { data: { ...body, setupToken: SETUP_TOKEN } })).ok()).toBeTruthy();
+  const late = await request.post("/api/restore/rows", { data: { rows: [userRow("evil@example.test")] }, headers: { "x-restore-token": first } });
+  expect(late.status()).toBe(401);
+  expect((await request.post("/api/restore/finish", { data: { counts: {} }, headers: { "x-restore-token": first } })).status()).toBe(401);
+  expect(await setupRequired()).toBe(false);
+  const evil = await request.post("/api/auth/sign-in/email", { data: { email: "evil@example.test", password: "x" }, headers: { origin: APP } });
+  expect(evil.ok()).toBeFalsy();
+
+  // A restore that has started loading data owns the installation: nobody can run setup in between.
+  expect((await request.post("/api/_test/wipe")).ok()).toBeTruthy();
+  const second = ((await (await request.post("/api/restore/start", { headers: setupHeaders })).json()) as { token: string }).token;
+  const domainRow = { t: "domains", r: { id: "own1", host: "own.localhost", is_default: 0, created_at: 1 } };
+  expect((await request.post("/api/restore/rows", { data: { rows: [domainRow] }, headers: { "x-restore-token": second } })).ok()).toBeTruthy();
+  const blocked = await request.post("/api/setup", { data: { ...body, setupToken: SETUP_TOKEN } });
+  expect(blocked.status()).toBe(409);
+  expect(await blocked.json()).toMatchObject({ error: "restore_in_progress" });
+  expect((await request.post("/api/restore/start", { headers: setupHeaders })).status()).toBe(409);
+  expect(await setupRequired()).toBe(true);
+});
+
 test("a cut-off backup is reported, bad rows are refused, and the full data is put back at the end", async ({ request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);
@@ -117,7 +156,7 @@ test("a cut-off backup is reported, bad rows are refused, and the full data is p
   await api.dispose();
 
   expect((await request.post("/api/_test/wipe")).ok()).toBeTruthy();
-  const start = async () => ({ "x-restore-token": ((await (await request.post("/api/restore/start")).json()) as { token: string }).token });
+  const start = async () => ({ "x-restore-token": ((await (await request.post("/api/restore/start", { headers: setupHeaders })).json()) as { token: string }).token });
   let headers = await start();
   const rows = [{ t: "domains", r: { id: "d1", host: "cut.localhost", is_default: 0, created_at: 1 } }];
   expect((await request.post("/api/restore/rows", { data: { rows }, headers })).ok()).toBeTruthy();
