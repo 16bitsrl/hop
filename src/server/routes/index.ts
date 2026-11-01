@@ -15,6 +15,11 @@ import { mediaRoutes } from "./media";
 import { taxonomyRoutes } from "./taxonomy";
 import { testPagesRoutes } from "./test-pages";
 import { testStatsRoutes } from "./test-stats";
+import { apiKeyRoutes } from "./api-keys";
+import { dataBackupRoutes } from "./data-backup";
+import { dataImportRoutes } from "./data-import";
+import { linkHealthRoutes } from "./link-health";
+import { testDataRoutes } from "./test-data";
 
 /** All JSON API routes, mounted at /api. Feature modules register here. */
 export const apiRoutes = new Hono<AppEnv>();
@@ -42,3 +47,10 @@ apiRoutes.route("/_test", testLinksRoutes);
 // Area D: statistics (and public statistics under /public/stats).
 apiRoutes.route("/", statsRoutes);
 apiRoutes.route("/_test", testStatsRoutes);
+
+// Area E: data import and backup, broken link check, personal API keys.
+apiRoutes.route("/", dataImportRoutes);
+apiRoutes.route("/", dataBackupRoutes);
+apiRoutes.route("/", linkHealthRoutes);
+apiRoutes.route("/", apiKeyRoutes);
+apiRoutes.route("/_test", testDataRoutes);
