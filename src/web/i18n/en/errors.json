@@ -1,0 +1,21 @@
+{
+  "generic": "Something went wrong. Please try again.",
+  "unauthorized": "Please sign in again.",
+  "forbidden": "You don't have permission to do this.",
+  "not_found": "We couldn't find that.",
+  "invalid_request": "Please check the fields and try again.",
+  "setup_done": "The first account has already been created.",
+  "cannot_change_self": "You can't change your own account here.",
+  "user_exists": "Someone with this email already has an account.",
+  "invalid_invite": "This invitation is not valid anymore.",
+  "oidc_required": "Set up single sign-on first.",
+  "oidc_incomplete": "Add the discovery address and the client ID first.",
+  "password_login_off": "Passwords are turned off, so single sign-on has to stay on.",
+  "password_login_disabled": "Signing in with a password is turned off.",
+  "mail_not_configured": "Email is not set up yet.",
+  "send_failed": "The email could not be sent.",
+  "wrong_credentials": "Wrong email or password.",
+  "not_allowed": "This account is not allowed to sign in here.",
+  "invalid_token": "This link is not valid anymore.",
+  "passkey_failed": "The passkey could not be used. Try again or use another way to sign in."
+}

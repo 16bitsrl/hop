@@ -1,0 +1,16 @@
+{
+  "title": "Registro attività",
+  "description": "Chi ha cambiato cosa, e quando.",
+  "user": "Utente",
+  "type": "Tipo",
+  "action": "Azione",
+  "allUsers": "Tutti",
+  "allTypes": "Tutti i tipi",
+  "allActions": "Tutte le azioni",
+  "columns": { "when": "Quando", "user": "Utente", "action": "Azione", "item": "Elemento", "details": "Dettagli" },
+  "empty": "Non c'è ancora nulla.",
+  "emptyFiltered": "Nessuna voce corrisponde ai filtri.",
+  "system": "Sistema",
+  "page": "Pagina {{page}} di {{pages}}",
+  "total": "{{count}} voci"
+}

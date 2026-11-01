@@ -1,0 +1,49 @@
+{
+  "title": "Settings",
+  "description": "How people sign in and how hop sends email.",
+  "tabs": { "signin": "Sign-in", "email": "Email" },
+  "password": {
+    "title": "Password sign-in",
+    "allow": "Allow signing in with a password",
+    "allowHint": "When this is off, people sign in with single sign-on or a passkey. You can only turn it off after single sign-on is set up."
+  },
+  "sso": {
+    "title": "Single sign-on",
+    "description": "Let people sign in with your company account (Google Workspace, Microsoft, Okta, Keycloak and others).",
+    "enable": "Turn on single sign-on",
+    "discoveryUrl": "Configuration address",
+    "discoveryHint": "The address of your provider's OpenID configuration, usually ending in /.well-known/openid-configuration.",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "clientSecretSet": "Leave empty to keep the current secret.",
+    "label": "Button text",
+    "labelHint": "Shown on the sign-in page.",
+    "autoCreate": "Create accounts automatically",
+    "autoCreateHint": "Anyone who signs in with an allowed email gets an account. When this is off, only people who were invited or already have an account can sign in.",
+    "domains": "Allowed email domains",
+    "domainsHint": "Separate with commas, for example acme.com, acme.io. Leave empty to allow any domain.",
+    "defaultRole": "Role for new accounts",
+    "redirect": "Redirect address",
+    "redirectHint": "Add this address in your provider as an allowed redirect.",
+    "save": "Save single sign-on"
+  },
+  "email": {
+    "title": "Email",
+    "description": "Used to send invitations and password reset links. Without it, you share those links yourself.",
+    "fromEnvironment": "Email is currently set up by the server configuration. Saving a server here replaces it.",
+    "host": "Server",
+    "port": "Port",
+    "user": "Username",
+    "pass": "Password",
+    "passSet": "Leave empty to keep the current password.",
+    "from": "From address",
+    "fromHint": "For example hop@yourcompany.com.",
+    "security": "Security",
+    "tls": { "none": "None", "starttls": "STARTTLS", "ssl": "SSL/TLS" },
+    "save": "Save email settings",
+    "testTitle": "Send a test email",
+    "testTo": "Send test to",
+    "testSend": "Send test email",
+    "testSent": "Test email sent"
+  }
+}

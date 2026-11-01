@@ -1,0 +1,42 @@
+{
+  "close": "Chiudi",
+  "cancel": "Annulla",
+  "copy": "Copia",
+  "copied": "Copiato",
+  "save": "Salva",
+  "saved": "Salvato",
+  "done": "Fatto",
+  "loading": "Caricamento",
+  "back": "Indietro",
+  "previous": "Precedente",
+  "next": "Successivo",
+  "none": "Nessuno",
+  "unknown": "Sconosciuto",
+  "nav": {
+    "links": "Link",
+    "dashboard": "Dashboard",
+    "domains": "Domini",
+    "users": "Utenti",
+    "audit": "Registro attività",
+    "settings": "Impostazioni",
+    "profile": "Profilo",
+    "admin": "Amministrazione"
+  },
+  "openMenu": "Apri il menu",
+  "closeMenu": "Chiudi il menu",
+  "signOut": "Esci",
+  "noAccess": "Non hai accesso a questa pagina.",
+  "noAccessHint": "Chiedi a un amministratore se ti serve.",
+  "notFound": "Questa pagina non esiste.",
+  "goHome": "Vai ai link",
+  "comingSoon": "In arrivo",
+  "roles": {
+    "admin": "Amministratore",
+    "member": "Membro",
+    "viewer": "Sola lettura"
+  },
+  "locale": {
+    "en": "English",
+    "it": "Italiano"
+  }
+}

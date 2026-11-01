@@ -1,0 +1,38 @@
+{
+  "title": "Profile",
+  "account": { "title": "Your account", "name": "Name", "email": "Email" },
+  "preferences": {
+    "title": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "themes": { "system": "Match my device", "light": "Light", "dark": "Dark" }
+  },
+  "password": {
+    "title": "Password",
+    "current": "Current password",
+    "new": "New password",
+    "hint": "At least 8 characters.",
+    "submit": "Change password",
+    "changed": "Password changed",
+    "wrong": "The current password is not right."
+  },
+  "passkeys": {
+    "title": "Passkeys",
+    "description": "Sign in with your fingerprint, face or a security key instead of a password.",
+    "add": "Add a passkey",
+    "addTitle": "Add a passkey",
+    "addText": "Your device will ask you to confirm.",
+    "name": "Passkey name",
+    "namePlaceholder": "For example, My laptop",
+    "submit": "Add passkey",
+    "added": "Passkey added",
+    "empty": "You have no passkeys yet.",
+    "unnamed": "Passkey",
+    "addedOn": "Added {{date}}",
+    "remove": "Remove",
+    "removeTitle": "Remove this passkey?",
+    "removeText": "You will not be able to sign in with it anymore.",
+    "removed": "Passkey removed",
+    "failed": "The passkey could not be added. Try again."
+  }
+}

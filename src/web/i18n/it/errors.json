@@ -1,0 +1,21 @@
+{
+  "generic": "Qualcosa è andato storto. Riprova.",
+  "unauthorized": "Accedi di nuovo.",
+  "forbidden": "Non hai il permesso di farlo.",
+  "not_found": "Non abbiamo trovato quello che cerchi.",
+  "invalid_request": "Controlla i campi e riprova.",
+  "setup_done": "Il primo account è già stato creato.",
+  "cannot_change_self": "Non puoi modificare il tuo account da qui.",
+  "user_exists": "Esiste già un account con questa email.",
+  "invalid_invite": "Questo invito non è più valido.",
+  "oidc_required": "Prima configura l'accesso unico.",
+  "oidc_incomplete": "Inserisci prima l'indirizzo di configurazione e l'ID client.",
+  "password_login_off": "L'accesso con password è disattivato, quindi l'accesso unico deve restare attivo.",
+  "password_login_disabled": "L'accesso con password è disattivato.",
+  "mail_not_configured": "L'email non è ancora configurata.",
+  "send_failed": "Non è stato possibile inviare l'email.",
+  "wrong_credentials": "Email o password errate.",
+  "not_allowed": "Questo account non può accedere qui.",
+  "invalid_token": "Questo link non è più valido.",
+  "passkey_failed": "Non è stato possibile usare la passkey. Riprova o accedi in un altro modo."
+}

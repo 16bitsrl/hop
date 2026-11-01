@@ -1,1 +1,129 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Neutral and warm, one calm green accent. */
+:root {
+  --canvas: #f7f7f5;
+  --surface: #ffffff;
+  --subtle: #f1f1ee;
+  --line: #e4e3de;
+  --line-strong: #cfcdc6;
+  --fg: #1b1b19;
+  --muted: #6b6a64;
+  --accent: #0f7a5c;
+  --accent-hover: #0c6a50;
+  --accent-fg: #ffffff;
+  --danger: #c2362b;
+  --danger-soft: #fbeceb;
+  --success: #17703f;
+  --success-soft: #e6f4ec;
+  --warn: #8a5a00;
+  --warn-soft: #fbf1dc;
+  --info: #25589a;
+  --info-soft: #e8f0fa;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0d0d0c;
+  --surface: #151514;
+  --subtle: #1d1d1b;
+  --line: #292927;
+  --line-strong: #3a3a37;
+  --fg: #ecebe7;
+  --muted: #9a988f;
+  --accent: #3cc596;
+  --accent-hover: #55d3a9;
+  --accent-fg: #06150f;
+  --danger: #f0746a;
+  --danger-soft: #2c1816;
+  --success: #5ccf92;
+  --success-soft: #11251a;
+  --warn: #e3b252;
+  --warn-soft: #2a2110;
+  --info: #7fb0ee;
+  --info-soft: #111f30;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    font-size: 14px;
+  }
+  body {
+    background: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  dialog::backdrop {
+    background: rgb(10 10 9 / 0.45);
+  }
+  button:not(:disabled),
+  [role="tab"],
+  [role="switch"],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@keyframes hop-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hop-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

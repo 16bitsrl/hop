@@ -1,0 +1,49 @@
+{
+  "title": "Impostazioni",
+  "description": "Come si accede e come hop invia le email.",
+  "tabs": { "signin": "Accesso", "email": "Email" },
+  "password": {
+    "title": "Accesso con password",
+    "allow": "Consenti l'accesso con password",
+    "allowHint": "Se è disattivato, si accede con l'accesso unico o con una passkey. Puoi disattivarlo solo dopo aver configurato l'accesso unico."
+  },
+  "sso": {
+    "title": "Accesso unico",
+    "description": "Permetti di accedere con l'account aziendale (Google Workspace, Microsoft, Okta, Keycloak e altri).",
+    "enable": "Attiva l'accesso unico",
+    "discoveryUrl": "Indirizzo di configurazione",
+    "discoveryHint": "L'indirizzo della configurazione OpenID del tuo provider, di solito termina con /.well-known/openid-configuration.",
+    "clientId": "ID client",
+    "clientSecret": "Segreto client",
+    "clientSecretSet": "Lascia vuoto per mantenere il segreto attuale.",
+    "label": "Testo del pulsante",
+    "labelHint": "Compare nella pagina di accesso.",
+    "autoCreate": "Crea gli account automaticamente",
+    "autoCreateHint": "Chi accede con un'email consentita ottiene un account. Se è disattivato, possono accedere solo le persone invitate o che hanno già un account.",
+    "domains": "Domini email consentiti",
+    "domainsHint": "Separali con una virgola, per esempio acme.com, acme.io. Lascia vuoto per consentire qualsiasi dominio.",
+    "defaultRole": "Ruolo dei nuovi account",
+    "redirect": "Indirizzo di ritorno",
+    "redirectHint": "Aggiungi questo indirizzo tra quelli di ritorno consentiti nel tuo provider.",
+    "save": "Salva l'accesso unico"
+  },
+  "email": {
+    "title": "Email",
+    "description": "Serve a inviare inviti e link per reimpostare la password. Senza email, condividi tu quei link.",
+    "fromEnvironment": "L'email è configurata dal server. Salvando un server qui, lo sostituisci.",
+    "host": "Server",
+    "port": "Porta",
+    "user": "Nome utente",
+    "pass": "Password",
+    "passSet": "Lascia vuoto per mantenere la password attuale.",
+    "from": "Indirizzo mittente",
+    "fromHint": "Per esempio hop@tuaazienda.it.",
+    "security": "Sicurezza",
+    "tls": { "none": "Nessuna", "starttls": "STARTTLS", "ssl": "SSL/TLS" },
+    "save": "Salva le impostazioni email",
+    "testTitle": "Invia un'email di prova",
+    "testTo": "Invia la prova a",
+    "testSend": "Invia email di prova",
+    "testSent": "Email di prova inviata"
+  }
+}

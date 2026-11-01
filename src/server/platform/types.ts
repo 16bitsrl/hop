@@ -27,6 +27,17 @@ export interface Geo {
   city?: string;
 }
 
+/** SMTP settings, from the environment or the settings screen. */
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  user?: string;
+  pass?: string;
+  from: string;
+  /** none = plain, starttls = upgrade after connect, ssl = TLS from the start. */
+  tls: "none" | "starttls" | "ssl";
+}
+
 /** Runtime configuration shared by every platform. */
 export interface Config {
   /** Host serving the admin app and API, e.g. "hop.example.com". */
@@ -40,6 +51,8 @@ export interface Config {
   metricsToken?: string;
   /** True only in the dedicated test environment. */
   testMode: boolean;
+  /** SMTP from environment variables (the settings screen takes precedence). */
+  smtp?: SmtpConfig;
 }
 
 /** Everything the app needs from the runtime. */
@@ -47,7 +60,7 @@ export interface Platform {
   name: "cloudflare" | "node";
   db: DB;
   blobs: BlobStore;
-  /** Null when SMTP is not configured. */
+  /** Always null on creation: resolve it with `getMailer(platform)` from `src/server/mail`. */
   mailer: Mailer | null;
   config: Config;
   geo(req: Request): Geo;

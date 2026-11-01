@@ -1,0 +1,38 @@
+{
+  "title": "Profilo",
+  "account": { "title": "Il tuo account", "name": "Nome", "email": "Email" },
+  "preferences": {
+    "title": "Preferenze",
+    "language": "Lingua",
+    "theme": "Tema",
+    "themes": { "system": "Come il dispositivo", "light": "Chiaro", "dark": "Scuro" }
+  },
+  "password": {
+    "title": "Password",
+    "current": "Password attuale",
+    "new": "Nuova password",
+    "hint": "Almeno 8 caratteri.",
+    "submit": "Cambia password",
+    "changed": "Password cambiata",
+    "wrong": "La password attuale non è corretta."
+  },
+  "passkeys": {
+    "title": "Passkey",
+    "description": "Accedi con l'impronta, il volto o una chiave di sicurezza al posto della password.",
+    "add": "Aggiungi una passkey",
+    "addTitle": "Aggiungi una passkey",
+    "addText": "Il dispositivo ti chiederà di confermare.",
+    "name": "Nome della passkey",
+    "namePlaceholder": "Per esempio, Il mio portatile",
+    "submit": "Aggiungi passkey",
+    "added": "Passkey aggiunta",
+    "empty": "Non hai ancora nessuna passkey.",
+    "unnamed": "Passkey",
+    "addedOn": "Aggiunta il {{date}}",
+    "remove": "Rimuovi",
+    "removeTitle": "Rimuovere questa passkey?",
+    "removeText": "Non potrai più accedere con questa passkey.",
+    "removed": "Passkey rimossa",
+    "failed": "Non è stato possibile aggiungere la passkey. Riprova."
+  }
+}

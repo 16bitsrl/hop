@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
-import type { BlobStore, Platform } from "./types";
+import type { BlobStore, Platform, SmtpConfig } from "./types";
 
 export interface CloudflareEnv {
   DB: D1Database;
@@ -37,12 +37,26 @@ function r2Store(bucket: R2Bucket): BlobStore {
   };
 }
 
+function smtpFromEnv(env: CloudflareEnv): SmtpConfig | undefined {
+  if (!env.SMTP_HOST) return undefined;
+  const port = Number(env.SMTP_PORT ?? 587);
+  const secure = env.SMTP_SECURE === "1" || env.SMTP_SECURE === "true" || port === 465;
+  return {
+    host: env.SMTP_HOST,
+    port,
+    user: env.SMTP_USER,
+    pass: env.SMTP_PASS,
+    from: env.SMTP_FROM ?? `hop@${env.APP_HOST.split(":")[0]}`,
+    tls: secure ? "ssl" : "starttls",
+  };
+}
+
 export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): Platform {
   return {
     name: "cloudflare",
     db: drizzle(env.DB, { schema }),
     blobs: r2Store(env.BLOBS),
-    mailer: null, // wired by the mail module when SMTP_* is set
+    mailer: null, // resolved on demand by getMailer() in src/server/mail
     config: {
       appHost: env.APP_HOST,
       appUrl: env.APP_URL,
@@ -50,6 +64,7 @@ export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): P
       safeBrowsingKey: env.SAFE_BROWSING_KEY,
       metricsToken: env.METRICS_TOKEN,
       testMode: env.TEST_MODE === "1",
+      smtp: smtpFromEnv(env),
     },
     geo(req) {
       const cf = (req as Request & { cf?: IncomingRequestCfProperties }).cf;

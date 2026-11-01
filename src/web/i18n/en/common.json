@@ -1,0 +1,42 @@
+{
+  "close": "Close",
+  "cancel": "Cancel",
+  "copy": "Copy",
+  "copied": "Copied",
+  "save": "Save",
+  "saved": "Saved",
+  "done": "Done",
+  "loading": "Loading",
+  "back": "Back",
+  "previous": "Previous",
+  "next": "Next",
+  "none": "None",
+  "unknown": "Unknown",
+  "nav": {
+    "links": "Links",
+    "dashboard": "Dashboard",
+    "domains": "Domains",
+    "users": "Users",
+    "audit": "Audit log",
+    "settings": "Settings",
+    "profile": "Profile",
+    "admin": "Administration"
+  },
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "signOut": "Sign out",
+  "noAccess": "You don't have access to this page.",
+  "noAccessHint": "Ask an administrator if you need it.",
+  "notFound": "This page doesn't exist.",
+  "goHome": "Go to links",
+  "comingSoon": "Coming soon",
+  "roles": {
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "locale": {
+    "en": "English",
+    "it": "Italiano"
+  }
+}
