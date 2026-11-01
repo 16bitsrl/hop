@@ -143,6 +143,17 @@ test("the audit log records user actions and can be filtered", async ({ page, re
   await api.dispose();
 });
 
+test("the audit log opens after the links list", async ({ page, request }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await loginAs(page, admin, "/links");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("link", { name: "Activity log" }).click();
+  await expect(page.getByLabel("User", { exact: true }).getByRole("option", { name: admin.name })).toBeAttached();
+  expect(errors).toEqual([]);
+});
+
 test("an invitation cannot set a password that the sign-in would refuse", async ({ request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
 import { Button, Card, EmptyState, Field, HistoryIcon, PageSpinner, Select, Table, TBody, Td, Th, THead, Tr } from "../components/ui";
+import { directoryQuery } from "../features/links/api";
 import { api, qs } from "../lib/api";
 import { formatDateTime } from "../lib/cn";
 
@@ -54,7 +55,7 @@ function AuditContent() {
   const [filters, setFilters] = useState({ userId: "", entityType: "", action: "" });
   const [page, setPage] = useState(1);
 
-  const users = useQuery({ queryKey: ["users", "directory"], queryFn: () => api<{ users: { id: string; name: string }[] }>("/api/users/directory") });
+  const users = useQuery(directoryQuery);
   const log = useQuery({
     queryKey: ["audit", filters, page],
     queryFn: () => api<AuditResponse>(`/api/audit${qs({ ...filters, page })}`),
@@ -80,7 +81,7 @@ function AuditContent() {
           {(id) => (
             <Select id={id} value={filters.userId} onChange={(e) => setFilter("userId", e.target.value)}>
               <option value="">{t("allUsers")}</option>
-              {users.data?.users.map((u) => (
+              {users.data?.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name}
                 </option>
