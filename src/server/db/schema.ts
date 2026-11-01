@@ -95,6 +95,14 @@ export const passkey = sqliteTable(
   (t) => [index("passkey_user_idx").on(t.userId)],
 );
 
+/** Better Auth's request counters (sign-in and password reset limits). Not part of a backup. */
+export const rateLimit = sqliteTable("rate_limit", {
+  id: id(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: integer("last_request").notNull(),
+});
+
 /* ------------------------------------------------------------------ */
 /* App settings                                                        */
 /* ------------------------------------------------------------------ */

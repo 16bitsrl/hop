@@ -6,6 +6,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import maxmind, { type CityResponse, type Reader } from "maxmind";
 import * as schema from "../db/schema";
+import { forwardedClientIp } from "./client-ip";
 import type { NodeSettings } from "./node-config";
 import type { BlobStore, DB, Geo, Mailer, Platform, SmtpConfig } from "./types";
 
@@ -120,8 +121,7 @@ export async function createNodeRuntime(settings: NodeSettings): Promise<NodeRun
 
   const clientIp = (req: Request): string | null => {
     if (trustProxy) {
-      const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-      const ip = forwarded || req.headers.get("x-real-ip")?.trim();
+      const ip = forwardedClientIp(req.headers.get("x-forwarded-for")) || req.headers.get("x-real-ip")?.trim();
       if (ip) return ip;
     }
     return remoteAddresses.get(req) ?? null;

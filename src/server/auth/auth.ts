@@ -10,6 +10,9 @@ import { getOidcSettings, isOidcConfigured } from "../lib/settings";
 import { actionMail, getMailer } from "../mail";
 import type { Platform } from "../platform/types";
 
+/** Internal header carrying the client address to Better Auth's rate limiter. */
+export const CLIENT_IP_HEADER = "x-hop-client-ip";
+
 /** Provider id of the configured single sign-on provider. */
 export const OIDC_PROVIDER_ID = "oidc";
 
@@ -27,7 +30,30 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
     secret: config.authSecret,
     baseURL: config.appUrl,
     database: drizzleAdapter(db, { provider: "sqlite", schema }),
-    advanced: { backgroundTasks: { handler: (p) => platform.waitUntil(p) } },
+    advanced: {
+      backgroundTasks: { handler: (p) => platform.waitUntil(p) },
+      // The address is resolved by the platform (see routes/auth.ts) and handed over in this header,
+      // which the route always overwrites: nothing sent by the client is ever trusted.
+      ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
+    },
+    // On by default only when NODE_ENV=production, which Workers do not set. Counters live in the
+    // database because Workers isolates do not share memory.
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      window: 10,
+      max: 100,
+      customRules: {
+        "/get-session": false,
+        "/sign-in/email": { window: 60, max: 10 },
+        "/sign-in/social": { window: 60, max: 20 },
+        "/callback/*": { window: 60, max: 20 },
+        "/request-password-reset": { window: 900, max: 5 },
+        "/forget-password": { window: 900, max: 5 },
+        "/reset-password": { window: 900, max: 10 },
+        "/passkey/*": { window: 60, max: 20 },
+      },
+    },
     user: {
       additionalFields: {
         role: { type: "string", required: false, defaultValue: "member", input: false },

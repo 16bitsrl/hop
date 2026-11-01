@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createAuth } from "../auth/auth";
+import { CLIENT_IP_HEADER, createAuth } from "../auth/auth";
+import { limiterIp } from "../auth/client-ip";
 import { requireUser } from "../auth/permissions";
 import { setupTokenOk } from "../auth/setup-token";
 import { countUsers, createUserWithPassword } from "../auth/users";
@@ -27,7 +28,12 @@ authRoutes.all("/auth/*", async (c) => {
   }
   const withOidc = path.startsWith("/api/auth/sign-in/social") || path.startsWith("/api/auth/callback/");
   const auth = await createAuth(platform, { oidc: withOidc });
-  return auth.handler(c.req.raw);
+  // Rate limits key on the address the platform trusts, never on a header the client could send.
+  const headers = new Headers(c.req.raw.headers);
+  headers.delete(CLIENT_IP_HEADER);
+  const ip = limiterIp(platform, c.req.raw);
+  if (ip) headers.set(CLIENT_IP_HEADER, ip);
+  return auth.handler(new Request(c.req.raw, { headers }));
 });
 
 /** Public: what the login page needs to know. */
