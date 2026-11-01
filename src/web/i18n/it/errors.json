@@ -49,5 +49,6 @@
   "batch_too_large": "È troppo da fare in un colpo solo. Riprova con meno elementi.",
   "smtp_password_required": "Inserisci di nuovo la password della posta per usare un altro server o utente di posta.",
   "last_admin": "Deve esserci sempre almeno un amministratore attivo.",
+  "folder_not_yours_inside": "Questa cartella contiene link o cartelle di altre persone, quindi può eliminarla solo un amministratore.",
   "too_many_keys": "Hai troppe chiavi attive. Revocane una prima."
 }

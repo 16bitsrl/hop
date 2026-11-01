@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { canModify, requireRole, requireUser } from "../auth/permissions";
@@ -128,7 +128,16 @@ taxonomyRoutes.delete("/folders/:id", requireUser, async (c) => {
   const id = c.req.param("id");
   const before = await db.select().from(folders).where(eq(folders.id, id)).get();
   if (!before) throw new LinkError(404, "not_found");
-  if (!canModify(c.var.user!, before.createdBy)) throw new LinkError(403, "forbidden");
+  const me = c.var.user!;
+  if (!canModify(me, before.createdBy)) throw new LinkError(403, "forbidden");
+  if (me.role !== "admin") {
+    // Deleting moves what is inside: that must not touch other people's links or folders.
+    const [foreignLinks, foreignFolders] = await Promise.all([
+      db.select({ n: sql<number>`count(*)` }).from(links).where(and(eq(links.folderId, id), or(isNull(links.ownerId), ne(links.ownerId, me.id)))).get(),
+      db.select({ n: sql<number>`count(*)` }).from(folders).where(and(eq(folders.parentId, id), or(isNull(folders.createdBy), ne(folders.createdBy, me.id)))).get(),
+    ]);
+    if ((foreignLinks?.n ?? 0) + (foreignFolders?.n ?? 0) > 0) throw new LinkError(409, "folder_not_yours_inside");
+  }
   await db.update(links).set({ folderId: null }).where(eq(links.folderId, id));
   await db.update(folders).set({ parentId: before.parentId }).where(eq(folders.parentId, id));
   await db.delete(folders).where(eq(folders.id, id));

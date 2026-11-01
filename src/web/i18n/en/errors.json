@@ -49,5 +49,6 @@
   "batch_too_large": "That is too much to do in one go. Try again with fewer items.",
   "smtp_password_required": "Enter the mail password again to use a different mail server or user.",
   "last_admin": "There must always be at least one active administrator.",
+  "folder_not_yours_inside": "This folder contains links or folders that belong to other people, so only an administrator can delete it.",
   "too_many_keys": "You have too many active keys. Revoke one first."
 }

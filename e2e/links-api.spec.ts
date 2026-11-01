@@ -216,6 +216,39 @@ test.describe("links API", () => {
     expect(del.skipped.map((s: { reason: string }) => s.reason).sort()).toEqual(["forbidden", "not_found"]);
   });
 
+  test("a member can delete their own folder only when nobody else's links or folders are inside", async ({ request, playwright }) => {
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    const alice = await apiAs(playwright, await createUser(request, { role: "member" }));
+    await ensureDomain(admin);
+    const key = uniq("fdel");
+    const makeFolder = async (api: APIRequestContext, name: string, parentId?: string) =>
+      (await (await api.post("/api/folders", { data: { name, parentId } })).json()).folder as { id: string };
+
+    // Someone else's link lands in Alice's folder: she cannot delete it from under them.
+    const folder = await makeFolder(alice, `Mine ${key}`);
+    const mine = await createLink(alice, { slug: `${key}-m`, url: "https://example.com/m", folderId: folder.id });
+    const theirs = await createLink(admin, { slug: `${key}-t`, url: "https://example.com/t", folderId: folder.id });
+    const refused = await alice.delete(`/api/folders/${folder.id}`);
+    expect(refused.status()).toBe(409);
+    expect(await refused.json()).toMatchObject({ error: "folder_not_yours_inside" });
+    expect((await (await admin.get(`/api/links/${theirs.id}`)).json()).link.folderId).toBe(folder.id);
+
+    // Same for a sub-folder made by someone else.
+    await admin.patch(`/api/links/${theirs.id}`, { data: { folderId: null } });
+    const sub = await makeFolder(admin, `Theirs ${key}`, folder.id);
+    expect((await alice.delete(`/api/folders/${folder.id}`)).status()).toBe(409);
+
+    // Once only her own things are inside, it goes, and her links move to the root.
+    await admin.delete(`/api/folders/${sub.id}`);
+    expect((await alice.delete(`/api/folders/${folder.id}`)).ok()).toBeTruthy();
+    expect((await (await alice.get(`/api/links/${mine.id}`)).json()).link.folderId).toBeNull();
+
+    // An admin can always delete.
+    const other = await makeFolder(alice, `Again ${key}`);
+    await createLink(admin, { slug: `${key}-x`, url: "https://example.com/x", folderId: other.id });
+    expect((await admin.delete(`/api/folders/${other.id}`)).ok()).toBeTruthy();
+  });
+
   test("bulk actions and CSV imports are limited to 25 items per request", async ({ request, playwright }) => {
     const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
     await ensureDomain(admin);
