@@ -1,11 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { setLanguage, type Language } from "../i18n";
 import { authClient } from "../lib/auth-client";
 import { cn } from "../lib/cn";
-import { meQuery, isAdmin, useMe } from "../lib/session";
+import { isAdmin, useMe } from "../lib/session";
 import {
   ChartIcon,
   CloseIcon,
@@ -101,8 +100,6 @@ function SidebarContent({ onSignOut }: { onSignOut: () => void }) {
 export function Shell() {
   const { t } = useTranslation();
   const me = useMe();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [drawer, setDrawer] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -123,9 +120,9 @@ export function Shell() {
 
   async function signOut() {
     await authClient.signOut();
-    queryClient.setQueryData(meQuery.queryKey, null);
-    queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" && q.queryKey[0] !== "app-config" });
-    await navigate({ to: "/login" });
+    // A fresh page load drops everything cached for this user. Clearing the cache in place would
+    // re-render this signed-in shell without a user first.
+    window.location.assign("/login");
   }
 
   return (

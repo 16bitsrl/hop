@@ -61,6 +61,7 @@ test("a user changes their own password from the profile", async ({ page, reques
   await page.getByRole("button", { name: "Change password" }).click();
   await expect(page.getByText("Password changed")).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
   await loginViaUi(page, { email: user.email, password: "changed-password-42" });
   await expect(page).toHaveURL(/\/links$/);
 });

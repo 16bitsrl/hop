@@ -7,8 +7,14 @@ test("login and logout", async ({ page, request }) => {
   await loginViaUi(page, user);
   await expect(page).toHaveURL(/\/links$/);
   await expect(page.getByText(user.name)).toBeVisible();
+  const errors: string[] = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("pageerror", (e) => errors.push(e.message));
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
+  // Signing out must not break the page it leaves behind.
+  expect(errors).toEqual([]);
   await page.goto("/links");
   await expect(page).toHaveURL(/\/login$/);
 });
