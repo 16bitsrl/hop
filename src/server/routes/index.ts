@@ -4,9 +4,11 @@ import type { AppEnv } from "../env";
 import { auditRoutes } from "./audit";
 import { authRoutes } from "./auth";
 import { settingsRoutes } from "./settings";
+import { statsRoutes } from "./stats";
 import { testAuthRoutes } from "./test-auth";
 import { userRoutes } from "./users";
 import { testLinksRoutes } from "./test-links";
+import { testStatsRoutes } from "./test-stats";
 
 /** All JSON API routes, mounted at /api. Feature modules register here. */
 export const apiRoutes = new Hono<AppEnv>();
@@ -23,3 +25,7 @@ apiRoutes.route("/", settingsRoutes);
 apiRoutes.route("/", auditRoutes);
 apiRoutes.route("/_test", testAuthRoutes);
 apiRoutes.route("/_test", testLinksRoutes);
+
+// Area D: statistics (and public statistics under /public/stats).
+apiRoutes.route("/", statsRoutes);
+apiRoutes.route("/_test", testStatsRoutes);

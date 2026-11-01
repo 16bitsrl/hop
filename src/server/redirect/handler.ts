@@ -3,6 +3,7 @@ import type { Context } from "hono";
 import { domains, links } from "../db/schema";
 import type { AppEnv } from "../env";
 import { verifyLinkPassword } from "../lib/password";
+import { publicStatsUrl } from "../stats/public";
 import { recordClick } from "./clicks";
 import {
   classifyUserAgent,
@@ -72,7 +73,11 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   if (slug === "") {
     return isHttpUrl(domain.rootUrl) ? redirect(domain.rootUrl, 302) : landingPage(lang);
   }
-  if (!link) return notFound();
+  if (!link) {
+    // YOURLS convention: "<slug>+" opens the link's public statistics when they are on.
+    const stats = slug.length > 1 && slug.endsWith("+") ? await publicStatsUrl(platform, domain.id, slug.slice(0, -1)) : null;
+    return stats ? redirect(stats, 302) : notFound();
+  }
 
   const fallbackOr = (page: () => Response) => (isHttpUrl(link.fallbackUrl) ? redirect(link.fallbackUrl, 302) : page());
 
