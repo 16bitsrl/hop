@@ -6,7 +6,7 @@ import { countUsers, randomToken, sha256Hex } from "../auth/users";
 import { domains, folders, linkTags, links, tags, user, verification } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
-import { runBatch } from "../lib/batch";
+import { runRawBatch } from "../lib/batch";
 import { fail, parseJson } from "../lib/validate";
 import { backupStream, insertStatements, tableCounts, validateRows, type BackupRow } from "../data/backup";
 import { toCsv } from "../stats/csv";
@@ -123,7 +123,7 @@ dataBackupRoutes.post("/restore/rows", async (c) => {
   const problem = validateRows(rows as BackupRow[]);
   if (problem) return fail(c, 400, problem);
   try {
-    await runBatch(c.var.platform.db, insertStatements(c.var.platform.db, rows as BackupRow[]));
+    await runRawBatch(c.var.platform.db, insertStatements(rows as BackupRow[]));
   } catch (e) {
     console.error("restore failed", e);
     return fail(c, 409, "restore_failed");

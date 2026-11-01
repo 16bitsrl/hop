@@ -33,7 +33,7 @@ test("imports a YOURLS dump with the wizard, keeps conflicts safe and never dupl
   const admin = await createUser(request, { role: "admin" });
   const owner = await createUser(request, { role: "member", name: "Imported Owner" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "yl.localhost");
+  const domain = await ensureDomain(api);
   // A link that already uses one of the slugs of the dump.
   const mine = await createLink(api, { url: "https://example.com/mine", slug: "yl-emoji", domainId: domain.id });
 
@@ -88,7 +88,7 @@ test("imports a YOURLS dump with the wizard, keeps conflicts safe and never dupl
   expect(clicks).toHaveLength(5);
   expect(clicks.every((c) => c.source === "import")).toBe(true);
   expect(clicks[0]).toMatchObject({ referrer: null, referrerHost: null, country: "IT", device: "desktop", browser: "Chrome", bot: false });
-  expect(clicks[0]!.ts).toBe(Date.UTC(2020, 2, 15, 10, 35, 0));
+  expect(new Date(clicks[0]!.ts).getTime()).toBe(Date.UTC(2020, 2, 15, 10, 35, 0));
   expect(clicks[1]).toMatchObject({ referrer: "https://t.co/abc", referrerHost: "t.co", device: "mobile", os: "iOS" });
   expect(clicks[2]).toMatchObject({ bot: true, country: "US", referrerHost: "www.google.com" });
   expect(clicks[2]!.referrer).toContain("it's+home");

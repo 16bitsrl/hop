@@ -82,4 +82,15 @@ describe("probe", () => {
     const fetchImpl = (async () => respond(500)) as unknown as typeof fetch;
     expect(await probe("http://localhost/", { fetchImpl, allowPrivate: true })).toEqual({ kind: "fail", code: 500 });
   });
+  it("in the test environment only reaches private hosts", async () => {
+    let called = 0;
+    const fetchImpl = (async () => {
+      called++;
+      return respond(200);
+    }) as unknown as typeof fetch;
+    const opts = { fetchImpl, allowPrivate: true, privateOnly: true };
+    expect(await probe("https://example.com/", opts)).toEqual({ kind: "skipped" });
+    expect(called).toBe(0);
+    expect(await probe("http://app.localhost:8805/x", opts)).toEqual({ kind: "ok", code: 200 });
+  });
 });

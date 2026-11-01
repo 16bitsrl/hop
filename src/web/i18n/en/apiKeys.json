@@ -2,7 +2,7 @@
   "title": "API keys",
   "description": "Keys let your scripts and other tools work with your links. A key can do everything you can do, so keep it private.",
   "helpLink": "API help",
-  "name": "Key name",
+  "name": "Key label",
   "namePlaceholder": "For example: website deploy",
   "create": "Create key",
   "created": {
@@ -10,7 +10,14 @@
     "text": "Copy it now and store it somewhere safe. This is the only time you will see it.",
     "done": "Done"
   },
-  "columns": { "name": "Name", "key": "Key", "lastUsed": "Last used", "created": "Created", "user": "Owner", "status": "Status" },
+  "columns": {
+    "name": "Label",
+    "key": "Key",
+    "lastUsed": "Last used",
+    "created": "Created",
+    "user": "Owner",
+    "status": "Status"
+  },
   "neverUsed": "Never used",
   "revoked": "Revoked",
   "active": "Active",
@@ -19,7 +26,7 @@
   "revokeText": "Anything using this key will stop working right away. This can't be undone.",
   "revokedToast": "Key revoked",
   "empty": "You haven't created any keys yet.",
-  "adminTitle": "API keys of all users",
+  "adminTitle": "All API keys",
   "adminDescription": "Revoke a key if it was shared by mistake or its owner left.",
   "adminEmpty": "Nobody has created an API key yet.",
   "help": {

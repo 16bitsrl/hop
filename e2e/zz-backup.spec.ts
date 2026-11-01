@@ -3,7 +3,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { apiAs, createUser, loginViaUi } from "./helpers";
-import { createLink, ensureDomain, uniq } from "./links-helpers";
+import { createLink, ensureDomain, SHORT_HOST, uniq } from "./links-helpers";
 import { DAY, seedClicks } from "./stats-helpers";
 
 const METRICS = { headers: { authorization: "Bearer test-metrics-token" } };
@@ -62,7 +62,7 @@ test("export, wipe, restore: links, clicks and logins come back", async ({ page,
   // Seed something recognisable.
   const admin = await createUser(request, { role: "admin", name: "Backup Admin" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "backup.localhost");
+  const domain = await ensureDomain(api);
   const slug = uniq("bk");
   const link = await createLink(api, { url: "https://example.com/backup?q=è☕", slug, title: "Backup \"test\"", tags: ["round-trip"], domainId: domain.id });
   await seedClicks(request, link.id, [{ ts: Date.now() - 2 * DAY, count: 3, country: "IT", visitorHash: "aaaaaaaaaaaaaaaa" }, { ts: Date.now() - DAY, referrerHost: "t.co" }]);
@@ -95,7 +95,7 @@ test("export, wipe, restore: links, clicks and logins come back", async ({ page,
   await expect(page).toHaveURL(/\/links/);
   const restoredApi = await apiAs(playwright, admin);
   const found = ((await (await restoredApi.get(`/api/links?q=${slug}`)).json()) as { items: Record<string, any>[] }).items[0]!; // eslint-disable-line @typescript-eslint/no-explicit-any
-  expect(found).toMatchObject({ id: link.id, url: "https://example.com/backup?q=è☕", title: 'Backup "test"', host: "backup.localhost" });
+  expect(found).toMatchObject({ id: link.id, url: "https://example.com/backup?q=è☕", title: 'Backup "test"', host: SHORT_HOST });
   expect(found.tags.map((t: { name: string }) => t.name)).toEqual(["round-trip"]);
   const clicks = (await (await request.get(`/api/_test/clicks?linkId=${link.id}`)).json()) as { country: string | null; referrerHost: string | null; visitorHash: string | null }[];
   expect(clicks).toHaveLength(4);

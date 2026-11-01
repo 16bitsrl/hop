@@ -32,7 +32,8 @@ const TIMEOUT_MS = 10_000;
 const MAX_HOPS = 5;
 const HEADERS = { "user-agent": "Mozilla/5.0 (compatible; hop-link-checker/1.0)", accept: "*/*" };
 
-export type ProbeOptions = { allowPrivate?: boolean; fetchImpl?: typeof fetch; timeoutMs?: number };
+/** `privateOnly` is for the test environment: it must never reach the public internet. */
+export type ProbeOptions = { allowPrivate?: boolean; privateOnly?: boolean; fetchImpl?: typeof fetch; timeoutMs?: number };
 
 /** One request, following redirects by hand so every hop is checked against the private-host rule. */
 async function request(method: "HEAD" | "GET", start: string, opts: ProbeOptions, signal: AbortSignal): Promise<number | "blocked"> {
@@ -42,6 +43,7 @@ async function request(method: "HEAD" | "GET", start: string, opts: ProbeOptions
     const target = new URL(url);
     if (target.protocol !== "http:" && target.protocol !== "https:") return "blocked";
     if (!opts.allowPrivate && isPrivateHost(target.hostname)) return "blocked";
+    if (opts.privateOnly && !isPrivateHost(target.hostname)) return "blocked";
     const res = await doFetch(target.href, { method, headers: HEADERS, redirect: "manual", signal });
     void res.body?.cancel().catch(() => {});
     const location = res.headers.get("location");
@@ -75,7 +77,7 @@ type LinkRow = typeof links.$inferSelect;
  */
 export async function checkLink(platform: Platform, link: LinkRow, opts: { confirm?: boolean; fetchImpl?: typeof fetch } = {}): Promise<LinkRow> {
   const { db, config } = platform;
-  const probeOpts = { allowPrivate: config.testMode, fetchImpl: opts.fetchImpl };
+  const probeOpts = { allowPrivate: config.testMode, privateOnly: config.testMode, fetchImpl: opts.fetchImpl };
   let health: LinkHealth = { status: link.healthStatus, code: link.healthCode };
   let verdict = await probe(link.url, probeOpts);
   health = nextHealth(health, verdict);

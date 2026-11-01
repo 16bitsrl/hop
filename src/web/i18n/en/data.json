@@ -104,7 +104,7 @@
     "every": "Check each link every",
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
-    "save": "Save",
+    "save": "Apply",
     "dashboardTitle": "Broken links",
     "dashboardEmpty": "No broken links. Everything we checked works.",
     "viewAll": "View all ({{count}})",

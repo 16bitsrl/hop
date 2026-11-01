@@ -12,11 +12,11 @@ test("a member creates a key in the profile, sees the secret once, and uses it a
   const member = await createUser(request, { role: "member", name: "Key Maker" });
   const admin = await createUser(request, { role: "admin" });
   const adminApi = await apiAs(playwright, admin);
-  const domain = await ensureDomain(adminApi, "keys.localhost");
+  const domain = await ensureDomain(adminApi);
 
   await loginAs(page, member, "/profile");
   const card = page.getByTestId("api-keys");
-  await card.getByLabel("Key name").fill("CI deploy");
+  await card.getByLabel("Key label").fill("CI deploy");
   await card.getByRole("button", { name: "Create key" }).click();
   const secret = (await page.getByTestId("new-key-secret").textContent())!.trim();
   expect(secret).toMatch(/^hop_[A-Za-z0-9_-]{30,}$/);

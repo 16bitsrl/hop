@@ -1,5 +1,5 @@
 import { getTableConfig, type SQLiteTable } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, type SQL } from "drizzle-orm";
 import {
   account,
   apiKeys,
@@ -66,33 +66,37 @@ export function backupStream(db: DB, now = Date.now()): ReadableStream<Uint8Arra
   const line = (value: unknown) => `${JSON.stringify(value)}\n`;
 
   return new ReadableStream<Uint8Array>({
+    // A pull must enqueue something (or close), otherwise the stream is never pulled again.
     async pull(controller) {
-      if (step === -1) {
-        controller.enqueue(encoder.encode(line({ format: BACKUP_FORMAT, version: BACKUP_VERSION, createdAt: now, tables: BACKUP_TABLES.map((t) => t.name) })));
-        step = 0;
+      for (;;) {
+        if (step === -1) {
+          controller.enqueue(encoder.encode(line({ format: BACKUP_FORMAT, version: BACKUP_VERSION, createdAt: now, tables: BACKUP_TABLES.map((t) => t.name) })));
+          step = 0;
+          return;
+        }
+        if (step >= BACKUP_TABLES.length) {
+          controller.enqueue(encoder.encode(line({ end: true, counts })));
+          controller.close();
+          return;
+        }
+        const name = BACKUP_TABLES[step]!.name;
+        const rows = await db.all<Row>(
+          sql`select rowid as "__rid", * from ${sql.identifier(name)} where rowid > ${after} order by rowid limit ${PAGE}`,
+        );
+        if (rows.length === 0) {
+          step++;
+          after = 0;
+          continue;
+        }
+        let text = "";
+        for (const { __rid, ...r } of rows) {
+          after = Number(__rid);
+          text += line({ t: name, r });
+        }
+        counts[name] = (counts[name] ?? 0) + rows.length;
+        controller.enqueue(encoder.encode(text));
         return;
       }
-      if (step >= BACKUP_TABLES.length) {
-        controller.enqueue(encoder.encode(line({ end: true, counts })));
-        controller.close();
-        return;
-      }
-      const name = BACKUP_TABLES[step]!.name;
-      const rows = await db.all<Row>(
-        sql`select rowid as "__rid", * from ${sql.identifier(name)} where rowid > ${after} order by rowid limit ${PAGE}`,
-      );
-      if (rows.length === 0) {
-        step++;
-        after = 0;
-        return;
-      }
-      let text = "";
-      for (const { __rid, ...r } of rows) {
-        after = Number(__rid);
-        text += line({ t: name, r });
-      }
-      counts[name] = (counts[name] ?? 0) + rows.length;
-      controller.enqueue(encoder.encode(text));
     },
   });
 }
@@ -118,8 +122,8 @@ export function validateRows(rows: BackupRow[]): string | null {
 }
 
 /** Multi-row INSERT statements, grouped by table and column set (D1 allows 100 bound values per statement). */
-export function insertStatements(db: DB, rows: BackupRow[]) {
-  const statements = [];
+export function insertStatements(rows: BackupRow[]): SQL[] {
+  const statements: SQL[] = [];
   let i = 0;
   while (i < rows.length) {
     const first = rows[i]!;
@@ -141,7 +145,7 @@ export function insertStatements(db: DB, rows: BackupRow[]) {
       group.map((g) => sql`(${sql.join(cols.map((c) => sql`${g.r[c]}`), sql`, `)})`),
       sql`, `,
     );
-    statements.push(db.run(sql`insert into ${sql.identifier(first.t)} (${colSql}) values ${valuesSql}`));
+    statements.push(sql`insert into ${sql.identifier(first.t)} (${colSql}) values ${valuesSql}`);
   }
   return statements;
 }

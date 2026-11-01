@@ -104,7 +104,7 @@
     "every": "Controlla ogni link ogni",
     "days_one": "{{count}} giorno",
     "days_other": "{{count}} giorni",
-    "save": "Salva",
+    "save": "Applica",
     "dashboardTitle": "Link non funzionanti",
     "dashboardEmpty": "Nessun link non funzionante. Tutto ciò che abbiamo controllato funziona.",
     "viewAll": "Vedi tutti ({{count}})",

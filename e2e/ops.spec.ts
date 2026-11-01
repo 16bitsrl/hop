@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { apiAs, createUser } from "./helpers";
-import { createLink, ensureDomain, uniq } from "./links-helpers";
+import { createLink, ensureDomain, SHORT_HOST, uniq } from "./links-helpers";
 
 test("/healthz checks the database", async ({ request }) => {
   const res = await request.get("/healthz");
@@ -14,7 +14,7 @@ test("/metrics needs the bearer token and speaks Prometheus", async ({ request, 
 
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "metrics.localhost");
+  const domain = await ensureDomain(api);
   await createLink(api, { url: "https://example.com/metrics", slug: uniq("mt"), domainId: domain.id });
 
   const res = await request.get("/metrics", { headers: { authorization: "Bearer test-metrics-token" } });
@@ -38,7 +38,7 @@ test("the links CSV export has one row per link, for admins only", async ({ requ
   const admin = await createUser(request, { role: "admin" });
   const member = await createUser(request, { role: "member" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "csv.localhost");
+  const domain = await ensureDomain(api);
   const slug = uniq("csv");
   await createLink(api, { url: "https://example.com/a,b?x=1", slug, title: 'Say "hi"', tags: ["alpha"], domainId: domain.id });
 
@@ -48,7 +48,7 @@ test("the links CSV export has one row per link, for admins only", async ({ requ
   expect(res.headers()["content-disposition"]).toContain(".csv");
   const text = await res.text();
   expect(text.split("\r\n")[0]).toContain("domain,slug,short_url,url,title");
-  expect(text).toContain(`csv.localhost,${slug},`);
+  expect(text).toContain(`${SHORT_HOST},${slug},`);
   expect(text).toContain('"https://example.com/a,b?x=1","Say ""hi"""');
   expect(text).toContain("alpha");
 

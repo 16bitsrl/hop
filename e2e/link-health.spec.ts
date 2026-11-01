@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { apiAs, createUser, loginAs } from "./helpers";
-import { createLink, ensureDomain, uniq } from "./links-helpers";
+import { createLink, ensureDomain, SHORT_HOST, uniq } from "./links-helpers";
 import { APP } from "../playwright.config";
 
 const status = (code: number) => `${APP}/api/_test/status/${code}`;
@@ -17,7 +17,7 @@ test.afterEach(async ({ request, playwright }) => {
 test("a link is marked broken only after two failed checks in a row, and recovers", async ({ request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "health.localhost");
+  const domain = await ensureDomain(api);
   const good = await createLink(api, { url: status(200), slug: uniq("ok"), domainId: domain.id });
   const gone = await createLink(api, { url: status(404), slug: uniq("gone"), domainId: domain.id });
   const down = await createLink(api, { url: status(503), slug: uniq("down"), domainId: domain.id });
@@ -54,7 +54,7 @@ test("check now gives a final verdict and is open to members, not viewers", asyn
   const member = await createUser(request, { role: "member" });
   const viewer = await createUser(request, { role: "viewer" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "health.localhost");
+  const domain = await ensureDomain(api);
   const link = await createLink(api, { url: status(410), slug: uniq("now"), domainId: domain.id });
 
   const memberApi = await apiAs(playwright, member);
@@ -70,7 +70,7 @@ test("check now gives a final verdict and is open to members, not viewers", asyn
 test("the check can be turned off in the settings", async ({ request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "health.localhost");
+  const domain = await ensureDomain(api);
   expect(await (await api.get("/api/links-health/settings")).json()).toEqual({ enabled: true, recheckDays: 7 });
   expect((await api.put("/api/links-health/settings", { data: { enabled: false, recheckDays: 3 } })).ok()).toBeTruthy();
   const link = await createLink(api, { url: status(500), slug: uniq("off"), domainId: domain.id });
@@ -84,7 +84,7 @@ test("the check can be turned off in the settings", async ({ request, playwright
 test("admins set the check options and see broken links on the dashboard and the links list", async ({ page, request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const api = await apiAs(playwright, admin);
-  const domain = await ensureDomain(api, "health.localhost");
+  const domain = await ensureDomain(api);
   const slug = uniq("dash");
   const link = await createLink(api, { url: status(404), slug, title: "Dead page", domainId: domain.id });
   await runJobs(request);
@@ -95,13 +95,13 @@ test("admins set the check options and see broken links on the dashboard and the
   const card = page.getByTestId("health-settings");
   await expect(card.getByRole("switch", { name: "Check destinations" })).toBeChecked();
   await card.getByLabel("Check each link every").selectOption("3");
-  await card.getByRole("button", { name: "Save" }).click();
+  await card.getByRole("button", { name: "Apply" }).click();
   await expect(page.getByText("Saved").first()).toBeVisible();
   expect(await (await api.get("/api/links-health/settings")).json()).toEqual({ enabled: true, recheckDays: 3 });
 
   await page.goto("/dashboard");
   const broken = page.getByTestId("dash-broken");
-  await expect(broken).toContainText("health.localhost/" + slug);
+  await expect(broken).toContainText(SHORT_HOST + "/" + slug);
   await broken.getByRole("link", { name: /View all/ }).click();
   await expect(page).toHaveURL(/\/links/);
   await expect(page.getByText(slug).first()).toBeVisible();
