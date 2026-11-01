@@ -12,6 +12,9 @@
   "next": "Successivo",
   "none": "Nessuno",
   "unknown": "Sconosciuto",
+  "loadFailed": "Non è stato possibile caricare i dati.",
+  "loadFailedHint": "Controlla la connessione e riprova.",
+  "retry": "Riprova",
   "nav": {
     "links": "Link",
     "dashboard": "Dashboard",

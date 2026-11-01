@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, CardBody, CardHeader, CopyButton, Field, Input, PageSpinner, Select, Switch, Tabs, useToast } from "../components/ui";
+import { Button, Card, CardBody, CardHeader, CopyButton, ErrorState, Field, Input, PageSpinner, Select, Switch, Tabs, useToast } from "../components/ui";
 import { DataTab } from "../features/data/data-tab";
 import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
@@ -41,7 +41,7 @@ export function SettingsPage() {
 function SettingsContent() {
   const { t } = useTranslation("settings");
   const [tab, setTab] = useState<"signin" | "email" | "links" | "stats" | "data">("signin");
-  const { data } = useQuery(settingsQuery);
+  const { data, isError, isFetching, refetch } = useQuery(settingsQuery);
 
   return (
     <>
@@ -63,7 +63,19 @@ function SettingsContent() {
             <LinksSettings />
             <HealthSettingsCard />
           </>
-        ) : tab === "stats" ? <RetentionCard /> : tab === "data" ? <DataTab /> : !data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
+        ) : tab === "stats" ? (
+          <RetentionCard />
+        ) : tab === "data" ? (
+          <DataTab />
+        ) : data ? (
+          tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />
+        ) : isError ? (
+          <Card>
+            <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+          </Card>
+        ) : (
+          <PageSpinner />
+        )}
       </div>
     </>
   );

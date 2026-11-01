@@ -4,6 +4,7 @@ export * from "./card";
 export * from "./copy-button";
 export * from "./dialog";
 export * from "./empty-state";
+export * from "./error-state";
 export * from "./icons";
 export * from "./input";
 export * from "./select";

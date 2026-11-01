@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, EmptyState, Field, HistoryIcon, PageSpinner, Select, Table, TBody, Td, Th, THead, Tr } from "../components/ui";
+import { Button, Card, EmptyState, ErrorState, Field, HistoryIcon, PageSpinner, Select, Table, TBody, Td, Th, THead, Tr } from "../components/ui";
 import { directoryQuery } from "../features/links/api";
 import { api, qs } from "../lib/api";
 import { formatDateTime } from "../lib/cn";
@@ -115,7 +115,11 @@ function AuditContent() {
         </Field>
       </div>
 
-      {!data ? (
+      {log.isError ? (
+        <Card>
+          <ErrorState onRetry={() => log.refetch()} retrying={log.isFetching} />
+        </Card>
+      ) : !data ? (
         <PageSpinner />
       ) : (
         <Card>

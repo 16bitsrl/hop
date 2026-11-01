@@ -1,0 +1,156 @@
+import { expect, test, type Page } from "@playwright/test";
+import { apiAs, createUser, loginAs } from "./helpers";
+import { createLink, ensureDomain, uniq } from "./links-helpers";
+
+/** Answers every matching request with a 503 until `release()` is called. */
+async function failRequests(page: Page, pattern: RegExp) {
+  let failing = true;
+  await page.route(pattern, (route) =>
+    failing ? route.fulfill({ status: 503, contentType: "application/json", body: '{"error":"unavailable"}' }) : route.fallback(),
+  );
+  return () => {
+    failing = false;
+  };
+}
+
+test.describe("failed loads", () => {
+  test("links list shows an error with retry instead of the empty state", async ({ page, request }) => {
+    const admin = await createUser(request, { role: "admin" });
+    const release = await failRequests(page, /\/api\/links\?/);
+    await loginAs(page, admin, "/links");
+    await expect(page.getByText("This couldn't be loaded.")).toBeVisible();
+    await expect(page.getByText("No links yet")).toHaveCount(0);
+    release();
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByText("This couldn't be loaded.")).toHaveCount(0);
+  });
+
+  test("settings shows an error with retry instead of spinning", async ({ page, request }) => {
+    const admin = await createUser(request, { role: "admin" });
+    const release = await failRequests(page, /\/api\/settings$/);
+    await loginAs(page, admin, "/settings");
+    await expect(page.getByText("This couldn't be loaded.")).toBeVisible();
+    release();
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByRole("switch", { name: "Allow signing in with a password" })).toBeVisible();
+  });
+
+  test("activity log shows an error with retry", async ({ page, request }) => {
+    const admin = await createUser(request, { role: "admin" });
+    const release = await failRequests(page, /\/api\/audit/);
+    await loginAs(page, admin, "/audit");
+    await expect(page.getByText("This couldn't be loaded.")).toBeVisible();
+    release();
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByText("This couldn't be loaded.")).toHaveCount(0);
+  });
+
+  test("reset link dialog shows an error with retry", async ({ page, request }) => {
+    const admin = await createUser(request, { role: "admin" });
+    const target = await createUser(request, { role: "member", name: uniq("Reset") });
+    const release = await failRequests(page, /\/reset-link$/);
+    await loginAs(page, admin, "/users");
+    await page.getByRole("row").filter({ hasText: target.email }).getByRole("button", { name: "Reset password" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("This couldn't be loaded.")).toBeVisible();
+    release();
+    await dialog.getByRole("button", { name: "Try again" }).click();
+    await expect(dialog.getByLabel("Reset link")).toHaveValue(/reset/);
+  });
+});
+
+test("mobile menu keeps keyboard focus inside and gives it back on close", async ({ page, request }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const admin = await createUser(request, { role: "admin" });
+  await loginAs(page, admin, "/links");
+  const trigger = page.getByRole("button", { name: "Open menu" });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+  const drawer = page.getByRole("dialog");
+  await expect(drawer).toBeVisible();
+  // Focus moves into the menu.
+  expect(await page.evaluate(() => !!document.activeElement?.closest("dialog"))).toBe(true);
+  // Tabbing never reaches the page behind it.
+  for (let i = 0; i < 20; i++) {
+    await page.keyboard.press("Tab");
+    const outside = await page.evaluate(() => {
+      const el = document.activeElement;
+      return !!el && el !== document.body && !el.closest("dialog");
+    });
+    expect(outside).toBe(false);
+  }
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+});
+
+function contrast(fg: string, bg: string) {
+  const lum = (c: string) => {
+    const [r = 0, g = 0, b = 0] = c.match(/\d+(\.\d+)?/g)!.slice(0, 3).map(Number).map((v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const [x, y] = [lum(fg), lum(bg)];
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+test("danger buttons are readable in light and dark mode", async ({ page, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  await ensureDomain(api);
+  const link = await createLink(api, { url: "https://example.com/contrast", slug: uniq("ct") });
+  for (const theme of ["light", "dark"]) {
+    await page.addInitScript((t) => localStorage.setItem("hop-theme", t), theme);
+    await loginAs(page, admin, `/links/${link.id}`);
+    const button = page.getByRole("button", { name: "Delete", exact: true });
+    await expect(button).toBeVisible();
+    const { color, background } = await button.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { color: s.color, background: s.backgroundColor };
+    });
+    expect(contrast(color, background), `${theme}: ${color} on ${background}`).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+test("tabs follow the keyboard model and label their panel", async ({ page, request }) => {
+  const admin = await createUser(request, { role: "admin" });
+  await loginAs(page, admin, "/settings");
+  const first = page.getByRole("tab", { name: "Sign-in" });
+  await expect(first).toHaveAttribute("tabindex", "0");
+  await expect(page.getByRole("tab", { name: "Email" })).toHaveAttribute("tabindex", "-1");
+  await first.focus();
+  await page.keyboard.press("ArrowRight");
+  const email = page.getByRole("tab", { name: "Email" });
+  await expect(email).toBeFocused();
+  await expect(email).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel", { name: "Email" })).toBeVisible();
+  await page.keyboard.press("End");
+  await expect(page.getByRole("tab", { name: "Data" })).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(first).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("tab", { name: "Data" })).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(first).toBeFocused();
+  await expect(page.getByRole("tabpanel", { name: "Sign-in" })).toBeVisible();
+});
+
+test("form hints and errors are tied to their field", async ({ page, request }) => {
+  const admin = await createUser(request, { role: "admin" });
+  await loginAs(page, admin, "/domains");
+  await page.getByRole("button", { name: "Add domain" }).first().click();
+  const dialog = page.getByRole("dialog");
+  const host = dialog.getByLabel("Domain", { exact: true });
+  await expect(host).toHaveAccessibleDescription("Only the name, like go.example.com. No https:// and no port.");
+  await expect(host).not.toHaveAttribute("aria-invalid", "true");
+  await host.fill("https://bad host:99");
+  await dialog.getByRole("button", { name: "Add domain" }).click();
+  await expect(host).toHaveAttribute("aria-invalid", "true");
+  await expect(host).toHaveAccessibleDescription("Enter only the domain name, like go.example.com.");
+});
