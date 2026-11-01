@@ -22,6 +22,7 @@ import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { formatDate } from "../lib/cn";
 import { errorMessage } from "../lib/errors";
+import { MyApiKeysCard } from "../features/api-keys/keys";
 import { domainsQuery } from "../features/links/api";
 import { appConfigQuery, meQuery, useMe, type Me } from "../lib/session";
 import { useTheme, type Theme } from "../lib/theme";
@@ -37,6 +38,7 @@ export function ProfilePage() {
         <PreferencesCard />
         {config?.passwordLogin !== false && <PasswordCard />}
         <PasskeysCard />
+        <MyApiKeysCard />
       </div>
     </>
   );

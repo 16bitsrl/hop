@@ -13,7 +13,9 @@ import { LinkDetailPage } from "./pages/link-detail";
 import { LinksPage } from "./pages/links";
 import { LinkStatsPage } from "./pages/link-stats";
 import { LoginPage } from "./pages/login";
+import { ApiHelpPage } from "./pages/api-help";
 import { ProfilePage } from "./pages/profile";
+import { RestorePage } from "./pages/restore";
 import { PublicStatsPage } from "./pages/public-stats";
 import { ResetPasswordPage } from "./pages/reset-password";
 import { SettingsPage } from "./pages/settings";
@@ -63,6 +65,9 @@ const setupRoute = createRoute({
   component: SetupPage,
 });
 
+// Restoring a backup into a new, empty installation (open until the first account exists).
+const restoreRoute = createRoute({ getParentRoute: () => rootRoute, path: "/restore", component: RestorePage });
+
 const forgotRoute = createRoute({ getParentRoute: () => rootRoute, path: "/forgot-password", component: ForgotPasswordPage });
 
 const resetRoute = createRoute({
@@ -111,7 +116,12 @@ const indexRoute = createRoute({
  * child routes (for example /links/$id) here, with `getParentRoute: () => appRoute`,
  * then list them in appRoute.addChildren([...]) below.
  */
-const linksRoute = createRoute({ getParentRoute: () => appRoute, path: "/links", component: LinksPage });
+const linksRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/links",
+  validateSearch: (s: Record<string, unknown>): { state?: string } => (typeof s.state === "string" ? { state: s.state } : {}),
+  component: LinksPage,
+});
 const linkDetailRoute = createRoute({ getParentRoute: () => appRoute, path: "/links/$id", component: LinkDetailPage });
 const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: "/dashboard", component: DashboardPage });
 const domainsRoute = createRoute({ getParentRoute: () => appRoute, path: "/domains", component: DomainsPage });
@@ -120,15 +130,17 @@ const auditRoute = createRoute({ getParentRoute: () => appRoute, path: "/audit",
 const linkStatsRoute = createRoute({ getParentRoute: () => appRoute, path: "/stats/$linkId", component: LinkStatsPage });
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: "/settings", component: SettingsPage });
 const profileRoute = createRoute({ getParentRoute: () => appRoute, path: "/profile", component: ProfilePage });
+const apiHelpRoute = createRoute({ getParentRoute: () => appRoute, path: "/api-help", component: ApiHelpPage });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
   setupRoute,
+  restoreRoute,
   forgotRoute,
   resetRoute,
   inviteRoute,
   publicStatsRoute,
-  appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, dashboardRoute, linkStatsRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute]),
+  appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, dashboardRoute, linkStatsRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute, apiHelpRoute]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
@@ -12,6 +12,7 @@ import { appConfigQuery, meQuery } from "../lib/session";
 /** First run: creates the first administrator. */
 export function SetupPage() {
   const { t } = useTranslation("auth");
+  const tData = useTranslation("data").t;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -59,6 +60,9 @@ export function SetupPage() {
         <Button type="submit" variant="primary" loading={busy} className="mt-1">
           {t("setup.submit")}
         </Button>
+        <Link to="/restore" className="text-center text-[13px] text-muted hover:text-fg hover:underline">
+          {tData("restore.link")}
+        </Link>
       </form>
     </AuthCard>
   );

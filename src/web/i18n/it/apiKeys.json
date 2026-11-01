@@ -1,0 +1,58 @@
+{
+  "title": "Chiavi API",
+  "description": "Le chiavi permettono ai tuoi script e ad altri strumenti di lavorare con i tuoi link. Una chiave può fare tutto ciò che puoi fare tu, quindi tienila riservata.",
+  "helpLink": "Guida all'API",
+  "name": "Nome della chiave",
+  "namePlaceholder": "Per esempio: pubblicazione del sito",
+  "create": "Crea chiave",
+  "created": {
+    "title": "La tua nuova chiave",
+    "text": "Copiala adesso e conservala in un posto sicuro. Questa è l'unica volta in cui la vedrai.",
+    "done": "Fatto"
+  },
+  "columns": { "name": "Nome", "key": "Chiave", "lastUsed": "Ultimo utilizzo", "created": "Creata", "user": "Proprietario", "status": "Stato" },
+  "neverUsed": "Mai usata",
+  "revoked": "Revocata",
+  "active": "Attiva",
+  "revoke": "Revoca",
+  "revokeTitle": "Revocare «{{name}}»?",
+  "revokeText": "Tutto ciò che usa questa chiave smetterà subito di funzionare. L'operazione non si può annullare.",
+  "revokedToast": "Chiave revocata",
+  "empty": "Non hai ancora creato nessuna chiave.",
+  "adminTitle": "Chiavi API di tutti gli utenti",
+  "adminDescription": "Revoca una chiave se è stata condivisa per errore o se chi la possiede se n'è andato.",
+  "adminEmpty": "Nessuno ha ancora creato una chiave API.",
+  "help": {
+    "title": "Usare l'API",
+    "description": "Tutto quello che fai in hop lo puoi fare anche dai tuoi script. Ecco le basi.",
+    "back": "Torna al tuo profilo",
+    "auth": {
+      "title": "Accedere con una chiave",
+      "text": "Crea una chiave nel tuo profilo, poi inviala a ogni richiesta nell'intestazione Authorization. Una chiave ha esattamente i tuoi stessi permessi."
+    },
+    "list": {
+      "title": "Trovare i tuoi link",
+      "text": "Elenca i link 25 alla volta. Usa q per cercare nel suffisso, nella destinazione, nel titolo e nelle note, e page per andare avanti. Puoi anche filtrare per tag, cartella, dominio o stato (active, disabled, expired, broken)."
+    },
+    "create": {
+      "title": "Creare un link",
+      "text": "Serve solo url. Ometti slug per avere un suffisso casuale, oppure scegline uno tuo. Aggiungi title, tags, expiresAt e altro se ti servono."
+    },
+    "update": {
+      "title": "Modificare un link",
+      "text": "Invia solo i campi che vuoi cambiare. Usa l'id del link che trovi nell'elenco o nella risposta alla creazione."
+    },
+    "remove": {
+      "title": "Eliminare un link",
+      "text": "Rimuove il link e lo fa smettere di funzionare."
+    },
+    "stats": {
+      "title": "Leggere le statistiche",
+      "text": "Totali, visitatori e dettagli di un singolo link. Ometti linkId per avere i numeri di tutti i link."
+    },
+    "errors": {
+      "title": "Se qualcosa va storto",
+      "text": "401 significa che la chiave manca, è sbagliata o è stata revocata. 403 significa che il tuo ruolo non può farlo. 400 arriva con l'elenco dei campi da correggere."
+    }
+  }
+}

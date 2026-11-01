@@ -3,6 +3,8 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
 import { Button, Card, CardBody, CardHeader, CopyButton, Field, Input, PageSpinner, Select, Switch, Tabs, useToast } from "../components/ui";
+import { DataTab } from "../features/data/data-tab";
+import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
 import { RetentionCard } from "../features/stats/retention-card";
 import { api } from "../lib/api";
@@ -38,7 +40,7 @@ export function SettingsPage() {
 
 function SettingsContent() {
   const { t } = useTranslation("settings");
-  const [tab, setTab] = useState<"signin" | "email" | "links" | "stats">("signin");
+  const [tab, setTab] = useState<"signin" | "email" | "links" | "stats" | "data">("signin");
   const { data } = useQuery(settingsQuery);
 
   return (
@@ -50,12 +52,18 @@ function SettingsContent() {
           { id: "email", label: t("tabs.email") },
           { id: "links", label: t("tabs.links") },
           { id: "stats", label: t("tabs.stats") },
+          { id: "data", label: t("tabs.data") },
         ]}
         value={tab}
         onChange={setTab}
       />
       <div className="mt-6 flex flex-col gap-6">
-        {tab === "links" ? <LinksSettings /> : tab === "stats" ? <RetentionCard /> : !data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
+        {tab === "links" ? (
+          <>
+            <LinksSettings />
+            <HealthSettingsCard />
+          </>
+        ) : tab === "stats" ? <RetentionCard /> : tab === "data" ? <DataTab /> : !data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
       </div>
     </>
   );

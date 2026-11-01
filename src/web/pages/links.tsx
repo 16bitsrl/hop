@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link as RouterLink } from "@tanstack/react-router";
+import { Link as RouterLink, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
@@ -51,7 +51,8 @@ export function LinksPage() {
   const queryClient = useQueryClient();
   const desktop = useMediaQuery("(min-width: 768px)");
 
-  const [filters, setFilters] = useState<Filters>({ q: "", owner: "", tag: "", folder: "", domain: "", state: "", sort: "created", dir: "desc" });
+  const { state: initialState } = useSearch({ strict: false }) as { state?: string };
+  const [filters, setFilters] = useState<Filters>({ q: "", owner: "", tag: "", folder: "", domain: "", state: initialState ?? "", sort: "created", dir: "desc" });
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());

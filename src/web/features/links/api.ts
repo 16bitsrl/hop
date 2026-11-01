@@ -45,6 +45,8 @@ export type Link = {
   clickCount: number;
   lastClickedAt: string | null;
   healthStatus: "unknown" | "ok" | "broken";
+  healthCode: number | null;
+  healthCheckedAt: string | null;
   states: LinkState[];
   createdAt: string;
   updatedAt: string;

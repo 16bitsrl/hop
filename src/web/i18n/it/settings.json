@@ -5,7 +5,8 @@
     "signin": "Accesso",
     "email": "Email",
     "links": "Link",
-    "stats": "Statistiche"
+    "stats": "Statistiche",
+    "data": "Dati"
   },
   "password": {
     "title": "Accesso con password",

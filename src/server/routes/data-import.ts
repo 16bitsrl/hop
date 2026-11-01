@@ -51,6 +51,7 @@ dataImportRoutes.post("/data/yourls/links", async (c) => {
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const skippedKeywords: string[] = [];
   const failed: { keyword: string; error: string }[] = [];
   const seen = new Set<string>();
 
@@ -60,16 +61,14 @@ dataImportRoutes.post("/data/yourls/links", async (c) => {
       failed.push({ keyword: l.keyword, error: problem });
       continue;
     }
-    if (seen.has(l.keyword)) {
-      skipped++;
-      continue;
-    }
+    if (seen.has(l.keyword)) continue;
     seen.add(l.keyword);
     const createdAt = new Date(l.createdAt ?? now.getTime());
     const existing = index.get(l.keyword);
     if (existing) {
       if (body.onConflict === "skip") {
         skipped++;
+        skippedKeywords.push(l.keyword);
         continue;
       }
       statements.push(
@@ -106,7 +105,7 @@ dataImportRoutes.post("/data/yourls/links", async (c) => {
     }
   }
   await runBatch(db, statements);
-  return c.json({ created, updated, skipped, failed });
+  return c.json({ created, updated, skipped, skippedKeywords, failed });
 });
 
 dataImportRoutes.post("/data/yourls/clicks", async (c) => {

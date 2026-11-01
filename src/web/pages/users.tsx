@@ -23,6 +23,7 @@ import {
   Tr,
   useToast,
 } from "../components/ui";
+import { AllApiKeysCard } from "../features/api-keys/keys";
 import { api } from "../lib/api";
 import { formatDate } from "../lib/cn";
 import { errorMessage } from "../lib/errors";
@@ -207,6 +208,7 @@ function UsersContent() {
         loading={revoke.isPending}
         onConfirm={() => revokeFor && revoke.mutate(revokeFor.id)}
       />
+      <AllApiKeysCard />
     </>
   );
 }

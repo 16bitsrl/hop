@@ -1,0 +1,58 @@
+{
+  "title": "API keys",
+  "description": "Keys let your scripts and other tools work with your links. A key can do everything you can do, so keep it private.",
+  "helpLink": "API help",
+  "name": "Key name",
+  "namePlaceholder": "For example: website deploy",
+  "create": "Create key",
+  "created": {
+    "title": "Your new key",
+    "text": "Copy it now and store it somewhere safe. This is the only time you will see it.",
+    "done": "Done"
+  },
+  "columns": { "name": "Name", "key": "Key", "lastUsed": "Last used", "created": "Created", "user": "Owner", "status": "Status" },
+  "neverUsed": "Never used",
+  "revoked": "Revoked",
+  "active": "Active",
+  "revoke": "Revoke",
+  "revokeTitle": "Revoke “{{name}}”?",
+  "revokeText": "Anything using this key will stop working right away. This can't be undone.",
+  "revokedToast": "Key revoked",
+  "empty": "You haven't created any keys yet.",
+  "adminTitle": "API keys of all users",
+  "adminDescription": "Revoke a key if it was shared by mistake or its owner left.",
+  "adminEmpty": "Nobody has created an API key yet.",
+  "help": {
+    "title": "Using the API",
+    "description": "Everything you can do in hop, you can also do from your own scripts. Here are the basics.",
+    "back": "Back to your profile",
+    "auth": {
+      "title": "Sign in with a key",
+      "text": "Create a key in your profile, then send it with every request in the Authorization header. A key has exactly the same permissions as you."
+    },
+    "list": {
+      "title": "Find your links",
+      "text": "Lists links 25 at a time. Use q to search in the ending, destination, title and notes, and page to move on. You can also filter by tag, folder, domain or state (active, disabled, expired, broken)."
+    },
+    "create": {
+      "title": "Create a link",
+      "text": "Only url is required. Leave out slug to get a random ending, or choose your own. Add title, tags, expiresAt and more if you need them."
+    },
+    "update": {
+      "title": "Change a link",
+      "text": "Send only the fields you want to change. Use the link id from the list or from the answer when you created it."
+    },
+    "remove": {
+      "title": "Delete a link",
+      "text": "Removes the link and stops it from working."
+    },
+    "stats": {
+      "title": "Read statistics",
+      "text": "Totals, visitors and breakdowns for one link. Leave out linkId to get the numbers of all links."
+    },
+    "errors": {
+      "title": "If something goes wrong",
+      "text": "401 means the key is missing, wrong or revoked. 403 means your role can't do that. 400 comes with a list of the fields to fix."
+    }
+  }
+}

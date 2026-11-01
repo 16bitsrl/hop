@@ -38,5 +38,11 @@
   "csv_empty": "Il file è vuoto.",
   "csv_missing_url": "Il file deve avere una colonna chiamata url.",
   "csv_too_many_rows": "Il file ha troppe righe. Il limite è 500.",
-  "invalid_range": "Il periodo non è valido."
+  "invalid_range": "Il periodo non è valido.",
+  "unknown_owner": "Questo utente non esiste.",
+  "not_empty": "Questa installazione ha già degli account, quindi qui non si può ripristinare un backup.",
+  "restore_failed": "Non è stato possibile ripristinare il backup. Il file potrebbe essere danneggiato.",
+  "restore_incomplete": "Il file di backup è incompleto. Mancano dei dati.",
+  "invalid_backup": "Questo non sembra un backup di hop.",
+  "too_many_keys": "Hai troppe chiavi attive. Revocane una prima."
 }
