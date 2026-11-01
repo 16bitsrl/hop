@@ -12,7 +12,8 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   globalSetup: "./e2e/global-setup.ts",
-  use: { baseURL: APP, trace: "retain-on-failure" },
+  // The service worker is only exercised in pwa.spec.ts; elsewhere it would just cache between tests.
+  use: { baseURL: APP, trace: "retain-on-failure", serviceWorkers: "block" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     // HOP_RUNTIME=node runs the same suite against the Node/SQLite build; the default is Workers.

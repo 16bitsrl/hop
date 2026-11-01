@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "noEmit": true,
-    "types": ["./worker-configuration.d.ts", "vite/client", "node"]
+    "types": ["./worker-configuration.d.ts", "vite/client", "vite-plugin-pwa/client", "node"]
   },
   "include": ["src", "e2e", "scripts", "*.ts"]
 }

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Dialog, Field, Input, Select } from "../../components/ui";
 import { api, qs } from "../../lib/api";
@@ -16,16 +16,16 @@ export function fetchMeta(url: string) {
   return api<PageMeta>(`/api/links/meta${qs({ url })}`);
 }
 
-export function CreateLinkDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function CreateLinkDialog({ open, onClose, initialUrl = "" }: { open: boolean; onClose: () => void; initialUrl?: string }) {
   const { t } = useTranslation("links");
   return (
     <Dialog open={open} onClose={onClose} title={t("create.title")} description={t("create.description")}>
-      <CreateForm onClose={onClose} />
+      <CreateForm onClose={onClose} initialUrl={initialUrl} />
     </Dialog>
   );
 }
 
-function CreateForm({ onClose }: { onClose: () => void }) {
+function CreateForm({ onClose, initialUrl }: { onClose: () => void; initialUrl: string }) {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
   const me = useMe();
@@ -35,7 +35,7 @@ function CreateForm({ onClose }: { onClose: () => void }) {
   const tags = useQuery(tagsQuery);
   const folders = useQuery(foldersQuery);
 
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl);
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [domainId, setDomainId] = useState("");
@@ -63,6 +63,13 @@ function CreateForm({ onClose }: { onClose: () => void }) {
       setLookingUp(false);
     }
   }
+
+  // A link that arrives pre-filled (shared to hop) gets its title looked up right away.
+  useEffect(() => {
+    if (initialUrl) void lookUp();
+    // Only once, when the form opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const create = useMutation({
     mutationFn: () =>

@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link as RouterLink, useSearch } from "@tanstack/react-router";
+import { Link as RouterLink, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
@@ -35,6 +35,7 @@ import { copyText } from "../lib/clipboard";
 import { formatDate } from "../lib/cn";
 import { errorMessage } from "../lib/errors";
 import { canCreate, useMe } from "../lib/session";
+import { sharedUrl, takeRememberedShared } from "../lib/share";
 import { useMediaQuery } from "../lib/use-media-query";
 
 type Filters = { q: string; owner: string; tag: string; folder: string; domain: string; state: string; sort: string; dir: "asc" | "desc" };
@@ -51,16 +52,32 @@ export function LinksPage() {
   const queryClient = useQueryClient();
   const desktop = useMediaQuery("(min-width: 768px)");
 
-  const { state: initialState } = useSearch({ strict: false }) as { state?: string };
+  const navigate = useNavigate();
+  const searchParams = useSearch({ strict: false }) as { state?: string; share?: string; url?: string; text?: string };
+  const initialState = searchParams.state;
   const [filters, setFilters] = useState<Filters>({ q: "", owner: "", tag: "", folder: "", domain: "", state: initialState ?? "", sort: "created", dir: "desc" });
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
+  const [sharedLink, setSharedLink] = useState("");
   const [importing, setImporting] = useState(false);
   const [organizing, setOrganizing] = useState(false);
   const [removing, setRemoving] = useState<Link | null>(null);
   const [bulkDialog, setBulkDialog] = useState<"addTag" | "removeTag" | "move" | "delete" | null>(null);
+
+  // A link shared to hop (share sheet or bookmarklet) opens the create dialog with the address filled in.
+  useEffect(() => {
+    const shared = sharedUrl(searchParams) ?? takeRememberedShared();
+    if (!shared) return;
+    if (canCreate(me)) {
+      setSharedLink(shared);
+      setCreating(true);
+    }
+    void navigate({ to: "/links", search: initialState ? { state: initialState } : {}, replace: true });
+    // Only when the page opens with a shared link.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Typing in the search box waits a moment before asking the server.
   useEffect(() => {
@@ -387,7 +404,7 @@ export function LinksPage() {
         </div>
       )}
 
-      <CreateLinkDialog open={creating} onClose={() => setCreating(false)} />
+      <CreateLinkDialog open={creating} initialUrl={sharedLink} onClose={() => { setCreating(false); setSharedLink(""); }} />
       <ImportDialog open={importing} onClose={() => setImporting(false)} />
       <FoldersDialog open={organizing} onClose={() => setOrganizing(false)} />
 

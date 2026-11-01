@@ -60,6 +60,10 @@
     "errors": {
       "title": "Se qualcosa va storto",
       "text": "401 significa che la chiave manca, è sbagliata o è stata revocata. 403 significa che il tuo ruolo non può farlo. 400 arriva con l'elenco dei campi da correggere."
+    },
+    "bookmarklet": {
+      "title": "Segnalibro",
+      "text": "Salva il codice qui sotto come segnalibro. Quando sei su una pagina da accorciare, clicca il segnalibro e hop si apre con l'indirizzo già inserito. Su Android, dopo aver installato l'app, puoi anche condividere una pagina con hop dal menu di condivisione."
     }
   }
 }

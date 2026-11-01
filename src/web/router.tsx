@@ -3,6 +3,7 @@ import { createRootRouteWithContext, createRoute, createRouter, Link, Outlet, re
 import { useTranslation } from "react-i18next";
 import { Shell } from "./components/shell";
 import { Button } from "./components/ui";
+import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
 import { AuditPage } from "./pages/audit";
 import { DashboardPage } from "./pages/dashboard";
@@ -95,10 +96,14 @@ const publicStatsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "app",
-  beforeLoad: async ({ context: { queryClient } }) => {
+  beforeLoad: async ({ context: { queryClient }, location }) => {
     const config = await queryClient.ensureQueryData(appConfigQuery);
     if (config.setupRequired) throw redirect({ to: "/setup" });
-    if (!(await queryClient.ensureQueryData(meQuery))) throw redirect({ to: "/login" });
+    if (!(await queryClient.ensureQueryData(meQuery))) {
+      // A link shared to hop before signing in is picked up again after the sign-in.
+      if (location.pathname === "/links") rememberShared(location.search as Record<string, unknown>);
+      throw redirect({ to: "/login" });
+    }
   },
   component: Shell,
 });
@@ -119,7 +124,12 @@ const indexRoute = createRoute({
 const linksRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/links",
-  validateSearch: (s: Record<string, unknown>): { state?: string } => (typeof s.state === "string" ? { state: s.state } : {}),
+  validateSearch: (s: Record<string, unknown>): { state?: string; share?: string; url?: string; text?: string } => ({
+    ...(typeof s.state === "string" ? { state: s.state } : {}),
+    ...(typeof s.share === "string" ? { share: s.share } : {}),
+    ...(typeof s.url === "string" ? { url: s.url } : {}),
+    ...(typeof s.text === "string" ? { text: s.text } : {}),
+  }),
   component: LinksPage,
 });
 const linkDetailRoute = createRoute({ getParentRoute: () => appRoute, path: "/links/$id", component: LinkDetailPage });

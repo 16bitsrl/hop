@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
 import { Card, CardBody, CopyButton } from "../components/ui";
+import { bookmarklet } from "../lib/share";
 
 function Code({ children }: { children: string }) {
   return (
@@ -59,6 +60,9 @@ export function ApiHelpPage() {
         </Section>
         <Section title={t("help.stats.title")} text={t("help.stats.text")}>
           <Code>{`curl ${auth} \\\n  "${base}/api/stats/summary?linkId=LINK_ID"`}</Code>
+        </Section>
+        <Section title={t("help.bookmarklet.title")} text={t("help.bookmarklet.text")}>
+          <Code>{bookmarklet(base)}</Code>
         </Section>
         <Section title={t("help.errors.title")} text={t("help.errors.text")}>
           <Code>{`{ "error": "invalid_request", "fields": ["url"] }`}</Code>

@@ -7,6 +7,7 @@ import { ToastProvider } from "./components/ui/toast";
 import { ApiError } from "./lib/api";
 import { createAppRouter } from "./router";
 import "./styles.css";
+import { registerSW } from "virtual:pwa-register";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,3 +29,6 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+// The worker only precaches the app shell; it never touches /api, /media, /healthz or /metrics.
+if ("serviceWorker" in navigator) registerSW({ immediate: true });
