@@ -185,6 +185,21 @@ test("requires sign-in and valid parameters", async ({ request, playwright }) =>
   await api.dispose();
 });
 
+test("CSV export of raw clicks is complete across many batches", async ({ request, playwright }) => {
+  const user = await createUser(request, { role: "member" });
+  const api = await apiAs(playwright, user);
+  const link = await seedLink(request);
+  // Many clicks share one instant: batching must not skip or repeat any of them.
+  await seedClicks(request, link.id, [{ ts: D1, count: 2600 }, { ts: D1 + HOUR, country: "FR" }]);
+  const qs = new URLSearchParams({ linkId: link.id, from: String(MARCH.from), to: String(MARCH.to), tz: "UTC" });
+  const raw = await api.get(`/api/stats/export.csv?${qs}&kind=clicks`);
+  expect(raw.status()).toBe(200);
+  const lines = (await raw.text()).replace("\ufeff", "").trim().split("\r\n");
+  expect(lines).toHaveLength(2602);
+  expect(lines.at(-1)).toContain(",FR,");
+  await api.dispose();
+});
+
 test("CSV export: raw clicks without IP, and aggregated tables", async ({ request, playwright }) => {
   const user = await createUser(request, { role: "member" });
   const api = await apiAs(playwright, user);

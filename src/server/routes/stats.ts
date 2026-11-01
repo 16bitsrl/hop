@@ -5,7 +5,7 @@ import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { setSetting } from "../lib/settings";
 import { fail, parseJson } from "../lib/validate";
-import { toCsv, type CsvCell } from "../stats/csv";
+import { csvLines, toCsv, type CsvCell } from "../stats/csv";
 import {
   type Filter,
   linkCount,
@@ -124,11 +124,22 @@ statsRoutes.get("/stats/export.csv", async (c) => {
 
   if (c.req.query("kind") === "clicks") {
     // Raw clicks. Never the visitor hash, never an address.
-    const rows = await rawClicks(db, f);
-    return new Response(
-      toCsv([
-        ["time", "link", "referrer_host", "country", "region", "city", "device", "os", "browser", "language", "bot", "target"],
-        ...rows.map((r): CsvCell[] => [
+    const batches = rawClicks(db, f);
+    const encoder = new TextEncoder();
+    let started = false;
+    const body = new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        if (!started) {
+          started = true;
+          controller.enqueue(encoder.encode(toCsv([["time", "link", "referrer_host", "country", "region", "city", "device", "os", "browser", "language", "bot", "target"]])));
+          return;
+        }
+        const next = await batches.next();
+        if (next.done) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(encoder.encode(csvLines(next.value.map((r): CsvCell[] => [
           new Date(r.ts).toISOString(),
           `${r.host}/${r.slug}`,
           r.referrerHost,
@@ -141,10 +152,10 @@ statsRoutes.get("/stats/export.csv", async (c) => {
           r.language,
           !!r.bot,
           r.target ?? "main",
-        ]),
-      ]),
-      { headers },
-    );
+        ]))));
+      },
+    });
+    return new Response(body, { headers });
   }
 
   const [summary, targets, top] = await Promise.all([

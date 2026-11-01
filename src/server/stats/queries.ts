@@ -197,10 +197,24 @@ export async function linkCount(db: DB): Promise<number> {
 
 /* ------------------------------ raw export ------------------------------ */
 
-export const EXPORT_LIMIT = 100_000;
+const EXPORT_BATCH = 1000;
 
-export async function rawClicks(db: DB, f: Filter) {
+/** Every click in the range, oldest first, read in batches so any history fits in memory. */
+export async function* rawClicks(db: DB, f: Filter) {
+  let after: { ts: number; id: number } | null = null;
+  for (;;) {
+    const rows = await rawClickBatch(db, f, after);
+    if (rows.length > 0) yield rows;
+    if (rows.length < EXPORT_BATCH) return;
+    const last = rows[rows.length - 1]!;
+    after = { ts: last.ts, id: last.id };
+  }
+}
+
+async function rawClickBatch(db: DB, f: Filter, after: { ts: number; id: number } | null) {
+  const from = after ? sql` AND (c.ts > ${after.ts} OR (c.ts = ${after.ts} AND c.id > ${after.id}))` : sql``;
   return db.all<{
+    id: number;
     ts: number;
     host: string;
     slug: string;
@@ -215,12 +229,12 @@ export async function rawClicks(db: DB, f: Filter) {
     bot: number;
     target: string | null;
   }>(sql`
-    SELECT c.ts AS ts, d.host AS host, l.slug AS slug, c.referrer_host AS referrerHost, c.country AS country,
+    SELECT c.id AS id, c.ts AS ts, d.host AS host, l.slug AS slug, c.referrer_host AS referrerHost, c.country AS country,
            c.region AS region, c.city AS city, c.device AS device, c.os AS os, c.browser AS browser,
            c.language AS language, c.bot AS bot, c.target AS target
     FROM clicks c
     JOIN links l ON l.id = c.link_id
     JOIN domains d ON d.id = l.domain_id
-    WHERE ${where(f)}
-    ORDER BY c.ts ASC, c.id ASC LIMIT ${EXPORT_LIMIT}`);
+    WHERE ${where(f)}${from}
+    ORDER BY c.ts ASC, c.id ASC LIMIT ${EXPORT_BATCH}`);
 }
