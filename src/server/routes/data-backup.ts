@@ -1,7 +1,7 @@
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { requireRole } from "../auth/permissions";
+import { requireRole, sessionOnly } from "../auth/permissions";
 import { setupTokenOk } from "../auth/setup-token";
 import { countUsers, randomToken, sha256Hex } from "../auth/users";
 import { clearExpiredRestores, clearRestores, restoreRunning, RESTORE_ACTIVE, RESTORE_PENDING, RESTORE_TTL } from "../data/restore-state";
@@ -19,7 +19,7 @@ const admin = requireRole("admin");
 const dateStamp = () => new Date().toISOString().slice(0, 10);
 
 /** Full backup as NDJSON (`?gzip=1` compresses it). */
-dataBackupRoutes.get("/data/backup", admin, async (c) => {
+dataBackupRoutes.get("/data/backup", admin, sessionOnly, async (c) => {
   const gzip = c.req.query("gzip") === "1";
   await audit(c, { action: "data.export", entityType: "data", entityId: "backup", data: { gzip } });
   let body: ReadableStream<Uint8Array> = backupStream(c.var.platform.db);

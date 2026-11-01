@@ -1,7 +1,7 @@
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { requireRole, requireUser } from "../auth/permissions";
+import { requireRole, requireUser, sessionOnly } from "../auth/permissions";
 import { createResetLink, createUserWithPassword, findUserByEmail, randomToken, sha256Hex } from "../auth/users";
 import { invites, session, user } from "../db/schema";
 import type { AppEnv } from "../env";
@@ -18,6 +18,8 @@ userRoutes.get("/users/directory", requireUser, async (c) => {
 });
 
 const admin = requireRole("admin");
+/** Changes to who can sign in and with what role: an API key must not be able to widen its own access. */
+const adminSession = [admin, sessionOnly] as const;
 
 userRoutes.get("/users", admin, async (c) => {
   const rows = await c.var.platform.db
@@ -36,7 +38,7 @@ userRoutes.get("/users", admin, async (c) => {
 
 const patchBody = z.object({ role: z.enum(["admin", "member", "viewer"]).optional(), disabled: z.boolean().optional() });
 
-userRoutes.patch("/users/:id", admin, async (c) => {
+userRoutes.patch("/users/:id", ...adminSession, async (c) => {
   const { id } = c.req.param();
   const body = await parseJson(c, patchBody);
   if (id === c.var.user!.id) return fail(c, 409, "cannot_change_self");
@@ -62,7 +64,7 @@ userRoutes.patch("/users/:id", admin, async (c) => {
   return c.json({ ok: true });
 });
 
-userRoutes.post("/users/:id/reset-link", admin, async (c) => {
+userRoutes.post("/users/:id/reset-link", ...adminSession, async (c) => {
   const { id } = c.req.param();
   const target = await c.var.platform.db.select().from(user).where(eq(user.id, id)).get();
   if (!target) return fail(c, 404, "not_found");
@@ -86,7 +88,7 @@ userRoutes.get("/invites", admin, async (c) => {
 
 const inviteBody = z.object({ email: z.email(), role: z.enum(["admin", "member", "viewer"]) });
 
-userRoutes.post("/invites", admin, async (c) => {
+userRoutes.post("/invites", ...adminSession, async (c) => {
   const body = await parseJson(c, inviteBody);
   const platform = c.var.platform;
   const email = body.email.trim().toLowerCase();
@@ -126,7 +128,7 @@ userRoutes.post("/invites", admin, async (c) => {
   return c.json({ id, url, emailed });
 });
 
-userRoutes.delete("/invites/:id", admin, async (c) => {
+userRoutes.delete("/invites/:id", ...adminSession, async (c) => {
   const { id } = c.req.param();
   const row = await c.var.platform.db.select().from(invites).where(eq(invites.id, id)).get();
   if (!row) return fail(c, 404, "not_found");

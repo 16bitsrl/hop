@@ -1,9 +1,8 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { createMiddleware } from "hono/factory";
 import { Hono } from "hono";
 import { z } from "zod";
 import { displayPrefix, newKeySecret } from "../auth/api-keys";
-import { requireRole, requireUser } from "../auth/permissions";
+import { requireRole, requireUser, sessionOnly } from "../auth/permissions";
 import { sha256Hex } from "../auth/users";
 import { apiKeys, user } from "../db/schema";
 import type { AppEnv } from "../env";
@@ -21,11 +20,6 @@ import { fail, parseJson } from "../lib/validate";
 export const apiKeyRoutes = new Hono<AppEnv>();
 
 const MAX_ACTIVE_KEYS = 20;
-
-const sessionOnly = createMiddleware<AppEnv>(async (c, next) => {
-  if (c.var.authVia === "key") return c.json({ error: "forbidden" }, 403);
-  await next();
-});
 
 apiKeyRoutes.use("/api-keys", requireUser, sessionOnly);
 apiKeyRoutes.use("/api-keys/*", requireUser, sessionOnly);

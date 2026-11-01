@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { requireRole } from "../auth/permissions";
+import { requireRole, sessionOnly } from "../auth/permissions";
 import { clicks, domains, links, user } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
@@ -26,7 +26,7 @@ import {
  */
 export const dataImportRoutes = new Hono<AppEnv>();
 
-dataImportRoutes.use("/data/yourls/*", requireRole("admin"));
+dataImportRoutes.use("/data/yourls/*", requireRole("admin"), sessionOnly);
 
 async function slugIndex(c: { var: { platform: { db: import("../platform/types").DB } } }, domainId: string) {
   const rows = await c.var.platform.db.select({ id: links.id, slug: links.slug }).from(links).where(eq(links.domainId, domainId));

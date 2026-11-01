@@ -68,3 +68,23 @@ test("password login can be turned off only when single sign-on is set up", asyn
   await resetSettings(request);
   await api.dispose();
 });
+
+test("changing the mail server asks for the password again, so a stored password cannot be sent elsewhere", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  const base = { port: 587, user: "mailer", from: "hop@example.test", tls: "starttls" };
+  expect((await api.put("/api/settings/smtp", { data: { ...base, host: "smtp.good.test", pass: "secret-pass" } })).ok()).toBeTruthy();
+
+  // Same server, password left empty: keeps the stored one.
+  expect((await api.put("/api/settings/smtp", { data: { ...base, host: "smtp.good.test", pass: "", from: "other@example.test" } })).ok()).toBeTruthy();
+  // Another host or another user without the password: refused.
+  const moved = await api.put("/api/settings/smtp", { data: { ...base, host: "smtp.evil.test", pass: "" } });
+  expect(moved.status()).toBe(400);
+  expect(await moved.json()).toMatchObject({ error: "smtp_password_required" });
+  const renamed = await api.put("/api/settings/smtp", { data: { ...base, host: "smtp.good.test", user: "someone-else", pass: "" } });
+  expect(renamed.status()).toBe(400);
+  // With the password typed again it goes through.
+  expect((await api.put("/api/settings/smtp", { data: { ...base, host: "smtp.new.test", pass: "typed-again" } })).ok()).toBeTruthy();
+  await resetSettings(request);
+  await api.dispose();
+});

@@ -118,3 +118,27 @@ test("the API help page explains the main endpoints", async ({ page, request }) 
   await expect(page.getByText("curl").first()).toBeVisible();
   await expect(page.getByText(APP).first()).toBeVisible(); // examples use this installation's address
 });
+
+test("an admin API key cannot manage users, settings, backups or imports, only a signed-in session can", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const other = await createUser(request, { role: "member" });
+  const session = await apiAs(playwright, admin);
+  const { secret } = (await (await session.post("/api/api-keys", { data: { name: "admin key" } })).json()) as { secret: string };
+  const key = await withKey(playwright, secret);
+
+  // The key is a working admin key for ordinary things...
+  expect((await key.get("/api/users")).status()).toBe(200);
+  // ...but it cannot hand out access to itself.
+  expect((await key.post(`/api/users/${other.id}/reset-link`)).status()).toBe(403);
+  expect((await key.post("/api/invites", { data: { email: "escalate@example.test", role: "admin" } })).status()).toBe(403);
+  expect((await key.patch(`/api/users/${other.id}`, { data: { role: "admin" } })).status()).toBe(403);
+  expect((await key.put("/api/settings/auth", { data: { passwordLogin: true } })).status()).toBe(403);
+  expect((await key.put("/api/settings/smtp", { data: { host: "evil.test", port: 25, user: "", from: "a@b.test", tls: "none" } })).status()).toBe(403);
+  expect((await key.get("/api/data/backup")).status()).toBe(403);
+  expect((await key.post("/api/data/yourls/conflicts", { data: { domainId: "x", keywords: [] } })).status()).toBe(403);
+
+  // The same admin, signed in, can.
+  expect((await session.post(`/api/users/${other.id}/reset-link`)).status()).toBe(200);
+  expect((await session.get("/api/data/backup")).status()).toBe(200);
+  await Promise.all([key.dispose(), session.dispose()]);
+});

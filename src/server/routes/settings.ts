@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { requireRole } from "../auth/permissions";
+import { requireRole, sessionOnlyForWrites } from "../auth/permissions";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import {
@@ -15,8 +15,9 @@ import { getMailer, resolveSmtp } from "../mail";
 
 export const settingsRoutes = new Hono<AppEnv>();
 
-settingsRoutes.use("/settings/*", requireRole("admin"));
-settingsRoutes.use("/settings", requireRole("admin"));
+// Settings decide who can sign in and where mail goes: only a signed-in session may change them, not an API key.
+settingsRoutes.use("/settings/*", requireRole("admin"), sessionOnlyForWrites);
+settingsRoutes.use("/settings", requireRole("admin"), sessionOnlyForWrites);
 
 settingsRoutes.get("/settings", async (c) => {
   const { db, config } = c.var.platform;
@@ -95,6 +96,11 @@ settingsRoutes.put("/settings/smtp", async (c) => {
   const body = await parseJson(c, smtpBody);
   const { db } = c.var.platform;
   const current = await getSmtpSettings(db);
+  // The stored password only follows the account it was saved for: pointing mail at another server
+  // or user needs the password typed again.
+  if (current.host && !body.pass && (body.host !== current.host || body.user !== current.user) && body.user) {
+    return fail(c, 400, "smtp_password_required");
+  }
   const next = { ...body, pass: body.pass ? body.pass : body.user ? current.pass : "" };
   await setSetting(db, "smtp", next);
   await audit(c, {

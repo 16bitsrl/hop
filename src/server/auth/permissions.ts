@@ -37,3 +37,15 @@ export function canModify(u: Pick<typeof user.$inferSelect, "id" | "role">, owne
 export function canCreate(u: Pick<typeof user.$inferSelect, "role">): boolean {
   return u.role === "admin" || u.role === "member";
 }
+
+/** 403 when the request was authenticated with a personal API key. Used where a key must not reach (keys never give out more access). */
+export const sessionOnly = createMiddleware<AppEnv>(async (c, next) => {
+  if (c.var.authVia === "key") return c.json({ error: "forbidden" }, 403);
+  await next();
+});
+
+/** Like `sessionOnly`, but reading stays open to keys: only requests that change something need a session. */
+export const sessionOnlyForWrites = createMiddleware<AppEnv>(async (c, next) => {
+  if (c.var.authVia === "key" && c.req.method !== "GET" && c.req.method !== "HEAD") return c.json({ error: "forbidden" }, 403);
+  await next();
+});
