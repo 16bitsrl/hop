@@ -81,8 +81,8 @@ function CreateForm({ onClose, initialUrl }: { onClose: () => void; initialUrl: 
           domainId: chosenDomain || null,
           tags: tagNames,
           folderId: folderId || null,
-          // The form already looked the title up: don't wait for the destination again.
-          fetchMeta: false,
+          // Without a title (lookup not finished or nothing found) the server looks it up.
+          fetchMeta: !title.trim(),
         },
       }),
     onSuccess: async ({ link }) => {

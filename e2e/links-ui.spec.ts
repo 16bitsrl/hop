@@ -20,6 +20,18 @@ const follow = (request: import("@playwright/test").APIRequestContext, slug: str
   request.get(`${SHORT}/${slug}`, { maxRedirects: 0, headers: { "user-agent": DESKTOP_UA, ...headers } });
 
 test.describe("links UI", () => {
+  test("the title is filled in even when the link is created right after pasting", async ({ page, request, playwright }) => {
+    const { user } = await setup(request, playwright);
+    await loginAs(page, user, "/links");
+    await page.getByRole("button", { name: "New link" }).first().click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Destination URL").fill(`${APP}/api/_test/page?${uniq("t")}`);
+    // Submit with Enter: the form has no time to look the title up itself.
+    await dialog.getByLabel("Destination URL").press("Enter");
+    await expect(page).toHaveURL(/\/links\/[^/]+$/);
+    await expect(page.getByRole("heading", { name: "Hop test page" })).toBeVisible();
+  });
+
   test("create with custom and generated slug, duplicate error, edit destination", async ({ page, request, playwright }) => {
     const { user } = await setup(request, playwright);
     await loginAs(page, user, "/links");
