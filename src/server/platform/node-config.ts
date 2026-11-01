@@ -1,4 +1,5 @@
 import path from "node:path";
+import { authSecretProblem } from "./secret";
 import { smtpFromEnv } from "./smtp-env";
 import type { Config } from "./types";
 
@@ -42,8 +43,9 @@ export function parseNodeEnv(env: Env): NodeSettings {
   const appUrl = (env.APP_URL?.trim() || (appHost ? `https://${appHost}` : "")).replace(/\/+$/, "");
   if (appUrl && !/^https?:\/\/[^/\s]+$/.test(appUrl)) problems.push("APP_URL must look like https://hop.example.com");
 
-  const authSecret = need("AUTH_SECRET", "at least 32 random characters, e.g. `openssl rand -base64 32`");
-  if (authSecret && authSecret.length < 32) problems.push("AUTH_SECRET is too short: use at least 32 characters");
+  const authSecret = env.AUTH_SECRET?.trim() ?? "";
+  const secretProblem = authSecretProblem(authSecret);
+  if (secretProblem) problems.push(secretProblem);
 
   const port = Number(env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) problems.push(`PORT must be a number between 1 and 65535 (got "${env.PORT}")`);

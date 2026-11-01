@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { APP } from "../playwright.config";
 import { apiAs, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
 
 test.beforeEach(async ({ request }) => {
@@ -62,4 +63,24 @@ test("a user changes their own password from the profile", async ({ page, reques
   await page.getByRole("button", { name: "Sign out" }).click();
   await loginViaUi(page, { email: user.email, password: "changed-password-42" });
   await expect(page).toHaveURL(/\/links$/);
+});
+
+test("resetting a password signs out every other session of that person", async ({ page, browser, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const victim = await createUser(request, { role: "member" });
+  const old = await apiAs(playwright, victim);
+  expect((await (await old.get("/api/me")).json()).user.id).toBe(victim.id);
+
+  const adminApi = await apiAs(playwright, admin);
+  const { url } = (await (await adminApi.post(`/api/users/${victim.id}/reset-link`)).json()) as { url: string };
+  const ctx = await browser.newContext({ baseURL: APP });
+  const fresh = await ctx.newPage();
+  await fresh.goto(url);
+  await fresh.getByLabel("New password").fill("after-the-reset-1");
+  await fresh.getByRole("button", { name: "Save new password" }).click();
+  await expect(fresh).toHaveURL(/\/login$/);
+
+  // The session opened before the reset is gone.
+  expect((await (await old.get("/api/me")).json()).user).toBeNull();
+  await Promise.all([old.dispose(), adminApi.dispose(), ctx.close()]);
 });

@@ -55,9 +55,12 @@ test("check now gives a final verdict and is open to members, not viewers", asyn
   const viewer = await createUser(request, { role: "viewer" });
   const api = await apiAs(playwright, admin);
   const domain = await ensureDomain(api);
-  const link = await createLink(api, { url: status(410), slug: uniq("now"), domainId: domain.id });
-
   const memberApi = await apiAs(playwright, member);
+  const link = await createLink(memberApi, { url: status(410), slug: uniq("now"), domainId: domain.id });
+  const adminsLink = await createLink(api, { url: status(200), slug: uniq("adm"), domainId: domain.id });
+
+  // Members can only trigger a check (a request to the destination) for links they may change.
+  expect((await memberApi.post(`/api/links/${adminsLink.id}/check`)).status()).toBe(403);
   const res = await memberApi.post(`/api/links/${link.id}/check`);
   expect(res.ok()).toBeTruthy();
   expect((await res.json()).link).toMatchObject({ healthStatus: "broken", healthCode: 410 });

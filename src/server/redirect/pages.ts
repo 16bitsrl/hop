@@ -79,20 +79,47 @@ button{min-height:2.75rem;padding:.65rem;border:0;border-radius:8px;background:v
 .err{color:var(--err);font-size:.875rem;margin:0}
 `;
 
-function shell(lang: Lang, title: string, body: string, head = ""): string {
-  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title>${head}<style>${CSS}</style></head><body><main>${body}</main></body></html>`;
+function shell(lang: Lang, title: string, body: string, head: string, nonce: string): string {
+  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title>${head}<style nonce="${nonce}">${CSS}</style></head><body><main>${body}</main></body></html>`;
 }
 
-const HEADERS = { "content-type": "text/html; charset=utf-8", "referrer-policy": "no-referrer" };
+const HEADERS = {
+  "content-type": "text/html; charset=utf-8",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+};
 
-export function htmlResponse(html: string, status = 200, extra: Record<string, string> = {}): Response {
-  return new Response(html, { status, headers: { ...HEADERS, ...extra } });
+function newNonce(): string {
+  return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+}
+
+/**
+ * A built-in page. Its one style block (and script, when it has one) carries a fresh nonce and the
+ * policy allows nothing else, so injected markup cannot run or restyle anything.
+ */
+function page(
+  lang: Lang,
+  title: string,
+  body: string | ((nonce: string) => string),
+  opts: { status?: number; extra?: Record<string, string>; head?: string; script?: boolean } = {},
+): Response {
+  const nonce = newNonce();
+  const html = shell(lang, title, typeof body === "function" ? body(nonce) : body, opts.head ?? "", nonce);
+  const csp = [
+    "default-src 'none'",
+    `style-src 'nonce-${nonce}'`,
+    ...(opts.script ? [`script-src 'nonce-${nonce}'`] : []),
+    // No form-action: the password form is answered by a redirect to the destination, which Chrome
+    // would check against it and block.
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+  return new Response(html, { status: opts.status ?? 200, headers: { ...HEADERS, "content-security-policy": csp, ...opts.extra } });
 }
 
 function simple(lang: Lang, title: string, text: string, status: number, cache = "no-store"): Response {
-  return htmlResponse(shell(lang, title, `<h1>${esc(title)}</h1><p>${esc(text)}</p>`), status, {
-    "cache-control": cache,
-  });
+  return page(lang, title, `<h1>${esc(title)}</h1><p>${esc(text)}</p>`, { status, extra: { "cache-control": cache } });
 }
 
 export const landingPage = (lang: Lang) => simple(lang, T[lang].landingTitle, T[lang].landingText, 200);
@@ -103,20 +130,20 @@ export function passwordPage(lang: Lang, error: boolean | "locked", retryAfter =
   const t = T[lang];
   if (error === "locked") {
     const body = `<h1>${t.passwordTitle}</h1><p class="err" role="alert">${t.passwordLocked}</p>`;
-    return htmlResponse(shell(lang, t.passwordTitle, body), 429, { "cache-control": "no-store", "retry-after": String(retryAfter) });
+    return page(lang, t.passwordTitle, body, { status: 429, extra: { "cache-control": "no-store", "retry-after": String(retryAfter) } });
   }
   const body = `<h1>${t.passwordTitle}</h1><p>${t.passwordText}</p><form method="post">${
     error ? `<p class="err" role="alert">${t.passwordError}</p>` : ""
   }<label for="p">${t.passwordLabel}</label><input id="p" name="password" type="password" autocomplete="off" autofocus required><button type="submit">${t.passwordButton}</button></form>`;
-  return htmlResponse(shell(lang, t.passwordTitle, body), 200, { "cache-control": "no-store" });
+  return page(lang, t.passwordTitle, body, { extra: { "cache-control": "no-store" } });
 }
 
 /** Tries the app URL, then falls back to the web URL after ~1.5 s. */
 export function deepLinkPage(lang: Lang, appUrl: string, webUrl: string): Response {
   const t = T[lang];
-  const body = `<h1>${t.openingTitle}</h1><p>${t.openingText}</p><p><a href="${esc(webUrl)}">${t.openingLink}</a></p>
-<script>(function(){var a=${jsString(appUrl)},w=${jsString(webUrl)};location.href=a;setTimeout(function(){location.replace(w)},1500)})()</script>`;
-  return htmlResponse(shell(lang, t.openingTitle, body), 200, { "cache-control": "private, max-age=0" });
+  const body = (nonce: string) => `<h1>${t.openingTitle}</h1><p>${t.openingText}</p><p><a href="${esc(webUrl)}">${t.openingLink}</a></p>
+<script nonce="${nonce}">(function(){var a=${jsString(appUrl)},w=${jsString(webUrl)};location.href=a;setTimeout(function(){location.replace(w)},1500)})()</script>`;
+  return page(lang, t.openingTitle, body, { script: true, extra: { "cache-control": "private, max-age=0" } });
 }
 
 export interface PreviewData {
@@ -144,7 +171,7 @@ export function previewPage(lang: Lang, d: PreviewData): Response {
     meta("name", "twitter:image", d.image),
   ].join("");
   const body = `<h1>${esc(title)}</h1>${d.description ? `<p>${esc(d.description)}</p>` : ""}<p><a href="${esc(d.url)}">${T[lang].redirectingLink}</a></p>`;
-  return htmlResponse(shell(lang, title, body, head), 200, { "cache-control": "private, max-age=0" });
+  return page(lang, title, body, { head, extra: { "cache-control": "private, max-age=0" } });
 }
 
 /** JS string literal safe to embed inside an inline script. */

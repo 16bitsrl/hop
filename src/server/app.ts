@@ -5,6 +5,7 @@ import { apiRoutes } from "./routes";
 import { handleShortDomain } from "./redirect/handler";
 import { serveMedia } from "./routes/media";
 import { checkDatabase, healthReport } from "./ops/health";
+import { appSecurityHeaders, withHeaders } from "./lib/security-headers";
 import { collectStats, formatMetrics, metricsAuthorized } from "./ops/metrics";
 
 /**
@@ -27,6 +28,8 @@ export function createApp(opts: {
     const host = new URL(c.req.url).host;
     if (host !== c.var.platform.config.appHost) return handleShortDomain(c);
     await next();
+    const dev = (import.meta as { env?: { DEV?: boolean } }).env?.DEV === true;
+    c.res = withHeaders(c.res, appSecurityHeaders({ https: c.var.platform.config.appUrl.startsWith("https:"), dev }));
   });
 
   app.get("/healthz", async (c) => {

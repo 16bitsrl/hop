@@ -8,14 +8,7 @@
     <meta name="theme-color" content="#0d0d0c" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <script>
-      // Apply the saved theme before the first paint to avoid a flash.
-      (function () {
-        var t = localStorage.getItem("hop-theme") || "system";
-        var dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-        if (dark) document.documentElement.classList.add("dark");
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

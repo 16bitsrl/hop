@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { requireRole } from "../auth/permissions";
+import { canModify, requireRole } from "../auth/permissions";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { setSetting } from "../lib/settings";
@@ -12,7 +12,7 @@ import { getLinkRow, linkErrorHandler, serializeLinks } from "../links/service";
  * Broken link check (J5).
  *   GET  /links-health/settings   { enabled, recheckDays }   (admin)
  *   PUT  /links-health/settings                              (admin)
- *   POST /links/:id/check         checks the destination now -> { link }  (admin, member)
+ *   POST /links/:id/check         checks the destination now -> { link }  (admin, or the member who owns it)
  */
 export const linkHealthRoutes = new Hono<AppEnv>();
 
@@ -32,6 +32,8 @@ linkHealthRoutes.put("/links-health/settings", requireRole("admin"), async (c) =
 linkHealthRoutes.post("/links/:id/check", requireRole("admin", "member"), async (c) => {
   const platform = c.var.platform;
   const row = await getLinkRow(platform.db, c.req.param("id"));
+  // Checking makes the server request the destination: only for links the person may change.
+  if (!canModify(c.var.user!, row.ownerId)) return c.json({ error: "forbidden" }, 403);
   const checked = await checkLink(platform, row, { confirm: true });
   const [link] = await serializeLinks(platform, c.var.user!, [checked]);
   return c.json({ link });

@@ -419,6 +419,8 @@ test.describe("links API", () => {
     expect(meta.title).toBe("Hop test page");
     expect(meta.description).toBe("A page used by the tests.");
     expect((await admin.get("/api/links/meta?url=ftp://x")).status()).toBe(400);
+    // Looking up a page makes the server fetch it: only people who can create links may ask.
+    expect((await viewer.get(`/api/links/meta?url=${encodeURIComponent(page)}`)).status()).toBe(403);
 
     const created = await createLink(admin, { url: page, fetchMeta: true });
     expect(created.title).toBe("Hop test page");

@@ -1,6 +1,7 @@
 import { Hono, type Context } from "hono";
 import { requireRole } from "../auth/permissions";
 import type { AppEnv } from "../env";
+import { readBodyCapped } from "../lib/body";
 
 /** Preview images uploaded for the social share card (D3). Stored in the blob store, served publicly. */
 export const mediaRoutes = new Hono<AppEnv>();
@@ -30,9 +31,9 @@ mediaRoutes.post("/media", requireRole("admin", "member"), async (c) => {
   const type = (c.req.header("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
   const ext = TYPES[type];
   if (!ext) return c.json({ error: "unsupported_image" }, 400);
-  const body = new Uint8Array(await c.req.arrayBuffer());
+  const body = await readBodyCapped(c.req.raw, MAX_BYTES);
+  if (!body) return c.json({ error: "image_too_large" }, 400);
   if (body.byteLength === 0 || !looksLike(type, body)) return c.json({ error: "unsupported_image" }, 400);
-  if (body.byteLength > MAX_BYTES) return c.json({ error: "image_too_large" }, 400);
   const file = `${crypto.randomUUID()}.${ext}`;
   await c.var.platform.blobs.put(`media/${file}`, body, type);
   return c.json({ url: `${c.var.platform.config.appUrl}/media/${file}` }, 201);

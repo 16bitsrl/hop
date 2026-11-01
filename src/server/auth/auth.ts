@@ -66,6 +66,7 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
       disableSignUp: true,
       minPasswordLength: 8,
       resetPasswordTokenExpiresIn: 60 * 60,
+      revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url }) => {
         const mailer = await getMailer(platform);
         if (!mailer) return;

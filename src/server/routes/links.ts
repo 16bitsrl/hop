@@ -110,7 +110,7 @@ linksRoutes.get("/links", async (c) => {
 /* Page metadata                                                     */
 /* ---------------------------------------------------------------- */
 
-linksRoutes.get("/links/meta", async (c) => {
+linksRoutes.get("/links/meta", requireRole("admin", "member"), async (c) => {
   const url = c.req.query("url") ?? "";
   if (!isHttpUrl(url)) return c.json({ error: "invalid_url" }, 400);
   const meta = await lookupPageMeta(c.var.platform.config, url);
