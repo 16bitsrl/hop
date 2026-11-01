@@ -57,7 +57,7 @@ export function LinkDetailPage() {
 
   return (
     <>
-      <RouterLink to="/links" className="mb-3 inline-block text-[13px] text-muted hover:text-fg">
+      <RouterLink to="/links" className="tap-link mb-3  inline-block text-[13px] text-muted hover:text-fg">
         ← {tc("nav.links")}
       </RouterLink>
       <PageHeader

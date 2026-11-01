@@ -108,6 +108,14 @@ export function Shell() {
 
   useEffect(() => setDrawer(false), [pathname]);
 
+  // Escape closes the menu on a phone.
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [drawer]);
+
   // The user's saved language wins over the browser's.
   useEffect(() => {
     if (me.locale === "en" || me.locale === "it") setLanguage(me.locale as Language);
@@ -139,7 +147,7 @@ export function Shell() {
       </header>
 
       {drawer && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label={t("openMenu")}>
           <div className="absolute inset-0 bg-black/45" onClick={() => setDrawer(false)} />
           <div className="absolute inset-y-0 left-0 w-64 max-w-[85%] animate-[hop-slide_160ms_ease-out] border-r border-line bg-surface shadow-xl">
             <button

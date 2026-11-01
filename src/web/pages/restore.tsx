@@ -52,7 +52,7 @@ export function RestorePage() {
     return (
       <AuthCard title={t("restore.page.title")}>
         <p className="text-sm text-muted">{t("restore.page.notEmpty")}</p>
-        <Link to="/login" className="mt-4 inline-block text-[13px] text-muted hover:text-fg hover:underline">
+        <Link to="/login" className="tap-link mt-4 inline-block text-[13px] text-muted hover:text-fg hover:underline">
           {t("restore.page.signIn")}
         </Link>
       </AuthCard>
@@ -88,7 +88,7 @@ export function RestorePage() {
         <Button type="submit" variant="primary" loading={!!progress} disabled={!file}>
           {t("restore.page.submit")}
         </Button>
-        <Link to="/setup" className="text-center text-[13px] text-muted hover:text-fg hover:underline">
+        <Link to="/setup" className="tap-link text-center text-[13px] text-muted hover:text-fg hover:underline">
           {t("restore.page.back")}
         </Link>
       </form>

@@ -25,7 +25,7 @@ export function ForgotPasswordPage() {
   }
 
   const back = (
-    <Link to="/login" className="mt-4 block text-center text-[13px] text-muted hover:text-fg hover:underline">
+    <Link to="/login" className="tap-link mt-4 block text-center text-[13px] text-muted hover:text-fg hover:underline">
       {t("forgot.back")}
     </Link>
   );

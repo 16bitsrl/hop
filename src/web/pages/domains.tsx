@@ -71,7 +71,7 @@ export function DomainsPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <Table>
+          <Table stack>
             <THead>
               <tr>
                 <Th>{t("columns.domain")}</Th>
@@ -91,15 +91,15 @@ export function DomainsPage() {
                   <Td>
                     <span className="font-medium">{d.host}</span> {d.isDefault && <Badge tone="green">{t("default")}</Badge>}
                   </Td>
-                  <Td className="text-right tabular-nums">{d.linkCount}</Td>
-                  <Td className="max-w-56 truncate text-muted" title={d.rootUrl ?? undefined}>
+                  <Td className="text-right tabular-nums max-md:text-left" label={t("columns.links")}>{d.linkCount}</Td>
+                  <Td className="max-w-56 truncate text-muted" label={t("columns.root")} title={d.rootUrl ?? undefined}>
                     {d.rootUrl ?? t("builtIn")}
                   </Td>
-                  <Td className="max-w-56 truncate text-muted" title={d.notFoundUrl ?? undefined}>
+                  <Td className="max-w-56 truncate text-muted" label={t("columns.notFound")} title={d.notFoundUrl ?? undefined}>
                     {d.notFoundUrl ?? t("builtIn")}
                   </Td>
                   {admin && (
-                    <Td className="whitespace-nowrap text-right">
+                    <Td className="whitespace-nowrap text-right max-md:-ml-2.5 max-md:text-left">
                       <Button size="sm" variant="ghost" onClick={() => setEditing(d)}>
                         {t("edit")}
                       </Button>

@@ -51,7 +51,7 @@ function Status({ k }: { k: Key }) {
   const { t, i18n } = useTranslation("apiKeys");
   return (
     <>
-      <Td className="whitespace-nowrap text-[13px] text-muted">{k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}</Td>
+      <Td className="whitespace-nowrap text-[13px] text-muted" label={t("columns.lastUsed")}>{k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}</Td>
       <Td>{k.revokedAt ? <Badge tone="neutral">{t("revoked")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
     </>
   );
@@ -89,7 +89,7 @@ export function MyApiKeysCard() {
         title={t("title")}
         description={t("description")}
         action={
-          <Link to="/api-help" className="text-[13px] font-medium text-accent hover:underline">
+          <Link to="/api-help" className="tap-link text-[13px] font-medium text-accent hover:underline">
             {t("helpLink")}
           </Link>
         }
@@ -107,7 +107,7 @@ export function MyApiKeysCard() {
           <p className="text-[13px] text-muted">{t("empty")}</p>
         ) : (
           data && (
-            <Table>
+            <Table stack>
               <THead>
                 <tr>
                   <Th>{t("columns.name")}</Th>
@@ -128,7 +128,7 @@ export function MyApiKeysCard() {
                     </Td>
                     <Td className="font-mono text-[13px] text-muted">{k.prefix}…</Td>
                     <Status k={k} />
-                    <Td className="text-right">
+                    <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                       {!k.revokedAt && (
                         <Button size="sm" variant="ghost" onClick={() => setRevoking(k)}>
                           {t("revoke")}
@@ -188,7 +188,7 @@ export function AllApiKeysCard() {
         <p className="px-5 py-6 text-center text-[13px] text-muted">{t("adminEmpty")}</p>
       ) : (
         data && (
-          <Table>
+          <Table stack>
             <THead>
               <tr>
                 <Th>{t("columns.user")}</Th>
@@ -211,7 +211,7 @@ export function AllApiKeysCard() {
                   <Td className="font-medium">{k.name}</Td>
                   <Td className="font-mono text-[13px] text-muted">{k.prefix}…</Td>
                   <Status k={k} />
-                  <Td className="text-right">
+                  <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                     {!k.revokedAt && (
                       <Button size="sm" variant="ghost" onClick={() => setRevoking(k)}>
                         {t("revoke")}

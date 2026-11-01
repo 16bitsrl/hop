@@ -357,6 +357,7 @@ export function LinksPage() {
               <Card className="p-4">
                 <div className="flex items-start gap-3">
                   <Checkbox
+                    className="max-md:-m-2.5 max-md:size-10 max-md:justify-center"
                     label=""
                     aria-label={t("bulk.select", { slug: l.slug })}
                     checked={selected.has(l.id)}

@@ -12,7 +12,7 @@ export function CardHeader({ title, description, action }: { title: string; desc
         <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
         {description && <p className="mt-0.5 text-[13px] leading-snug text-muted">{description}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

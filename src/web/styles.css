@@ -100,6 +100,29 @@
   }
 }
 
+/* Touch screens: every control is at least 40px tall (and icon buttons 40px wide). */
+@media (max-width: 767px) {
+  button:not(.no-tap):not([role="switch"]),
+  select,
+  textarea,
+  input:not(.no-tap):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
+  [role="tab"] {
+    min-height: 40px;
+  }
+  button:not(.no-tap):not([role="switch"]) {
+    min-width: 40px;
+  }
+  input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .tap-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
+
 @keyframes hop-pop {
   from {
     opacity: 0;

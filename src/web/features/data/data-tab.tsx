@@ -3,7 +3,7 @@ import { Card, CardBody, CardHeader } from "../../components/ui";
 import { YourlsImport } from "./yourls-import";
 
 const buttonClass =
-  "inline-flex h-8 items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
+  "inline-flex h-8 max-md:h-10 items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
 
 /** Settings > Data: import from YOURLS, backup and export, restore instructions. */
 export function DataTab() {

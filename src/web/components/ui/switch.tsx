@@ -32,7 +32,7 @@ export function Switch({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          "relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors disabled:opacity-50",
+          "relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] disabled:opacity-50",
           checked ? "border-accent bg-accent" : "border-line-strong bg-subtle",
         )}
       >

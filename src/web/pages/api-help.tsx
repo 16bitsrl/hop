@@ -37,7 +37,7 @@ export function ApiHelpPage() {
   const auth = `-H "Authorization: Bearer hop_your_key_here"`;
   return (
     <>
-      <Link to="/profile" className="mb-3 inline-block text-[13px] text-muted hover:text-fg">
+      <Link to="/profile" className="tap-link mb-3 inline-block text-[13px] text-muted hover:text-fg">
         ← {t("help.back")}
       </Link>
       <PageHeader title={t("help.title")} description={t("help.description")} />

@@ -88,7 +88,7 @@ function RecentLinks({ data }: { data: Dashboard | undefined }) {
       {!data?.recentLinks.length ? (
         <p className="px-5 py-8 text-center text-[13px] text-muted">{t("dashboard.noLinks")}</p>
       ) : (
-        <Table>
+        <Table stack>
           <THead className="sr-only">
             <tr>
               <Th>{t("dashboard.link")}</Th>

@@ -60,18 +60,20 @@ const T = {
 } as const;
 
 const CSS = `
-:root{color-scheme:light dark;--bg:#fafaf9;--fg:#1c1917;--muted:#78716c;--card:#fff;--line:#e7e5e4;--accent:#2563eb;--accent-fg:#fff;--err:#b91c1c}
-@media(prefers-color-scheme:dark){:root{--bg:#0c0a09;--fg:#f5f5f4;--muted:#a8a29e;--card:#1c1917;--line:#292524;--accent:#60a5fa;--accent-fg:#0c0a09;--err:#f87171}}
+:root{color-scheme:light dark;--bg:#f7f7f5;--fg:#1b1b19;--muted:#6b6a64;--card:#fff;--line:#e4e3de;--accent:#0f7a5c;--accent-fg:#fff;--err:#c2362b}
+@media(prefers-color-scheme:dark){:root{--bg:#0d0d0c;--fg:#ecebe7;--muted:#9a988f;--card:#151514;--line:#292927;--accent:#3cc596;--accent-fg:#06150f;--err:#f0746a}}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:grid;place-items:center;padding:1.5rem;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:1.5rem;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 main{width:100%;max-width:26rem;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2rem;text-align:center}
-h1{margin:0 0 .5rem;font-size:1.25rem}
+@media(max-width:420px){main{padding:1.5rem 1.25rem}}
+h1{margin:0 0 .5rem;font-size:1.25rem;letter-spacing:-.01em}
 p{margin:0 0 1rem;color:var(--muted)}
 a{color:var(--accent)}
 form{display:grid;gap:.75rem;text-align:left}
 label{font-size:.875rem;font-weight:600}
-input{width:100%;padding:.65rem .75rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
-button{padding:.65rem;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);font:inherit;font-weight:600;cursor:pointer}
+input{width:100%;min-height:2.75rem;padding:.65rem .75rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+button{min-height:2.75rem;padding:.65rem;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);font:inherit;font-weight:600;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .err{color:var(--err);font-size:.875rem;margin:0}
 `;
 

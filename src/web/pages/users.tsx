@@ -92,7 +92,7 @@ function UsersContent() {
       />
 
       <Card>
-        <Table>
+        <Table stack>
           <THead>
             <tr>
               <Th>{t("columns.user")}</Th>
@@ -113,7 +113,7 @@ function UsersContent() {
                     </div>
                     <div className="text-[13px] text-muted">{u.email}</div>
                   </Td>
-                  <Td>
+                  <Td label={t("columns.role")}>
                     <Select
                       className="w-36"
                       aria-label={t("roleFor", { email: u.email })}
@@ -128,9 +128,9 @@ function UsersContent() {
                       ))}
                     </Select>
                   </Td>
-                  <Td>{u.disabled ? <Badge tone="red">{t("disabled")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
+                  <Td label={t("columns.status")}>{u.disabled ? <Badge tone="red">{t("disabled")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
                   <Td className="text-right">
-                    <div className="flex justify-end gap-1.5">
+                    <div className="flex justify-end gap-1.5 max-md:-ml-2.5 max-md:justify-start">
                       <Button size="sm" variant="ghost" onClick={() => setResetFor(u)}>
                         {t("resetPassword")}
                       </Button>
@@ -157,7 +157,7 @@ function UsersContent() {
       <h2 className="mb-3 mt-8 text-sm font-semibold tracking-tight">{t("pending")}</h2>
       <Card>
         {invites.data?.invites.length ? (
-          <Table>
+          <Table stack>
             <THead>
               <tr>
                 <Th>{t("columns.user")}</Th>
@@ -170,9 +170,9 @@ function UsersContent() {
               {invites.data.invites.map((i) => (
                 <Tr key={i.id}>
                   <Td className="font-medium">{i.email}</Td>
-                  <Td>{t(`common:roles.${i.role}`)}</Td>
-                  <Td className="text-muted">{formatDate(i.expiresAt, i18n.language)}</Td>
-                  <Td className="text-right">
+                  <Td label={t("columns.role")}>{t(`common:roles.${i.role}`)}</Td>
+                  <Td className="text-muted" label={t("columns.expires")}>{formatDate(i.expiresAt, i18n.language)}</Td>
+                  <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                     <Button size="sm" variant="ghost" onClick={() => setRevokeFor(i)}>
                       {t("revoke")}
                     </Button>

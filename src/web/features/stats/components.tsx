@@ -83,7 +83,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
 }
 
 const linkClass =
-  "inline-flex h-7 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-line-strong bg-surface px-2.5 text-[13px] font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
+  "inline-flex h-7 max-md:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-line-strong bg-surface px-2.5 text-[13px] font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
 
 /** Plain download links: the browser sends the session cookie. */
 export function ExportLinks({ clicksUrl, summaryUrl }: { clicksUrl: string; summaryUrl: string }) {

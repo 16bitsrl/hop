@@ -121,7 +121,7 @@ function AuditContent() {
           {data.items.length === 0 ? (
             <EmptyState icon={<HistoryIcon />} title={filtered ? t("emptyFiltered") : t("empty")} />
           ) : (
-            <Table>
+            <Table stack>
               <THead>
                 <tr>
                   <Th>{t("columns.when")}</Th>
@@ -134,19 +134,19 @@ function AuditContent() {
               <TBody>
                 {data.items.map((e) => (
                   <Tr key={e.id}>
-                    <Td className="whitespace-nowrap text-muted">{formatDateTime(e.ts, i18n.language)}</Td>
+                    <Td className="whitespace-nowrap text-xs text-muted md:text-sm">{formatDateTime(e.ts, i18n.language)}</Td>
                     <Td className="whitespace-nowrap">{e.userName ?? t("system")}</Td>
                     <Td className="whitespace-nowrap font-medium">{actionLabel(t, e.action)}</Td>
                     <Td className="text-[13px]">
                       <span className="text-muted">{entityLabel(t, e.entityType)}</span>
                       {itemLabel(t, e) && <span className="ml-1.5 break-all">{itemLabel(t, e)}</span>}
-                      {e.entityId && e.entityType !== "settings" && e.entityType !== "data" && (
+                      {e.entityId && !itemLabel(t, e) && (
                         <span className="ml-1.5 break-all font-mono text-xs text-muted" title={e.entityId}>
                           {e.entityId}
                         </span>
                       )}
                     </Td>
-                    <Td className="max-w-64 truncate font-mono text-xs text-muted" title={e.data ? JSON.stringify(e.data) : undefined}>
+                    <Td className="max-w-64 truncate font-mono text-xs text-muted max-md:!hidden" title={e.data ? JSON.stringify(e.data) : undefined}>
                       {e.data ? JSON.stringify(e.data) : ""}
                     </Td>
                   </Tr>
