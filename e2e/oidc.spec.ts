@@ -35,14 +35,14 @@ function oidcSettings(over: Record<string, unknown> = {}) {
   };
 }
 
-function nextIdentity(email: string, name: string) {
+function nextIdentity(email: string, name: string, verified = true) {
   idp.service.once("beforeUserinfo", (userInfoResponse: { body: Record<string, unknown> }) => {
-    userInfoResponse.body = { ...userInfoResponse.body, sub: email, email, email_verified: true, name };
+    userInfoResponse.body = { ...userInfoResponse.body, sub: email, email, email_verified: verified, name };
   });
   idp.service.once("beforeTokenSigning", (token: { payload: Record<string, unknown> }) => {
     token.payload.sub = email;
     token.payload.email = email;
-    token.payload.email_verified = true;
+    token.payload.email_verified = verified;
     token.payload.name = name;
   });
 }
@@ -114,4 +114,43 @@ test("an existing user signs in through single sign-on with the same email", asy
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
   await loginAs(page, admin, "/settings"); // sanity: settings page opens and shows the redirect URL
   await expect(page.getByText("/api/auth/callback/oidc")).toBeVisible();
+});
+
+const UNVERIFIED = "Your sign-in provider hasn't confirmed this email address, so we can't sign you in with it.";
+
+test("an unverified email at the provider does not take over an existing account", async ({ page, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const victim = await createUser(request, { role: "member", email: "victim@acme.test" });
+  const api = await apiAs(playwright, admin);
+  expect((await api.put("/api/settings/oidc", { data: oidcSettings({ autoCreate: false }) })).ok()).toBeTruthy();
+  await api.dispose();
+
+  nextIdentity(victim.email, "Attacker", false);
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Acme login" }).click();
+  await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+  await expect(page.getByText(UNVERIFIED)).toBeVisible();
+  expect(((await (await page.request.get("/api/me")).json()) as { user: unknown }).user).toBeNull();
+});
+
+test("an unverified email does not use an invitation or the allowed domains", async ({ page, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  expect((await api.put("/api/settings/oidc", { data: oidcSettings() })).ok()).toBeTruthy();
+  const invite = await (await api.post("/api/invites", { data: { email: "invited.unverified@acme.test", role: "admin" } })).json();
+
+  nextIdentity("invited.unverified@acme.test", "Sneaky", false);
+  await page.goto(new URL(invite.url).pathname);
+  await page.getByRole("button", { name: "Acme login" }).click();
+  await expect(page.getByText(UNVERIFIED)).toBeVisible({ timeout: 20_000 });
+
+  nextIdentity("newcomer@acme.test", "Newcomer", false);
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Acme login" }).click();
+  await expect(page.getByText(UNVERIFIED)).toBeVisible({ timeout: 20_000 });
+
+  const users = (await (await api.get("/api/users")).json()) as { users: { email: string }[] };
+  expect(users.users.map((u) => u.email)).not.toContain("invited.unverified@acme.test");
+  expect(users.users.map((u) => u.email)).not.toContain("newcomer@acme.test");
+  await api.dispose();
 });

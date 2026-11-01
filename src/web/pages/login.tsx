@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
 import { Button, Field, Input, KeyIcon, PageSpinner } from "../components/ui";
 import { authClient } from "../lib/auth-client";
+import { ssoErrorMessage } from "../lib/errors";
 import { appConfigQuery, meQuery } from "../lib/session";
 
 export function LoginPage() {
@@ -15,7 +16,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(urlError ? t("login.notAllowed") : null);
+  const [error, setError] = useState<string | null>(urlError ? ssoErrorMessage(t, urlError) : null);
   const [busy, setBusy] = useState(false);
 
   if (!config) return <PageSpinner />;

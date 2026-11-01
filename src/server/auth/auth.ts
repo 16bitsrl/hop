@@ -1,5 +1,6 @@
 import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
@@ -54,7 +55,8 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
       },
     },
     account: {
-      accountLinking: { enabled: true, trustedProviders: [OIDC_PROVIDER_ID] },
+      // Linking to an existing account needs the provider to vouch for the email (see mapProfileToUser).
+      accountLinking: { enabled: true },
     },
     plugins: [
       passkey({ rpID: new URL(config.appUrl).hostname, rpName: "hop", origin: config.appUrl }),
@@ -71,6 +73,9 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
                   pkce: true,
                   mapProfileToUser: (p) => ({
                     name: (p.name as string | undefined) || (p.email as string | undefined)?.split("@")[0] || "User",
+                    // Only an explicit "true" counts: a missing or false claim must never be enough to
+                    // link an existing account, use an invitation or pass the domain check.
+                    emailVerified: p.email_verified === true || p.email_verified === "true" || p.emailVerified === true,
                   }),
                 },
               ],
@@ -83,6 +88,9 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
         create: {
           // Reached by single sign-on sign-ins only: setup and invites insert users directly.
           before: async (u) => {
+            if (!u.emailVerified) {
+              throw new APIError("FORBIDDEN", { code: "email_not_verified", message: "The provider did not verify this email address" });
+            }
             const email = u.email.toLowerCase();
             const invite = await db
               .select()

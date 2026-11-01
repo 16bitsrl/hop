@@ -6,7 +6,7 @@ import { AuthCard } from "../components/auth-layout";
 import { Button, Field, Input, PageSpinner } from "../components/ui";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
-import { errorMessage } from "../lib/errors";
+import { errorMessage, ssoErrorMessage } from "../lib/errors";
 import { appConfigQuery, meQuery, type Role } from "../lib/session";
 
 /** Someone opens the invitation link: set a name and a password, or continue with single sign-on. */
@@ -18,7 +18,7 @@ export function InvitePage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(urlError ? t("login.notAllowed") : null);
+  const [error, setError] = useState<string | null>(urlError ? ssoErrorMessage(t, urlError) : null);
   const [busy, setBusy] = useState(false);
 
   const invite = useQuery({
