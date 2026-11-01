@@ -133,7 +133,7 @@ test("the audit log records user actions and can be filtered", async ({ page, re
   await expect(page.getByRole("heading", { name: "Activity log" })).toBeVisible();
   const row = page.getByRole("row", { name: /Role changed/ }).first();
   await expect(row).toContainText(admin.name);
-  await expect(row).toContainText(member.id);
+  await expect(row).toContainText(member.email);
 
   await page.getByLabel("Action").selectOption("invite.create");
   await expect(page.getByRole("row", { name: /Role changed/ })).toHaveCount(0);
