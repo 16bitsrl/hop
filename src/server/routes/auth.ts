@@ -71,7 +71,14 @@ authRoutes.post("/setup", async (c) => {
   if (await restoreRunning(db, [RESTORE_ACTIVE])) return fail(c, 409, "restore_in_progress");
   await clearRestores(db);
   const { name, email, password } = body;
-  const admin = await createUserWithPassword(c.var.platform, { name, email, password, role: "admin" });
+  let admin;
+  try {
+    admin = await createUserWithPassword(c.var.platform, { name, email, password, role: "admin" }, { onlyIfFirst: true });
+  } catch (e) {
+    // Another setup won the race.
+    if ((await countUsers(c.var.platform)) > 0) return fail(c, 409, "setup_done");
+    throw e;
+  }
   await clearRestores(db);
   await audit(c, { action: "user.setup", entityType: "user", entityId: admin.id, data: { email: admin.email } });
   return c.json({ ok: true });

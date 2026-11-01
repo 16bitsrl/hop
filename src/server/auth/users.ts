@@ -34,23 +34,26 @@ export async function findUserByEmail(platform: Platform, email: string) {
 export async function createUserWithPassword(
   platform: Platform,
   input: { name: string; email: string; password: string; role: Role; locale?: string | null },
+  opts: { onlyIfFirst?: boolean } = {},
 ) {
   const auth = await createAuth(platform);
   const ctx = await auth.$context;
   const passwordHash = await ctx.password.hash(input.password);
   const id = crypto.randomUUID();
   const now = new Date();
+  const email = input.email.trim().toLowerCase();
+  const values = { id, name: input.name, email, emailVerified: true, role: input.role, locale: input.locale ?? null, createdAt: now, updatedAt: now };
+  // First-run setup: the user is inserted only while the table is empty, in the same atomic batch,
+  // so concurrent setups cannot each create an admin. The account insert then fails its foreign key.
+  const insertUser = opts.onlyIfFirst
+    ? platform.db
+        .insert(user)
+        .select(
+          sql`select ${id}, ${input.name}, ${email}, 1, null, ${input.role}, 0, null, ${values.locale}, ${now.getTime()}, ${now.getTime()} where not exists (select 1 from "user")`,
+        )
+    : platform.db.insert(user).values(values);
   await runBatch(platform.db, [
-    platform.db.insert(user).values({
-      id,
-      name: input.name,
-      email: input.email.trim().toLowerCase(),
-      emailVerified: true,
-      role: input.role,
-      locale: input.locale ?? null,
-      createdAt: now,
-      updatedAt: now,
-    }),
+    insertUser,
     platform.db.insert(account).values({
       id: crypto.randomUUID(),
       accountId: id,
