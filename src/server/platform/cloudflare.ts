@@ -67,6 +67,13 @@ export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): P
       smtp: smtpFromEnv(env),
     },
     geo(req) {
+      // Test mode never trusts the (local, real) cf data: geo comes only from the test headers.
+      if (env.TEST_MODE === "1") {
+        return {
+          country: req.headers.get("x-test-country") ?? undefined,
+          city: req.headers.get("x-test-city") ?? undefined,
+        };
+      }
       const cf = (req as Request & { cf?: IncomingRequestCfProperties }).cf;
       return { country: cf?.country as string | undefined, region: cf?.region, city: cf?.city };
     },

@@ -6,6 +6,7 @@ import { authRoutes } from "./auth";
 import { settingsRoutes } from "./settings";
 import { testAuthRoutes } from "./test-auth";
 import { userRoutes } from "./users";
+import { testLinksRoutes } from "./test-links";
 
 /** All JSON API routes, mounted at /api. Feature modules register here. */
 export const apiRoutes = new Hono<AppEnv>();
@@ -21,3 +22,4 @@ apiRoutes.route("/", userRoutes);
 apiRoutes.route("/", settingsRoutes);
 apiRoutes.route("/", auditRoutes);
 apiRoutes.route("/_test", testAuthRoutes);
+apiRoutes.route("/_test", testLinksRoutes);
