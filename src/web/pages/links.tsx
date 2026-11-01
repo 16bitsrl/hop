@@ -269,7 +269,7 @@ export function LinksPage() {
                 </Th>
                 <Th>{t("columns.link")}</Th>
                 <Th>{t("columns.destination")}</Th>
-                <Th>{t("columns.owner")}</Th>
+                <Th className="hidden 2xl:table-cell">{t("columns.owner")}</Th>
                 <Th>{t("columns.tags")}</Th>
                 <Th className="text-right">{t("columns.clicks")}</Th>
                 <Th>{t("columns.status")}</Th>
@@ -308,12 +308,12 @@ export function LinksPage() {
                     </div>
                     {l.title && <p className="truncate text-[13px] text-muted">{l.title}</p>}
                   </Td>
-                  <Td className="max-w-64">
+                  <Td className="max-w-48">
                     <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="block truncate text-muted hover:text-fg hover:underline">
                       {l.url}
                     </a>
                   </Td>
-                  <Td className="whitespace-nowrap text-muted">{l.ownerName ?? "—"}</Td>
+                  <Td className="hidden whitespace-nowrap text-muted 2xl:table-cell">{l.ownerName ?? "—"}</Td>
                   <Td>
                     <div className="flex flex-wrap gap-1">
                       {l.tags.map((x) => (
@@ -328,11 +328,6 @@ export function LinksPage() {
                     </div>
                   </Td>
                   <Td className="whitespace-nowrap text-right">
-                    <RouterLink to="/links/$id" params={{ id: l.id }}>
-                      <Button size="sm" variant="ghost" tabIndex={-1}>
-                        {t("open")}
-                      </Button>
-                    </RouterLink>
                     <span title={l.canModify ? undefined : t("readOnly")}>
                       <Button size="sm" variant="ghost" disabled={!l.canModify} onClick={() => setRemoving(l)}>
                         {t("delete")}
