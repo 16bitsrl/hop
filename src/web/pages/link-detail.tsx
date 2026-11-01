@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink, useNavigate, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Button, Card, ConfirmDialog, EmptyState, PageSpinner, Tabs, useToast } from "../components/ui";
+import { Button, Card, ConfirmDialog, EmptyState, PageSpinner, TabPanel, Tabs, useToast } from "../components/ui";
 import { linkQuery } from "../features/links/api";
 import { EditTab } from "../features/links/edit-tab";
 import { HistoryTab } from "../features/links/history-tab";
@@ -25,6 +25,7 @@ export function LinkDetailPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabId>("overview");
   const [confirming, setConfirming] = useState(false);
+  const tabsId = useId();
   const { data: link, error, isPending } = useQuery(linkQuery(id));
 
   const remove = useMutation({
@@ -72,6 +73,7 @@ export function LinkDetailPage() {
         }
       />
       <Tabs
+        id={tabsId}
         tabs={[
           { id: "overview", label: t("tabs.overview") },
           { id: "edit", label: t("tabs.edit") },
@@ -83,14 +85,14 @@ export function LinkDetailPage() {
         value={tab}
         onChange={setTab}
       />
-      <div role="tabpanel" className="mt-6">
+      <TabPanel id={tabsId} value={tab} className="mt-6">
         {tab === "overview" && <OverviewTab link={link} />}
         {tab === "edit" && <EditTab key={link.id} link={link} />}
         {tab === "smart" && <SmartTab key={link.id} link={link} />}
         {tab === "share" && <ShareTab key={link.id} link={link} />}
         {tab === "history" && <HistoryTab linkId={link.id} />}
         {tab === "stats" && <LinkStats linkId={link.id} />}
-      </div>
+      </TabPanel>
       <ConfirmDialog
         open={confirming}
         onClose={() => setConfirming(false)}
