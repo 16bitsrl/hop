@@ -9,6 +9,7 @@ import { DashboardPage } from "./pages/dashboard";
 import { DomainsPage } from "./pages/domains";
 import { ForgotPasswordPage } from "./pages/forgot-password";
 import { InvitePage } from "./pages/invite";
+import { LinkDetailPage } from "./pages/link-detail";
 import { LinksPage } from "./pages/links";
 import { LoginPage } from "./pages/login";
 import { ProfilePage } from "./pages/profile";
@@ -106,6 +107,7 @@ const indexRoute = createRoute({
  * then list them in appRoute.addChildren([...]) below.
  */
 const linksRoute = createRoute({ getParentRoute: () => appRoute, path: "/links", component: LinksPage });
+const linkDetailRoute = createRoute({ getParentRoute: () => appRoute, path: "/links/$id", component: LinkDetailPage });
 const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: "/dashboard", component: DashboardPage });
 const domainsRoute = createRoute({ getParentRoute: () => appRoute, path: "/domains", component: DomainsPage });
 const usersRoute = createRoute({ getParentRoute: () => appRoute, path: "/users", component: UsersPage });
@@ -119,7 +121,7 @@ const routeTree = rootRoute.addChildren([
   forgotRoute,
   resetRoute,
   inviteRoute,
-  appRoute.addChildren([indexRoute, linksRoute, dashboardRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute]),
+  appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, dashboardRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {

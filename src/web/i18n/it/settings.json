@@ -1,7 +1,11 @@
 {
   "title": "Impostazioni",
   "description": "Come si accede e come hop invia le email.",
-  "tabs": { "signin": "Accesso", "email": "Email" },
+  "tabs": {
+    "signin": "Accesso",
+    "email": "Email",
+    "links": "Link"
+  },
   "password": {
     "title": "Accesso con password",
     "allow": "Consenti l'accesso con password",
@@ -39,7 +43,11 @@
     "from": "Indirizzo mittente",
     "fromHint": "Per esempio hop@tuaazienda.it.",
     "security": "Sicurezza",
-    "tls": { "none": "Nessuna", "starttls": "STARTTLS", "ssl": "SSL/TLS" },
+    "tls": {
+      "none": "Nessuna",
+      "starttls": "STARTTLS",
+      "ssl": "SSL/TLS"
+    },
     "save": "Salva le impostazioni email",
     "testTitle": "Invia un'email di prova",
     "testTo": "Invia la prova a",

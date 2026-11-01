@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
 import { Button, Card, CardBody, CardHeader, CopyButton, Field, Input, PageSpinner, Select, Switch, Tabs, useToast } from "../components/ui";
+import { LinksSettings } from "../features/links/links-settings";
 import { api } from "../lib/api";
 import { errorMessage } from "../lib/errors";
 import { appConfigQuery, type Role } from "../lib/session";
@@ -36,7 +37,7 @@ export function SettingsPage() {
 
 function SettingsContent() {
   const { t } = useTranslation("settings");
-  const [tab, setTab] = useState<"signin" | "email">("signin");
+  const [tab, setTab] = useState<"signin" | "email" | "links">("signin");
   const { data } = useQuery(settingsQuery);
 
   return (
@@ -46,12 +47,13 @@ function SettingsContent() {
         tabs={[
           { id: "signin", label: t("tabs.signin") },
           { id: "email", label: t("tabs.email") },
+          { id: "links", label: t("tabs.links") },
         ]}
         value={tab}
         onChange={setTab}
       />
       <div className="mt-6 flex flex-col gap-6">
-        {!data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
+        {tab === "links" ? <LinksSettings /> : !data ? <PageSpinner /> : tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />}
       </div>
     </>
   );

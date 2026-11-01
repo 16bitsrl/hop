@@ -1,0 +1,37 @@
+{
+  "description": "The web addresses your short links live on.",
+  "add": "Add domain",
+  "edit": "Edit",
+  "delete": "Delete",
+  "default": "Default",
+  "builtIn": "Built-in page",
+  "empty": "No domains yet",
+  "emptyHint": "Add the first domain to start creating links.",
+  "deleted": "Domain deleted",
+  "columns": {
+    "domain": "Domain",
+    "links": "Links",
+    "root": "Home page",
+    "notFound": "Unknown links",
+    "actions": "Actions"
+  },
+  "editTitle": "Edit domain",
+  "formHint": "Visitors who open the bare domain or a link that doesn't exist can be sent to your own website.",
+  "fields": {
+    "host": "Domain",
+    "hostHint": "Only the name, like go.example.com. No https:// and no port.",
+    "root": "Home page redirect",
+    "rootHint": "Where the bare domain sends visitors. Leave empty to show the built-in page.",
+    "notFound": "Unknown link redirect",
+    "notFoundHint": "Where visitors go when a link doesn't exist. Leave empty to show the built-in page.",
+    "default": "Use as default domain",
+    "defaultHint": "New links use it unless the person chose another one in their profile."
+  },
+  "errors": {
+    "host": "Enter only the domain name, like go.example.com.",
+    "url": "Enter a full web address starting with https://."
+  },
+  "confirmTitle": "Delete {{host}}?",
+  "confirmText": "Only domains without links can be deleted.",
+  "confirmButton": "Delete domain"
+}

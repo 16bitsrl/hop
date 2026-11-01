@@ -159,9 +159,10 @@ test.describe("links UI", () => {
     await expect(page.getByText("Copied")).toBeVisible();
 
     await page.getByLabel("Sort by").selectOption("slug");
-    await page.getByRole("button", { name: "Reverse order" }).click();
     const rows = page.getByRole("row").filter({ hasText: key });
     await expect(rows.first()).toContainText(`${key}-c`);
+    await page.getByRole("button", { name: "Reverse order" }).click();
+    await expect(rows.first()).toContainText(`${key}-a`);
 
     // Bulk: select a (mine) and b (admin's), add a tag. b is skipped.
     await page.getByRole("checkbox", { name: `Select ${a.slug}` }).check();
@@ -394,9 +395,9 @@ test.describe("links UI", () => {
     const { user, api } = await setup(request, playwright);
     await loginAs(page, user, "/settings");
     await tab(page, "Links");
-    await page.getByLabel("Slug length").fill("8");
+    await page.getByLabel("Ending length").fill("8");
     await page.getByLabel("Allowed characters").fill("mno");
-    await page.getByRole("button", { name: "Save generator" }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByText("Saved", { exact: true })).toBeVisible();
     try {
       const l = await createLink(api, { url: "https://example.com/gen-ui" });

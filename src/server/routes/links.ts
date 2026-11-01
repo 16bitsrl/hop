@@ -7,7 +7,6 @@ import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { parseJson } from "../lib/validate";
 import { CSV_TEMPLATE, readCsvRows, type CsvRow } from "../links/csv";
-import { fetchPageMeta } from "../links/meta";
 import { checkSafeBrowsing, isHostBlocked } from "../links/safety";
 import { bulkBody, createLinkBody, updateLinkBody } from "../links/schemas";
 import {
@@ -17,6 +16,7 @@ import {
   diffSnapshots,
   getLinkRow,
   linkErrorHandler,
+  lookupPageMeta,
   resolveDomain,
   serializeLinks,
   setLinkTags,
@@ -113,7 +113,7 @@ linksRoutes.get("/links", async (c) => {
 linksRoutes.get("/links/meta", async (c) => {
   const url = c.req.query("url") ?? "";
   if (!isHttpUrl(url)) return c.json({ error: "invalid_url" }, 400);
-  const meta = await fetchPageMeta(url, { allowPrivate: c.var.platform.config.testMode });
+  const meta = await lookupPageMeta(c.var.platform.config, url);
   return c.json(meta ?? { title: null, description: null, image: null });
 });
 

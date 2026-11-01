@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 
 export type Role = "admin" | "member" | "viewer";
-export type Me = { id: string; name: string; email: string; role: Role; locale: string | null; image: string | null };
+export type Me = { id: string; name: string; email: string; role: Role; locale: string | null; image: string | null; defaultDomainId: string | null };
 
 export type AppConfig = {
   setupRequired: boolean;

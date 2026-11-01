@@ -1,7 +1,11 @@
 {
   "title": "Settings",
   "description": "How people sign in and how hop sends email.",
-  "tabs": { "signin": "Sign-in", "email": "Email" },
+  "tabs": {
+    "signin": "Sign-in",
+    "email": "Email",
+    "links": "Links"
+  },
   "password": {
     "title": "Password sign-in",
     "allow": "Allow signing in with a password",
@@ -39,7 +43,11 @@
     "from": "From address",
     "fromHint": "For example hop@yourcompany.com.",
     "security": "Security",
-    "tls": { "none": "None", "starttls": "STARTTLS", "ssl": "SSL/TLS" },
+    "tls": {
+      "none": "None",
+      "starttls": "STARTTLS",
+      "ssl": "SSL/TLS"
+    },
     "save": "Save email settings",
     "testTitle": "Send a test email",
     "testTo": "Send test to",

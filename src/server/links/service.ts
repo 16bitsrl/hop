@@ -8,7 +8,7 @@ import { canModify } from "../auth/permissions";
 import { getSetting } from "../lib/settings";
 import { hashLinkPassword } from "../lib/password";
 import type { Config, DB, Platform } from "../platform/types";
-import { fetchPageMeta } from "./meta";
+import { fetchPageMeta, isPrivateHost, type PageMeta } from "./meta";
 import { destinationUrls, type CreateLinkInput, type UpdateLinkInput } from "./schemas";
 import { checkDestinations } from "./safety";
 import { DEFAULT_SLUG_SETTINGS, generateSlug, type SlugSettings } from "./slug";
@@ -277,6 +277,12 @@ export async function assertSafe(platform: Platform, urls: string[]): Promise<vo
   if (!verdict.ok) throw new LinkError(400, verdict.error, { url: verdict.url });
 }
 
+/** Page metadata lookup. The test environment never reaches the public internet. */
+export async function lookupPageMeta(config: Config, url: string): Promise<PageMeta | null> {
+  if (config.testMode && !isPrivateHost(new URL(url).hostname)) return null;
+  return fetchPageMeta(url, { allowPrivate: config.testMode });
+}
+
 /** Creates a link owned by `me`. Used by the API and by the CSV import. */
 export async function createLinkRecord(
   platform: Platform,
@@ -303,7 +309,7 @@ export async function createLinkRecord(
 
   let title = input.title ?? null;
   if (!title && (input.fetchMeta ?? !config.testMode)) {
-    title = (await fetchPageMeta(input.url, { allowPrivate: config.testMode }))?.title ?? null;
+    title = (await lookupPageMeta(config, input.url))?.title ?? null;
   }
 
   const id = crypto.randomUUID();

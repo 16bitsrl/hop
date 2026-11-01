@@ -1,0 +1,37 @@
+{
+  "description": "Gli indirizzi web su cui vivono i tuoi link brevi.",
+  "add": "Aggiungi dominio",
+  "edit": "Modifica",
+  "delete": "Elimina",
+  "default": "Predefinito",
+  "builtIn": "Pagina integrata",
+  "empty": "Ancora nessun dominio",
+  "emptyHint": "Aggiungi il primo dominio per iniziare a creare link.",
+  "deleted": "Dominio eliminato",
+  "columns": {
+    "domain": "Dominio",
+    "links": "Link",
+    "root": "Pagina iniziale",
+    "notFound": "Link sconosciuti",
+    "actions": "Azioni"
+  },
+  "editTitle": "Modifica il dominio",
+  "formHint": "Chi apre il dominio da solo o un link che non esiste può essere mandato al tuo sito.",
+  "fields": {
+    "host": "Dominio",
+    "hostHint": "Solo il nome, come go.example.com. Senza https:// e senza porta.",
+    "root": "Reindirizzamento della pagina iniziale",
+    "rootHint": "Dove manda i visitatori il dominio da solo. Lascia vuoto per mostrare la pagina integrata.",
+    "notFound": "Reindirizzamento dei link sconosciuti",
+    "notFoundHint": "Dove vanno i visitatori quando un link non esiste. Lascia vuoto per mostrare la pagina integrata.",
+    "default": "Usa come dominio predefinito",
+    "defaultHint": "I nuovi link lo usano, a meno che la persona non ne scelga un altro nel profilo."
+  },
+  "errors": {
+    "host": "Scrivi solo il nome del dominio, come go.example.com.",
+    "url": "Scrivi un indirizzo web completo che inizia con https://."
+  },
+  "confirmTitle": "Eliminare {{host}}?",
+  "confirmText": "Si possono eliminare solo i domini senza link.",
+  "confirmButton": "Elimina il dominio"
+}

@@ -22,6 +22,7 @@ import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { formatDate } from "../lib/cn";
 import { errorMessage } from "../lib/errors";
+import { domainsQuery } from "../features/links/api";
 import { appConfigQuery, meQuery, useMe, type Me } from "../lib/session";
 import { useTheme, type Theme } from "../lib/theme";
 
@@ -46,7 +47,7 @@ function useUpdateMe() {
   const queryClient = useQueryClient();
   const toast = useToast();
   return useMutation({
-    mutationFn: (body: Partial<Pick<Me, "name" | "locale">>) => api<{ user: Me }>("/api/me", { method: "PATCH", body }),
+    mutationFn: (body: Partial<Pick<Me, "name" | "locale" | "defaultDomainId">>) => api<{ user: Me }>("/api/me", { method: "PATCH", body }),
     onSuccess: ({ user }) => {
       queryClient.setQueryData(meQuery.queryKey, user);
       toast.success(t("saved"));
@@ -88,6 +89,8 @@ function PreferencesCard() {
   const { t, i18n } = useTranslation("profile");
   const [theme, setTheme] = useTheme();
   const update = useUpdateMe();
+  const me = useMe();
+  const domains = useQuery(domainsQuery);
   return (
     <Card>
       <CardHeader title={t("preferences.title")} />
@@ -119,6 +122,20 @@ function PreferencesCard() {
             </Select>
           )}
         </Field>
+        {me.role !== "viewer" && (domains.data?.length ?? 0) > 0 && (
+          <Field label={t("preferences.defaultDomain")} hint={t("preferences.defaultDomainHint")} className="sm:col-span-2">
+            {(id) => (
+              <Select id={id} value={me.defaultDomainId ?? ""} onChange={(e) => update.mutate({ defaultDomainId: e.target.value || null })}>
+                <option value="">{t("preferences.sharedDefault")}</option>
+                {domains.data?.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.host}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
       </CardBody>
     </Card>
   );

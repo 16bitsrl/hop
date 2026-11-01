@@ -1,11 +1,22 @@
 {
   "title": "Profile",
-  "account": { "title": "Your account", "name": "Name", "email": "Email" },
+  "account": {
+    "title": "Your account",
+    "name": "Name",
+    "email": "Email"
+  },
   "preferences": {
     "title": "Preferences",
     "language": "Language",
     "theme": "Theme",
-    "themes": { "system": "Match my device", "light": "Light", "dark": "Dark" }
+    "themes": {
+      "system": "Match my device",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "defaultDomain": "Default domain for new links",
+    "defaultDomainHint": "Your new links use this domain unless you pick another one.",
+    "sharedDefault": "Use the shared default"
   },
   "password": {
     "title": "Password",

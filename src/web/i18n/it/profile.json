@@ -1,11 +1,22 @@
 {
   "title": "Profilo",
-  "account": { "title": "Il tuo account", "name": "Nome", "email": "Email" },
+  "account": {
+    "title": "Il tuo account",
+    "name": "Nome",
+    "email": "Email"
+  },
   "preferences": {
     "title": "Preferenze",
     "language": "Lingua",
     "theme": "Tema",
-    "themes": { "system": "Come il dispositivo", "light": "Chiaro", "dark": "Scuro" }
+    "themes": {
+      "system": "Come il dispositivo",
+      "light": "Chiaro",
+      "dark": "Scuro"
+    },
+    "defaultDomain": "Dominio predefinito per i nuovi link",
+    "defaultDomainHint": "I tuoi nuovi link usano questo dominio, a meno che tu non ne scelga un altro.",
+    "sharedDefault": "Usa quello condiviso"
   },
   "password": {
     "title": "Password",
