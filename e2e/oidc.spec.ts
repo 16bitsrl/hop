@@ -57,7 +57,7 @@ test("single sign-on creates an account automatically for an allowed domain", as
   await page.goto("/login");
   await page.getByRole("button", { name: "Acme login" }).click();
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
-  await expect(page.getByText("Sso Person")).toBeVisible();
+  await expect(page.getByText("Sso Person").first()).toBeVisible();
   // Default role is viewer: no admin pages.
   await expect(page.getByRole("link", { name: "Users" })).toHaveCount(0);
 });
@@ -86,7 +86,7 @@ test("an invited person can continue with single sign-on", async ({ page, reques
   await page.goto(new URL(invite.url).pathname);
   await page.getByRole("button", { name: "Acme login" }).click();
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
-  await expect(page.getByText("Invited Sso")).toBeVisible();
+  await expect(page.getByText("Invited Sso").first()).toBeVisible();
 });
 
 test("without auto-create, an unknown person cannot sign in", async ({ page, request, playwright }) => {

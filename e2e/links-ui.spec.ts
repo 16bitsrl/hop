@@ -184,10 +184,11 @@ test.describe("links UI", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("New folder name").fill(name);
     await dialog.getByRole("button", { name: "Add folder" }).click();
-    await expect(dialog.getByText(name)).toBeVisible();
+    const item = dialog.getByRole("listitem").filter({ hasText: name });
+    await expect(item).toBeVisible();
     await dialog.getByRole("button", { name: `Delete ${name}` }).click();
-    await page.getByRole("dialog").filter({ hasText: "Delete folder" }).getByRole("button", { name: "Delete folder" }).click();
-    await expect(dialog.getByText(name)).toHaveCount(0);
+    await page.getByRole("dialog").filter({ hasText: "Delete folder" }).getByRole("button", { name: "Delete folder", exact: true }).click();
+    await expect(item).toHaveCount(0);
   });
 
   test("password, enable switch and expiry from the UI", async ({ page, request, playwright }) => {
@@ -215,12 +216,15 @@ test.describe("links UI", () => {
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("Saved", { exact: true })).toBeVisible();
     expect((await follow(request, l.slug)).headers().location).toBe("https://example.com/gone");
-    await page.getByLabel("Expires on").fill("");
+    // A link that was never visited: it works once, then the fallback takes over.
+    const fresh = await createLink(api, { url: "https://example.com/secret", fallbackUrl: "https://example.com/gone" });
+    await page.goto(`/links/${fresh.id}`);
+    await tab(page, "Edit");
     await page.getByLabel("Maximum clicks").fill("1");
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("Saved", { exact: true })).toBeVisible();
-    expect((await follow(request, l.slug)).headers().location).toBe("https://example.com/secret");
-    await expect.poll(async () => (await follow(request, l.slug)).headers().location).toBe("https://example.com/gone");
+    expect((await follow(request, fresh.slug)).headers().location).toBe("https://example.com/secret");
+    await expect.poll(async () => (await follow(request, fresh.slug)).headers().location).toBe("https://example.com/gone");
   });
 
   test("CSV import: upload, preview with a bad row, import, report", async ({ page, request, playwright }) => {
