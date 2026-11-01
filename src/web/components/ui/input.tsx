@@ -4,7 +4,7 @@ import { cn } from "../../lib/cn";
 const control =
   "w-full rounded-md border border-line-strong bg-surface px-2.5 text-sm text-fg placeholder:text-muted/70 " +
   "transition-colors hover:border-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 " +
-  "disabled:cursor-not-allowed disabled:bg-subtle disabled:opacity-70";
+  "aria-invalid:border-danger aria-invalid:focus:ring-danger/25 disabled:cursor-not-allowed disabled:bg-subtle disabled:opacity-70";
 
 const FieldContext = createContext<{ id: string; describedBy?: string; invalid: boolean } | null>(null);
 
