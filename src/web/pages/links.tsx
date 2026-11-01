@@ -154,14 +154,7 @@ export function LinksPage() {
       <div className="mb-4 flex flex-col gap-3">
         <Input type="search" aria-label={t("search")} placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
-          <Select aria-label={t("filters.owner")} value={filters.owner} onChange={(e) => setFilter("owner", e.target.value)}>
-            <option value="">{t("filters.anyOwner")}</option>
-            {users.data?.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </Select>
+          <OwnerFilter users={users.data ?? []} value={filters.owner} onChange={(id) => setFilter("owner", id)} />
           <Select aria-label={t("filters.tag")} value={filters.tag} onChange={(e) => setFilter("tag", e.target.value)}>
             <option value="">{t("filters.anyTag")}</option>
             {tags.data?.map((x) => (
@@ -425,6 +418,36 @@ export function LinksPage() {
         onApply={(tag, action) => bulk.mutate({ action, tag })}
       />
       <MoveBulkDialog open={bulkDialog === "move"} onClose={() => setBulkDialog(null)} loading={bulk.isPending} onApply={(folderId) => bulk.mutate({ action: "move", folderId })} />
+    </>
+  );
+}
+
+/** Owner filter: type or pick a name from the suggestions (a text box, so names are not listed on the page). */
+function OwnerFilter({ users, value, onChange }: { users: { id: string; name: string }[]; value: string; onChange: (id: string) => void }) {
+  const { t } = useTranslation("links");
+  const selected = users.find((u) => u.id === value)?.name ?? "";
+  const [text, setText] = useState(selected);
+  useEffect(() => setText(selected), [selected]);
+  return (
+    <>
+      <Input
+        aria-label={t("filters.owner")}
+        list="owner-filter-users"
+        placeholder={t("filters.anyOwner")}
+        value={text}
+        onChange={(e) => {
+          const v = e.target.value;
+          setText(v);
+          const match = users.find((u) => u.name === v);
+          if (match) onChange(match.id);
+          else if (!v && value) onChange("");
+        }}
+      />
+      <datalist id="owner-filter-users">
+        {users.map((u) => (
+          <option key={u.id} value={u.name} />
+        ))}
+      </datalist>
     </>
   );
 }
