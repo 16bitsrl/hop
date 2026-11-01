@@ -135,7 +135,7 @@ export async function safeFetch(url: string | URL, opts: SafeFetchOptions = {}):
   const max = opts.maxRedirects ?? 5;
   const impl = opts.fetchImpl;
   const send: Transport = impl
-    ? (u, init) => impl(u, { method: init.method, headers: init.headers, signal: init.signal, redirect: "manual" })
+    ? (u, init) => impl(u.href, { method: init.method, headers: init.headers, signal: init.signal, redirect: "manual" })
     : transport;
   let current = new URL(url);
   let method = opts.method ?? "GET";

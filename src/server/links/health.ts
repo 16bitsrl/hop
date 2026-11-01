@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { links } from "../db/schema";
 import { getSetting } from "../lib/settings";
 import type { DB, Platform } from "../platform/types";
-import { isPrivateHost } from "./meta";
+import { isPrivateHost, safeFetch, UnsafeUrlError } from "../lib/safe-fetch";
 
 /** Broken link check (J5). */
 
@@ -35,25 +35,29 @@ const HEADERS = { "user-agent": "Mozilla/5.0 (compatible; hop-link-checker/1.0)"
 /** `privateOnly` is for the test environment: it must never reach the public internet. */
 export type ProbeOptions = { allowPrivate?: boolean; privateOnly?: boolean; fetchImpl?: typeof fetch; timeoutMs?: number };
 
-/** One request, following redirects by hand so every hop is checked against the private-host rule. */
+/**
+ * One request through `safeFetch`, which follows redirects by hand and refuses private addresses on
+ * every hop (on Node it checks the address actually connected to, not just the hostname).
+ */
 async function request(method: "HEAD" | "GET", start: string, opts: ProbeOptions, signal: AbortSignal): Promise<number | "blocked"> {
-  const doFetch = opts.fetchImpl ?? fetch;
-  let url = start;
-  for (let hop = 0; hop <= MAX_HOPS; hop++) {
-    const target = new URL(url);
-    if (target.protocol !== "http:" && target.protocol !== "https:") return "blocked";
-    if (!opts.allowPrivate && isPrivateHost(target.hostname)) return "blocked";
-    if (opts.privateOnly && !isPrivateHost(target.hostname)) return "blocked";
-    const res = await doFetch(target.href, { method, headers: HEADERS, redirect: "manual", signal });
+  const target = new URL(start);
+  if (target.protocol !== "http:" && target.protocol !== "https:") return "blocked";
+  if (opts.privateOnly && !isPrivateHost(target.hostname)) return "blocked";
+  try {
+    const res = await safeFetch(target, {
+      method,
+      headers: HEADERS,
+      signal,
+      allowPrivate: opts.allowPrivate,
+      maxRedirects: MAX_HOPS,
+      fetchImpl: opts.fetchImpl,
+    });
     void res.body?.cancel().catch(() => {});
-    const location = res.headers.get("location");
-    if (res.status >= 300 && res.status < 400 && location) {
-      url = new URL(location, target).href;
-      continue;
-    }
     return res.status;
+  } catch (e) {
+    if (e instanceof UnsafeUrlError) return e.message === "too_many_redirects" ? 310 : "blocked";
+    throw e;
   }
-  return 310; // redirect loop: the destination answers, we just stop following
 }
 
 /** Checks one destination: HEAD, then GET when the server refuses HEAD. Never throws. */
