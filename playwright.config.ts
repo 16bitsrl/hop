@@ -11,11 +11,11 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: "list",
-  globalSetup: "./e2e/global-setup.ts",
   use: { baseURL: APP, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
+    // Playwright starts the web server before globalSetup, so the fresh DB must be created here.
+    command: `rm -rf .test-state && pnpm exec wrangler d1 migrations apply DB --local --env test --persist-to .test-state > /dev/null && CLOUDFLARE_ENV=test HOP_TEST_PORT=${port} pnpm exec vite dev`,
     url: `${APP}/healthz`,
     reuseExistingServer: false,
     timeout: 120_000,
