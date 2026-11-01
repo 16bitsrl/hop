@@ -73,7 +73,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     isHttpUrl(domain.notFoundUrl) ? redirect(domain.notFoundUrl, 302) : notFoundPage(lang);
 
   if (slug === "") {
-    return isHttpUrl(domain.rootUrl) ? redirect(domain.rootUrl, 302) : landingPage(lang);
+    return isHttpUrl(domain.rootUrl) ? redirect(domain.rootUrl, 302) : landingPage(lang, url.host);
   }
   if (!link) {
     // YOURLS convention: "<slug>+" opens the link's public statistics when they are on.

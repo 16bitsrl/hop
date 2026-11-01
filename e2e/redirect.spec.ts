@@ -80,6 +80,12 @@ test("landing page and 404 page are built in", async ({ request }) => {
   const root = await request.get(`${SHORT}/`, { maxRedirects: 0 });
   expect(root.status()).toBe(200);
   expect(root.headers()["content-type"]).toContain("text/html");
+  const landing = await root.text();
+  // The landing names the short domain and shows the mark.
+  expect(landing).toContain(`<h1>${new URL(SHORT).host}</h1>`);
+  expect(landing).toContain('<svg class="mark"');
+  const rootIt = await request.get(`${SHORT}/`, { maxRedirects: 0, headers: { "accept-language": "it" } });
+  expect(await rootIt.text()).toContain("arrivi subito");
   const nf = await get(request, uniq("missing"), { "accept-language": "it" });
   expect(nf.status()).toBe(404);
   expect(await nf.text()).toContain("non trovato");
