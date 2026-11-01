@@ -30,7 +30,12 @@ async function main() {
       port: settings.port,
       fetch: (req, env) => {
         const address = env?.incoming?.socket?.remoteAddress;
-        if (address) runtime.remoteAddresses.set(req, address);
+        if (address) {
+          runtime.remoteAddresses.set(req, address);
+          // Without a trusted proxy the socket address is the only truth; Better Auth's rate
+          // limiter reads this header, so a client must not be able to choose it.
+          if (!settings.trustProxy) req.headers.set("x-forwarded-for", address);
+        }
         return app.fetch(req, env);
       },
     },

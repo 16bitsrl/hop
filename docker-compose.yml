@@ -1,0 +1,31 @@
+# hop on Coolify / Openship (or any Docker host): one service, one volume.
+# Point every domain you use (the app host and each short domain) at this container in the proxy.
+services:
+  hop:
+    build: .
+    init: true
+    restart: unless-stopped
+    environment:
+      # Required
+      APP_HOST: ${APP_HOST:?set APP_HOST, e.g. hop.example.com}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET, at least 32 random characters}
+      # Public URL of the admin app (defaults to https://APP_HOST)
+      APP_URL: ${APP_URL:-}
+      # Behind Coolify / Openship / Cloudflare: trust X-Forwarded-For and the Cloudflare geo headers
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      # Optional
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+      SAFE_BROWSING_KEY: ${SAFE_BROWSING_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      # GEOIP_DB: /data/geoip/city.mmdb   (default location, see DEPLOY.md)
+    volumes:
+      - hop-data:/data
+    expose:
+      - "3000"
+
+volumes:
+  hop-data:
