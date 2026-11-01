@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hop",
+  "main": "src/server/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["17 * * * *"] },
+  "vars": {
+    "APP_HOST": "app.localhost:5173",
+    "APP_URL": "http://app.localhost:5173"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "hop", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "hop-blobs" }],
+  "env": {
+    "test": {
+      "vars": {
+        "APP_HOST": "app.localhost:8799",
+        "APP_URL": "http://app.localhost:8799",
+        "AUTH_SECRET": "test-secret-test-secret-test-secret-123",
+        "METRICS_TOKEN": "test-metrics-token"
+      },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "hop-test", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations" }
+      ],
+      "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "hop-blobs-test" }]
+    }
+  }
+}

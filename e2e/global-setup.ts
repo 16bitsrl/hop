@@ -1,0 +1,10 @@
+import { execSync } from "node:child_process";
+import { rmSync } from "node:fs";
+
+/** Fresh, dedicated test database for every run. Never touches dev data. */
+export default function globalSetup() {
+  rmSync(".test-state", { recursive: true, force: true });
+  execSync("pnpm exec wrangler d1 migrations apply DB --local --env test --persist-to .test-state", {
+    stdio: "inherit",
+  });
+}
