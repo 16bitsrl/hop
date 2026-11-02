@@ -2,13 +2,15 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Card, CardBody, CopyButton } from "../components/legacy";
+import { ArrowLeftIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CopyButton } from "@/components/copy-button";
 import { bookmarklet } from "../lib/share";
 
 function Code({ children }: { children: string }) {
   return (
     <div className="relative">
-      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-3 pr-20 font-mono text-[12.5px] leading-relaxed">{children}</pre>
+      <pre className="overflow-x-auto rounded-lg border bg-muted p-3 pr-24 font-mono text-[12.5px] leading-relaxed">{children}</pre>
       <div className="absolute right-2 top-2">
         <CopyButton value={children} />
       </div>
@@ -19,13 +21,13 @@ function Code({ children }: { children: string }) {
 function Section({ title, text, children }: { title: string; text: string; children: ReactNode }) {
   return (
     <Card>
-      <CardBody className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3">
         <div>
-          <h2 className="text-sm font-semibold">{title}</h2>
+          <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
           <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{text}</p>
         </div>
         {children}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -37,8 +39,9 @@ export function ApiHelpPage() {
   const auth = `-H "Authorization: Bearer hop_your_key_here"`;
   return (
     <>
-      <Link to="/profile" className="tap-link mb-3 inline-block text-[13px] text-muted-foreground hover:text-foreground">
-        ← {t("help.back")}
+      <Link to="/profile" className="tap-link mb-3 inline-flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+        <ArrowLeftIcon className="size-3.5" aria-hidden="true" />
+        {t("help.back")}
       </Link>
       <PageHeader title={t("help.title")} description={t("help.description")} />
       <div className="flex max-w-3xl flex-col gap-4">

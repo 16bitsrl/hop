@@ -3,7 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input } from "../components/legacy";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { CircleAlertIcon } from "lucide-react";
 import { InvalidBackupError, restoreBackup } from "../features/data/restore";
 import { errorMessage } from "../lib/errors";
 import { appConfigQuery } from "../lib/session";
@@ -40,10 +45,8 @@ export function RestorePage() {
     return (
       <AuthCard title={t("restore.page.done")} description={t("restore.page.doneText")}>
         <div data-testid="restore-done">
-          <Link to="/login">
-            <Button variant="primary" className="w-full">
-              {t("restore.page.signIn")}
-            </Button>
+          <Link to="/login" className={buttonVariants({ className: "w-full" })}>
+            {t("restore.page.signIn")}
           </Link>
         </div>
       </AuthCard>
@@ -64,7 +67,7 @@ export function RestorePage() {
   return (
     <AuthCard title={t("restore.page.title")} description={t("restore.page.description")}>
       <form onSubmit={submit} className="flex flex-col gap-3.5">
-        <Field label={t("restore.page.file")}>
+        <FormField label={t("restore.page.file")}>
           {(id) => (
             <input
               id={id}
@@ -72,27 +75,28 @@ export function RestorePage() {
               accept=".ndjson,.gz,application/gzip,application/x-ndjson,text/plain"
               required
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground"
+              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground file:transition-colors hover:file:bg-muted"
             />
           )}
-        </Field>
+        </FormField>
         {config?.setupTokenRequired && (
-          <Field label={t("restore.page.setupToken")} hint={tAuth("setup.setupTokenHint")}>
+          <FormField label={t("restore.page.setupToken")} hint={tAuth("setup.setupTokenHint")}>
             {(id) => <Input id={id} type="password" autoComplete="off" required value={setupToken} onChange={(e) => setSetupToken(e.target.value)} />}
-          </Field>
+          </FormField>
         )}
         {progress && (
           <div role="status" className="flex flex-col gap-1.5">
-            <progress className="h-2 w-full" max={progress.total || 1} value={progress.done} />
+            <Progress value={progress.total ? (progress.done / progress.total) * 100 : null} />
             <p className="text-[13px] text-muted-foreground">{progress.total ? t("restore.page.progress", { done: progress.done, total: progress.total }) : t("restore.page.working")}</p>
           </div>
         )}
         {error && (
-          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        <Button type="submit" variant="primary" loading={!!progress} disabled={!file}>
+        <Button type="submit" loading={!!progress} disabled={!file}>
           {t("restore.page.submit")}
         </Button>
         <Link to="/setup" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">

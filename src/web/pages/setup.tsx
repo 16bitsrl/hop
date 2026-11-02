@@ -3,7 +3,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input } from "../components/legacy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CircleAlertIcon } from "lucide-react";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { errorMessage } from "../lib/errors";
@@ -43,28 +47,29 @@ export function SetupPage() {
   return (
     <AuthCard title={t("setup.title")} description={t("setup.description")}>
       <form onSubmit={submit} className="flex flex-col gap-3.5">
-        <Field label={t("setup.name")}>
+        <FormField label={t("setup.name")}>
           {(id) => <Input id={id} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />}
-        </Field>
-        <Field label={t("setup.email")}>
+        </FormField>
+        <FormField label={t("setup.email")}>
           {(id) => <Input id={id} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-        </Field>
-        <Field label={t("setup.password")} hint={t("setup.passwordHint")}>
+        </FormField>
+        <FormField label={t("setup.password")} hint={t("setup.passwordHint")}>
           {(id) => (
             <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
-        </Field>
+        </FormField>
         {config?.setupTokenRequired && (
-          <Field label={t("setup.setupToken")} hint={t("setup.setupTokenHint")}>
+          <FormField label={t("setup.setupToken")} hint={t("setup.setupTokenHint")}>
             {(id) => <Input id={id} type="password" autoComplete="off" required value={setupToken} onChange={(e) => setSetupToken(e.target.value)} />}
-          </Field>
+          </FormField>
         )}
         {error && (
-          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        <Button type="submit" variant="primary" loading={busy} className="mt-1">
+        <Button type="submit" loading={busy} className="mt-1">
           {t("setup.submit")}
         </Button>
         <Link to="/restore" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">

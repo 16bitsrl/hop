@@ -2,13 +2,17 @@ import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, useToast } from "../components/legacy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CircleAlertIcon } from "lucide-react";
+import { toast } from "@/lib/toast";
 import { authClient } from "../lib/auth-client";
 
 export function ResetPasswordPage() {
   const { t } = useTranslation("auth");
-  const toast = useToast();
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const { token, error: urlError } = useSearch({ from: "/reset-password" });
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,17 +46,18 @@ export function ResetPasswordPage() {
   return (
     <AuthCard title={t("reset.title")}>
       <form onSubmit={submit} className="flex flex-col gap-3.5">
-        <Field label={t("reset.newPassword")} hint={t("reset.hint")}>
+        <FormField label={t("reset.newPassword")} hint={t("reset.hint")}>
           {(id) => (
             <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
-        </Field>
+        </FormField>
         {error && (
-          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        <Button type="submit" variant="primary" loading={busy}>
+        <Button type="submit" loading={busy}>
           {t("reset.submit")}
         </Button>
       </form>

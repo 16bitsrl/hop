@@ -3,7 +3,12 @@ import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, PageSpinner } from "../components/legacy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingState } from "@/components/states";
+import { CircleAlertIcon } from "lucide-react";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { errorMessage, ssoErrorMessage } from "../lib/errors";
@@ -28,7 +33,7 @@ export function InvitePage() {
   });
   const { data: config } = useQuery(appConfigQuery);
 
-  if (invite.isPending || !config) return <PageSpinner />;
+  if (invite.isPending || !config) return <LoadingState className="min-h-dvh" />;
   if (invite.isError) {
     return (
       <AuthCard title={t("invite.title")}>
@@ -60,20 +65,21 @@ export function InvitePage() {
     <AuthCard title={t("invite.title")} description={t("invite.description", { role: t(`common:roles.${role}`).toLowerCase() })}>
       <p className="mb-4 rounded-md bg-muted px-3 py-2 text-sm font-medium">{email}</p>
       <form onSubmit={submit} className="flex flex-col gap-3.5">
-        <Field label={t("invite.name")}>
+        <FormField label={t("invite.name")}>
           {(id) => <Input id={id} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />}
-        </Field>
-        <Field label={t("invite.password")} hint={t("invite.passwordHint")}>
+        </FormField>
+        <FormField label={t("invite.password")} hint={t("invite.passwordHint")}>
           {(id) => (
             <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} />
           )}
-        </Field>
+        </FormField>
         {error && (
-          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        <Button type="submit" variant="primary" loading={busy}>
+        <Button type="submit" loading={busy}>
           {t("invite.submit")}
         </Button>
       </form>
@@ -84,7 +90,7 @@ export function InvitePage() {
             {t("login.or")}
             <span className="h-px flex-1 bg-border" />
           </div>
-          <Button
+          <Button variant="outline"
             className="w-full"
             onClick={() => authClient.signIn.social({ provider: "oidc", callbackURL: "/links", errorCallbackURL: `/invite/${token}` })}
           >

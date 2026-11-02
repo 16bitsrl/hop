@@ -74,7 +74,8 @@ test("mobile menu keeps keyboard focus inside and gives it back on close", async
   await page.setViewportSize({ width: 390, height: 844 });
   const admin = await createUser(request, { role: "admin" });
   await loginAs(page, admin, "/links");
-  const trigger = page.getByRole("button", { name: "Open menu" });
+  // While the menu is open the page behind it is hidden from assistive tech, the menu button too.
+  const trigger = page.getByRole("button", { name: "Open menu", includeHidden: true });
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await trigger.focus();
   await page.keyboard.press("Enter");
@@ -83,13 +84,15 @@ test("mobile menu keeps keyboard focus inside and gives it back on close", async
   const drawer = page.getByRole("dialog");
   await expect(drawer).toBeVisible();
   // Focus moves into the menu.
-  expect(await page.evaluate(() => !!document.activeElement?.closest("dialog"))).toBe(true);
+  expect(await page.evaluate(() => !!document.activeElement?.closest("[role=dialog]"))).toBe(true);
   // Tabbing never reaches the page behind it.
   for (let i = 0; i < 20; i++) {
     await page.keyboard.press("Tab");
     const outside = await page.evaluate(() => {
       const el = document.activeElement;
-      return !!el && el !== document.body && !el.closest("dialog");
+      // The invisible guard at the edge of the menu only sends focus back to its first item.
+      if (el?.hasAttribute("data-base-ui-focus-guard")) return false;
+      return !!el && el !== document.body && !el.closest("[role=dialog]");
     });
     expect(outside).toBe(false);
   }

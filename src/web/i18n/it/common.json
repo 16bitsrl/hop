@@ -27,7 +27,7 @@
     "main": "Principale"
   },
   "openMenu": "Apri il menu",
-  "closeMenu": "Chiudi il menu",
+  "menu": "Menu",
   "signOut": "Esci",
   "noAccess": "Non hai accesso a questa pagina.",
   "noAccessHint": "Chiedi a un amministratore se ti serve.",

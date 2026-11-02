@@ -3,7 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, PageSpinner } from "../components/legacy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { LoadingState } from "@/components/states";
 import { authClient } from "../lib/auth-client";
 import { appConfigQuery } from "../lib/session";
 
@@ -14,7 +17,7 @@ export function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  if (!config) return <PageSpinner />;
+  if (!config) return <LoadingState className="min-h-dvh" />;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -45,10 +48,10 @@ export function ForgotPasswordPage() {
         <p className="text-sm">{t("forgot.sent")}</p>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-3.5">
-          <Field label={t("forgot.email")}>
+          <FormField label={t("forgot.email")}>
             {(id) => <Input id={id} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-          </Field>
-          <Button type="submit" variant="primary" loading={busy}>
+          </FormField>
+          <Button type="submit" loading={busy}>
             {t("forgot.submit")}
           </Button>
         </form>

@@ -8,9 +8,9 @@ export function AuthCard({ title, description, children }: { title: string; desc
         <img src="/icon.svg" alt="" className="size-7" />
         <span className="text-lg font-semibold tracking-tight">hop</span>
       </div>
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{description}</p>}
+      <div className="w-full max-w-sm rounded-xl border bg-card p-6 shadow-(--shadow-raised) duration-200 animate-in fade-in-0 slide-in-from-bottom-1 sm:p-7">
+        <h1 className="text-lg font-semibold tracking-tight text-balance">{title}</h1>
+        {description && <p className="mt-1 text-[13px] leading-snug text-pretty text-muted-foreground">{description}</p>}
         <div className="mt-5">{children}</div>
       </div>
     </div>

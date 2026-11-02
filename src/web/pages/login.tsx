@@ -3,7 +3,12 @@ import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, KeyIcon, PageSpinner } from "../components/legacy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingState } from "@/components/states";
+import { CircleAlertIcon, KeyRoundIcon } from "lucide-react";
 import { authClient } from "../lib/auth-client";
 import { ssoErrorMessage } from "../lib/errors";
 import { appConfigQuery, meQuery } from "../lib/session";
@@ -19,7 +24,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(urlError ? ssoErrorMessage(t, urlError) : null);
   const [busy, setBusy] = useState(false);
 
-  if (!config) return <PageSpinner />;
+  if (!config) return <LoadingState className="min-h-dvh" />;
 
   async function enter() {
     queryClient.removeQueries({ queryKey: meQuery.queryKey });
@@ -58,15 +63,15 @@ export function LoginPage() {
       <div className="flex flex-col gap-4">
         {config.passwordLogin && (
           <form onSubmit={submit} className="flex flex-col gap-3.5">
-            <Field label={t("login.email")}>
+            <FormField label={t("login.email")}>
               {(id) => <Input id={id} type="email" autoComplete="username webauthn" required value={email} onChange={(e) => setEmail(e.target.value)} />}
-            </Field>
-            <Field label={t("login.password")}>
+            </FormField>
+            <FormField label={t("login.password")}>
               {(id) => (
                 <Input id={id} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
               )}
-            </Field>
-            <Button type="submit" variant="primary" loading={busy} className="mt-1">
+            </FormField>
+            <Button type="submit" loading={busy} className="mt-1">
               {t("login.submit")}
             </Button>
             <Link to="/forgot-password" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
@@ -76,9 +81,10 @@ export function LoginPage() {
         )}
 
         {error && (
-          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {config.passwordLogin && (
@@ -91,12 +97,12 @@ export function LoginPage() {
 
         <div className="flex flex-col gap-2">
           {config.oidc && (
-            <Button onClick={sso} className="w-full">
+            <Button variant="outline" onClick={sso} className="w-full">
               {config.oidc.label}
             </Button>
           )}
-          <Button onClick={passkey} className="w-full">
-            <KeyIcon />
+          <Button variant="outline" onClick={passkey} className="w-full">
+            <KeyRoundIcon data-icon="inline-start" />
             {t("login.passkey")}
           </Button>
         </div>

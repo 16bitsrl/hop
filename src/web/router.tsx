@@ -2,7 +2,9 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, createRoute, createRouter, Link, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Shell } from "./components/shell";
-import { Button } from "./components/legacy";
+import { CompassIcon } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/states";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
 import { AuditPage } from "./pages/audit";
@@ -28,11 +30,16 @@ export type RouterContext = { queryClient: QueryClient };
 function NotFound() {
   const { t } = useTranslation();
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center">
-      <p className="text-sm text-muted-foreground">{t("notFound")}</p>
-      <Link to="/links">
-        <Button>{t("goHome")}</Button>
-      </Link>
+    <div className="flex min-h-dvh items-center justify-center px-4">
+      <EmptyState
+        icon={<CompassIcon />}
+        title={t("notFound")}
+        action={
+          <Link to="/links" className={buttonVariants({ variant: "outline" })}>
+            {t("goHome")}
+          </Link>
+        }
+      />
     </div>
   );
 }
