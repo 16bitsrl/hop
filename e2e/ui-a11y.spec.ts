@@ -184,3 +184,25 @@ test("the copy button turns into a check for a moment, then back", async ({ page
   // About a second and a half later it is a copy button again.
   await expect(button).not.toHaveAttribute("data-copied", { timeout: 3000 });
 });
+
+test("a switch thumb sits at the same inset when off and when on", async ({ page, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  await ensureDomain(api);
+  const link = await createLink(api, { url: "https://example.com/switch", slug: uniq("sw") });
+  await loginAs(page, admin, `/links/${link.id}`);
+  const toggle = page.getByRole("switch", { name: "Link is active" });
+  const insets = () =>
+    toggle.evaluate((el) => {
+      const track = el.getBoundingClientRect();
+      const thumb = el.querySelector("[data-slot=switch-thumb]")!.getBoundingClientRect();
+      return { left: Math.round(thumb.left - track.left), right: Math.round(track.right - thumb.right) };
+    });
+  await expect(toggle).toBeChecked();
+  await expect.poll(async () => (await insets()).right).toBeLessThanOrEqual(2);
+  const on = await insets();
+  await toggle.click();
+  await expect(toggle).not.toBeChecked();
+  await expect.poll(async () => (await insets()).left).toBe(on.right);
+  await api.dispose();
+});
