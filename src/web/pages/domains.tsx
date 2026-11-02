@@ -1,28 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { PageHeader } from "../components/page";
-import {
-  Badge,
-  Button,
-  Card,
-  ConfirmDialog,
-  Dialog,
-  EmptyState,
-  Field,
-  GlobeIcon,
-  Input,
-  PageSpinner,
-  PlusIcon,
-  Switch,
-  Table,
-  TBody,
-  Td,
-  Th,
-  THead,
-  Tr,
-  useToast,
-} from "../components/legacy";
+import { GlobeIcon, PencilIcon, PlusIcon } from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormField } from "@/components/form-field";
+import { PageHeader } from "@/components/page";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { SwitchField } from "@/components/toggle-field";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/lib/toast";
 import { domainsQuery, type Domain } from "../features/links/api";
 import { api, ApiError } from "../lib/api";
 import { errorMessage } from "../lib/errors";
@@ -33,9 +24,9 @@ export function DomainsPage() {
   const tc = useTranslation().t;
   const me = useMe();
   const admin = isAdmin(me);
-  const toast = useToast();
   const queryClient = useQueryClient();
-  const { data, isPending } = useQuery(domainsQuery);
+  const domains = useQuery(domainsQuery);
+  const data = domains.data;
   const [editing, setEditing] = useState<Domain | "new" | null>(null);
   const [removing, setRemoving] = useState<Domain | null>(null);
 
@@ -56,67 +47,85 @@ export function DomainsPage() {
         description={t("description")}
         actions={
           admin && (
-            <Button variant="primary" onClick={() => setEditing("new")}>
-              <PlusIcon />
+            <Button onClick={() => setEditing("new")}>
+              <PlusIcon data-icon="inline-start" />
               {t("add")}
             </Button>
           )
         }
       />
-      {isPending ? (
-        <PageSpinner />
+      {domains.isPending ? (
+        <Card className="gap-0 py-0">
+          <ListSkeleton rows={2} />
+        </Card>
+      ) : domains.isError ? (
+        <Card className="gap-0 py-0">
+          <ErrorState onRetry={() => domains.refetch()} retrying={domains.isFetching} />
+        </Card>
       ) : !data?.length ? (
-        <Card>
+        <Card className="gap-0 py-0">
           <EmptyState icon={<GlobeIcon />} title={t("empty")} description={admin ? t("emptyHint") : undefined} />
         </Card>
       ) : (
-        <Card className="overflow-hidden">
+        <Card className="gap-0 py-0">
           <Table stack>
-            <THead>
-              <tr>
-                <Th>{t("columns.domain")}</Th>
-                <Th className="text-right">{t("columns.links")}</Th>
-                <Th>{t("columns.root")}</Th>
-                <Th>{t("columns.notFound")}</Th>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.domain")}</TableHead>
+                <TableHead className="text-right">{t("columns.links")}</TableHead>
+                <TableHead>{t("columns.root")}</TableHead>
+                <TableHead>{t("columns.notFound")}</TableHead>
                 {admin && (
-                  <Th>
+                  <TableHead>
                     <span className="sr-only">{t("columns.actions")}</span>
-                  </Th>
+                  </TableHead>
                 )}
-              </tr>
-            </THead>
-            <TBody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.map((d) => (
-                <Tr key={d.id}>
-                  <Td>
-                    <span className="font-medium">{d.host}</span> {d.isDefault && <Badge tone="green">{t("default")}</Badge>}
-                  </Td>
-                  <Td className="text-right tabular-nums max-md:text-left" label={t("columns.links")}>{d.linkCount}</Td>
-                  <Td className="max-w-56 truncate text-muted-foreground" label={t("columns.root")} title={d.rootUrl ?? undefined}>
+                <TableRow key={d.id}>
+                  <TableCell>
+                    <span className="font-medium">{d.host}</span>
+                    {d.isDefault && (
+                      <Badge variant="success" className="ml-2 align-middle">
+                        {t("default")}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums max-md:text-left" label={t("columns.links")}>{d.linkCount}</TableCell>
+                  <TableCell className="max-w-56 truncate text-muted-foreground" label={t("columns.root")} title={d.rootUrl ?? undefined}>
                     {d.rootUrl ?? t("builtIn")}
-                  </Td>
-                  <Td className="max-w-56 truncate text-muted-foreground" label={t("columns.notFound")} title={d.notFoundUrl ?? undefined}>
+                  </TableCell>
+                  <TableCell className="max-w-56 truncate text-muted-foreground" label={t("columns.notFound")} title={d.notFoundUrl ?? undefined}>
                     {d.notFoundUrl ?? t("builtIn")}
-                  </Td>
+                  </TableCell>
                   {admin && (
-                    <Td className="whitespace-nowrap text-right max-md:-ml-2.5 max-md:text-left">
+                    <TableCell className="whitespace-nowrap text-right max-md:-ml-2.5 max-md:text-left">
                       <Button size="sm" variant="ghost" onClick={() => setEditing(d)}>
+                        <PencilIcon data-icon="inline-start" />
                         {t("edit")}
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setRemoving(d)}>
+                      <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(d)}>
                         {t("delete")}
                       </Button>
-                    </Td>
+                    </TableCell>
                   )}
-                </Tr>
+                </TableRow>
               ))}
-            </TBody>
+            </TableBody>
           </Table>
         </Card>
       )}
 
-      <Dialog open={!!editing} onClose={() => setEditing(null)} title={editing === "new" ? t("add") : t("editTitle")} description={t("formHint")}>
-        {editing && <DomainForm domain={editing === "new" ? null : editing} onClose={() => setEditing(null)} />}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing === "new" ? t("add") : t("editTitle")}</DialogTitle>
+            <DialogDescription>{t("formHint")}</DialogDescription>
+          </DialogHeader>
+          {editing && <DomainForm domain={editing === "new" ? null : editing} onClose={() => setEditing(null)} />}
+        </DialogContent>
       </Dialog>
       <ConfirmDialog
         open={!!removing}
@@ -164,27 +173,35 @@ function DomainForm({ domain, onClose }: { domain: Domain | null; onClose: () =>
         save.mutate();
       }}
     >
-      <Field label={t("fields.host")} hint={t("fields.hostHint")} error={fieldError("host", t("errors.host"))}>
+      <FormField label={t("fields.host")} hint={t("fields.hostHint")} error={fieldError("host", t("errors.host"))}>
         {(id) => <Input id={id} required autoFocus placeholder="go.example.com" value={host} onChange={(e) => setHost(e.target.value)} />}
-      </Field>
-      <Field label={t("fields.root")} hint={t("fields.rootHint")} error={fieldError("rootUrl", t("errors.url"))}>
+      </FormField>
+      <FormField label={t("fields.root")} hint={t("fields.rootHint")} error={fieldError("rootUrl", t("errors.url"))}>
         {(id) => <Input id={id} placeholder="https://" value={rootUrl} onChange={(e) => setRootUrl(e.target.value)} />}
-      </Field>
-      <Field label={t("fields.notFound")} hint={t("fields.notFoundHint")} error={fieldError("notFoundUrl", t("errors.url"))}>
+      </FormField>
+      <FormField label={t("fields.notFound")} hint={t("fields.notFoundHint")} error={fieldError("notFoundUrl", t("errors.url"))}>
         {(id) => <Input id={id} placeholder="https://" value={notFoundUrl} onChange={(e) => setNotFoundUrl(e.target.value)} />}
-      </Field>
-      <Switch checked={isDefault} onChange={setIsDefault} disabled={domain?.isDefault} label={t("fields.default")} description={t("fields.defaultHint")} />
+      </FormField>
+      <SwitchField
+        checked={isDefault}
+        onCheckedChange={setIsDefault}
+        disabled={domain?.isDefault}
+        label={t("fields.default")}
+        description={t("fields.defaultHint")}
+      />
       {generalError && (
         <p role="alert" className="text-[13px] text-destructive">
           {generalError}
         </p>
       )}
-      <div className="flex justify-end gap-2">
-        <Button onClick={onClose}>{tc("cancel")}</Button>
-        <Button type="submit" variant="primary" loading={save.isPending}>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          {tc("cancel")}
+        </Button>
+        <Button type="submit" loading={save.isPending}>
           {domain ? tc("save") : t("add")}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }
