@@ -320,13 +320,13 @@ export function LinksPage() {
                 <TableHead className="w-10">
                   <Checkbox aria-label={t("bulk.selectAll")} checked={allSelected} onCheckedChange={(on) => toggleAll(on)} />
                 </TableHead>
-                <TableHead className="w-[32%]">{t("columns.link")}</TableHead>
+                <TableHead className="w-[30%]">{t("columns.link")}</TableHead>
                 <TableHead>{t("columns.destination")}</TableHead>
                 <TableHead className="hidden w-36 2xl:table-cell">{t("columns.owner")}</TableHead>
-                <TableHead className="w-[16%]">{t("columns.tags")}</TableHead>
+                <TableHead className="w-[15%]">{t("columns.tags")}</TableHead>
                 <TableHead className="w-20 text-right">{t("columns.clicks")}</TableHead>
-                <TableHead className="w-32">{t("columns.status")}</TableHead>
-                <TableHead className="w-24">
+                <TableHead className="w-44">{t("columns.status")}</TableHead>
+                <TableHead className="w-14">
                   <span className="sr-only">{t("columns.actions")}</span>
                 </TableHead>
               </TableRow>
@@ -371,8 +371,15 @@ export function LinksPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <span title={l.canModify ? undefined : t("readOnly")}>
-                      <Button size="sm" variant="destructive-ghost" disabled={!l.canModify} onClick={() => setRemoving(l)}>
-                        {t("delete")}
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="hover:bg-destructive-soft hover:text-destructive"
+                        aria-label={t("delete")}
+                        disabled={!l.canModify}
+                        onClick={() => setRemoving(l)}
+                      >
+                        <Trash2Icon />
                       </Button>
                     </span>
                   </TableCell>

@@ -124,7 +124,8 @@ function FoldersBody() {
                     </Button>
                     <Button
                       size="icon-sm"
-                      variant="destructive-ghost"
+                      variant="ghost"
+                      className="hover:bg-destructive-soft hover:text-destructive"
                       disabled={!f.canModify}
                       title={f.canModify ? t("folders.delete", { name: f.name }) : t("folders.notYours")}
                       aria-label={t("folders.delete", { name: f.name })}
