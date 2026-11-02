@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { APP } from "../playwright.config";
-import { apiAs, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
+import { apiAs, choose, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
 
 test.beforeEach(async ({ request }) => {
   await resetSettings(request);
@@ -135,10 +135,10 @@ test("the audit log records user actions and can be filtered", async ({ page, re
   await expect(row).toContainText(admin.name);
   await expect(row).toContainText(member.email);
 
-  await page.getByLabel("Action").selectOption("invite.create");
+  await choose(page, page.getByLabel("Action"), "Invitation created");
   await expect(page.getByRole("row", { name: /Role changed/ })).toHaveCount(0);
-  await page.getByLabel("Action").selectOption("");
-  await page.getByLabel("User", { exact: true }).selectOption(admin.id);
+  await choose(page, page.getByLabel("Action"), "All actions");
+  await choose(page, page.getByLabel("User", { exact: true }), admin.name);
   await expect(page.getByRole("row", { name: /Role changed/ }).first()).toBeVisible();
   await api.dispose();
 });
@@ -150,7 +150,8 @@ test("the audit log opens after the links list", async ({ page, request }) => {
   await loginAs(page, admin, "/links");
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Activity log" }).click();
-  await expect(page.getByLabel("User", { exact: true }).getByRole("option", { name: admin.name })).toBeAttached();
+  await page.getByLabel("User", { exact: true }).click();
+  await expect(page.getByRole("listbox").getByRole("option", { name: admin.name })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
