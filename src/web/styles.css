@@ -125,6 +125,22 @@
   color-scheme: dark;
 }
 
+/* One height for every form control and button, roomier on touch screens. In px: the root size is 14px. */
+@utility h-control {
+  height: 32px;
+  @media (width < 48rem) {
+    height: 40px;
+  }
+}
+@utility size-control {
+  width: 32px;
+  height: 32px;
+  @media (width < 48rem) {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

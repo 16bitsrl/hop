@@ -240,7 +240,6 @@ export function LinksPage() {
           />
           <Button
             variant="outline"
-            className="max-md:h-10"
             aria-label={t("filters.reverse")}
             title={t("filters.reverse")}
             onClick={() => setFilter("dir", filters.dir === "desc" ? "asc" : "desc")}
