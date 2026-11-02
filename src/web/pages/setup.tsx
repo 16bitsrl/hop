@@ -72,7 +72,7 @@ export function SetupPage() {
         <Button type="submit" loading={busy} className="mt-1">
           {t("setup.submit")}
         </Button>
-        <Link to="/restore" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
+        <Link to="/restore" className="text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
           {tData("restore.link")}
         </Link>
       </form>

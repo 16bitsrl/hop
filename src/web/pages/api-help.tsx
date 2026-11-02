@@ -39,7 +39,7 @@ export function ApiHelpPage() {
   const auth = `-H "Authorization: Bearer hop_your_key_here"`;
   return (
     <>
-      <Link to="/profile" className="tap-link mb-3 inline-flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+      <Link to="/profile" className="mb-3 inline-flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeftIcon className="size-3.5" aria-hidden="true" />
         {t("help.back")}
       </Link>

@@ -46,7 +46,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
               } else onChange({ ...value, id });
             }}
             className={cn(
-              "h-7 rounded-md px-2.5 text-[13px] font-medium whitespace-nowrap outline-none transition-[color,background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-ring/60 max-md:h-9",
+              "h-7 rounded-md px-2.5 text-[13px] font-medium whitespace-nowrap outline-none transition-[color,background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-ring/60",
               value.id === id ? "bg-card text-foreground shadow-(--shadow-raised) dark:bg-accent" : "text-muted-foreground hover:text-foreground",
             )}
           >

@@ -27,7 +27,7 @@ type TabId = (typeof TABS)[number];
 function BackLink() {
   const tc = useTranslation().t;
   return (
-    <RouterLink to="/links" className="tap-link mb-3 inline-flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+    <RouterLink to="/links" className="mb-3 inline-flex items-center gap-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
       <ArrowLeftIcon className="size-3.5" aria-hidden="true" />
       {tc("nav.links")}
     </RouterLink>

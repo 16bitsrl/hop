@@ -95,7 +95,7 @@ export function MyApiKeysCard() {
         <CardTitle>{t("title")}</CardTitle>
         <CardDescription>{t("description")}</CardDescription>
         <CardAction>
-          <Link to="/api-help" className="tap-link text-[13px] font-medium text-primary hover:underline">
+          <Link to="/api-help" className="text-[13px] font-medium text-primary hover:underline">
             {t("helpLink")}
           </Link>
         </CardAction>

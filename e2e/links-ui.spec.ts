@@ -499,26 +499,3 @@ test.describe("links UI", () => {
     expect(l.domainId).toBe(other.id);
   });
 });
-
-test("search and filter controls share one height on desktop and phone", async ({ page, request }) => {
-  const admin = await createUser(request, { role: "admin" });
-  await loginAs(page, admin, "/links");
-  const controls = [
-    page.getByRole("searchbox", { name: "Search links" }),
-    page.getByRole("combobox", { name: "Owner" }),
-    page.getByRole("combobox", { name: "Tag" }),
-    page.getByRole("combobox", { name: "Folder" }),
-    page.getByRole("combobox", { name: "Status" }),
-    page.getByRole("combobox", { name: "Sort by" }),
-    page.getByRole("button", { name: "Reverse order" }),
-  ];
-  for (const [width, expected] of [[1440, 32], [390, 40]] as const) {
-    await page.setViewportSize({ width, height: 900 });
-    await expect(controls[0]!).toBeVisible();
-    // Measure the visible box: a text field may sit inside a bordered group.
-    const heights = await Promise.all(
-      controls.map((c) => c.evaluate((el) => Math.round((el.closest("[data-slot=input-group]") ?? el).getBoundingClientRect().height))),
-    );
-    expect(heights, `${width}px`).toEqual(controls.map(() => expected));
-  }
-});

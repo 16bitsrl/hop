@@ -71,7 +71,7 @@ export function TagInput({
     <div
       data-slot="tag-input"
       className={cn(
-        "flex min-h-8 w-full flex-wrap items-center gap-1.5 rounded-lg border border-input bg-card px-2 py-1 text-sm transition-[border-color,box-shadow] duration-150 max-md:min-h-10 dark:bg-muted/40",
+        "flex min-h-8 w-full flex-wrap items-center gap-1.5 rounded-lg border border-input bg-card px-2 py-1 text-sm transition-[border-color,box-shadow] duration-150 dark:bg-muted/40",
         "focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 has-aria-invalid:border-destructive",
         disabled && "cursor-not-allowed opacity-50",
       )}
@@ -84,7 +84,7 @@ export function TagInput({
               type="button"
               aria-label={t("tags.remove", { name })}
               onClick={() => onChange(value.filter((v) => v !== name))}
-              className="no-tap relative rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground after:absolute after:-inset-2 after:content-['']"
+              className="relative rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground after:absolute after:-inset-2 after:content-['']"
             >
               <XIcon className="size-3" aria-hidden="true" />
             </button>
@@ -110,7 +110,7 @@ export function TagInput({
           } else if (e.key === "Backspace" && !text && value.length) onChange(value.slice(0, -1));
         }}
         onBlur={() => add(text)}
-        className="no-tap h-6 min-w-24 flex-1 border-0 bg-transparent p-0 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed md:text-sm"
+        className="h-6 min-w-24 flex-1 border-0 bg-transparent p-0 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed md:text-sm"
       />
       <datalist id={listId}>
         {suggestions

@@ -74,7 +74,7 @@ export function LoginPage() {
             <Button type="submit" loading={busy} className="mt-1">
               {t("login.submit")}
             </Button>
-            <Link to="/forgot-password" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
+            <Link to="/forgot-password" className="text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
               {t("login.forgot")}
             </Link>
           </form>
