@@ -61,7 +61,7 @@ function SettingsContent() {
   return (
     <>
       <PageHeader title={t("title")} description={t("description")} />
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="gap-6">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="flex-col gap-6">
         <TabsList variant="line">
           {TABS.map((id) => (
             <TabsTrigger key={id} value={id}>

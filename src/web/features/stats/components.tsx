@@ -131,7 +131,7 @@ export function KpiRow({ data, withBots = true, extra }: { data: Summary | undef
   const f = useFormat();
   const v = (n: number | undefined) => (n === undefined ? undefined : f.number(n));
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2", withBots || extra ? "lg:grid-cols-4" : "lg:grid-cols-2")}>
+    <div className={cn("grid grid-cols-2 gap-3", withBots || extra ? "lg:grid-cols-4" : "lg:grid-cols-2")}>
       <Kpi id="clicks" label={t("kpi.clicks")} value={v(data?.totals.clicks)} />
       <Kpi id="visitors" label={t("kpi.visitors")} value={v(data?.totals.visitors)} hint={t("kpi.visitorsHint")} />
       {withBots && <Kpi id="bots" label={t("kpi.bots")} value={v(data?.totals.bots)} hint={t("kpi.botsHint")} />}
@@ -316,7 +316,7 @@ export function Breakdowns({ data, show = ["referrers", "countries", "cities", "
   const deviceName = (k: string | null) => (k ? t(`devices.${k}`, { defaultValue: k }) : t("unknown"));
   const has = (k: string) => show.includes(k);
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className={cn("grid gap-4", show.length > 1 && "lg:grid-cols-2")}>
       {has("referrers") && (
         <BreakdownTable id="referrers" title={t("breakdown.referrers")} total={total} items={toItems(data.referrers, (k) => k ?? t("direct"))} />
       )}
@@ -347,7 +347,7 @@ export function Breakdowns({ data, show = ["referrers", "countries", "cities", "
 export function BreakdownsSkeleton({ count = 2 }: { count?: number }) {
   const { t } = useTranslation();
   return (
-    <div role="status" aria-label={t("loading")} className="grid gap-4 lg:grid-cols-2">
+    <div role="status" aria-label={t("loading")} className={cn("grid gap-4", count > 1 && "lg:grid-cols-2")}>
       {Array.from({ length: count }, (_, i) => (
         <Card key={i} className="gap-0 pb-0">
           <CardHeader className="border-b">
