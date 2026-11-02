@@ -18,6 +18,7 @@
   "filters": {
     "owner": "Proprietario",
     "anyOwner": "Creati da chiunque",
+    "noOwner": "Nessuno con questo nome",
     "tag": "Tag",
     "anyTag": "Tutti i tag",
     "folder": "Cartella",
@@ -54,6 +55,7 @@
   "total_one": "{{count}} link",
   "total_other": "{{count}} link",
   "pageOf": "Pagina {{page}} di {{pages}}",
+  "pagination": "Pagine",
   "card": {
     "meta": "{{clicks}} clic · {{owner}} · {{date}}"
   },

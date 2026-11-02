@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useToast } from "../../components/legacy";
+import { toast } from "@/lib/toast";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 
@@ -107,7 +107,6 @@ export function folderTree(folders: Folder[]): (Folder & { depth: number })[] {
 /** Saves part of a link, shows the result and refreshes the caches. */
 export function usePatchLink(id: string, opts: { silent?: boolean } = {}) {
   const { t } = useTranslation();
-  const toast = useToast();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: Record<string, unknown>) => api<{ link: Link }>(`/api/links/${id}`, { method: "PATCH", body }),

@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Checkbox, Field, Input, useToast } from "../../components/legacy";
+import { ArrowDownIcon, ArrowUpIcon, PlusIcon, SaveIcon, Trash2Icon } from "lucide-react";
+import { FormField } from "@/components/form-field";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/lib/toast";
 import { usePatchLink, type Link, type LinkRule } from "./api";
-import { ReadOnlyNotice, SaveBar } from "./edit-tab";
+import { ReadOnlyNotice, SaveBar, SectionCard } from "./edit-tab";
 
 const DEVICES = ["ios", "android", "desktop", "mobile", "tablet"] as const;
 type Device = (typeof DEVICES)[number];
@@ -29,7 +35,6 @@ const fromDraft = (r: RuleDraft) => ({
 
 export function SmartTab({ link }: { link: Link }) {
   const { t } = useTranslation("links");
-  const toast = useToast();
   const readOnly = !link.canModify;
   const patch = usePatchLink(link.id);
   const [rules, setRules] = useState<RuleDraft[]>(link.rules.map(toDraft));
@@ -62,20 +67,25 @@ export function SmartTab({ link }: { link: Link }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <ReadOnlyNotice show={readOnly} />
 
-      <Card>
-        <CardHeader
-          title={t("smart.rulesTitle")}
-          description={t("smart.rulesHint")}
-          action={
-            <Button size="sm" disabled={readOnly || rules.length >= 20} onClick={() => setRules((cur) => [...cur, { devices: [], countries: "", languages: "", url: "", appUrl: "" }])}>
-              {t("smart.addRule")}
-            </Button>
-          }
-        />
-        <CardBody className="flex flex-col gap-4">
+      <SectionCard
+        title={t("smart.rulesTitle")}
+        description={t("smart.rulesHint")}
+        className="flex flex-col gap-4"
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={readOnly || rules.length >= 20}
+            onClick={() => setRules((cur) => [...cur, { devices: [], countries: "", languages: "", url: "", appUrl: "" }])}
+          >
+            <PlusIcon data-icon="inline-start" />
+            {t("smart.addRule")}
+          </Button>
+        }
+      >
           {rules.length === 0 && <p className="text-[13px] text-muted-foreground">{t("smart.noRules")}</p>}
           {rules.map((r, i) => {
             const n = i + 1;
@@ -83,74 +93,88 @@ export function SmartTab({ link }: { link: Link }) {
               <fieldset key={i} disabled={readOnly} className="flex flex-col gap-3 rounded-lg border border-border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium">{t("smart.ruleN", { n })}</p>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" disabled={i === 0} aria-label={t("smart.moveUp", { n })} onClick={() => move(i, -1)}>
-                      ↑
+                  <div className="flex gap-0.5">
+                    <Button size="icon-sm" variant="ghost" disabled={i === 0} aria-label={t("smart.moveUp", { n })} title={t("smart.moveUp", { n })} onClick={() => move(i, -1)}>
+                      <ArrowUpIcon />
                     </Button>
-                    <Button size="sm" variant="ghost" disabled={i === rules.length - 1} aria-label={t("smart.moveDown", { n })} onClick={() => move(i, 1)}>
-                      ↓
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      disabled={i === rules.length - 1}
+                      aria-label={t("smart.moveDown", { n })}
+                      title={t("smart.moveDown", { n })}
+                      onClick={() => move(i, 1)}
+                    >
+                      <ArrowDownIcon />
                     </Button>
-                    <Button size="sm" variant="ghost" aria-label={t("smart.removeRule", { n })} onClick={() => setRules((cur) => cur.filter((_, j) => j !== i))}>
-                      {t("smart.remove")}
+                    <Button
+                      size="icon-sm"
+                      variant="destructive-ghost"
+                      aria-label={t("smart.removeRule", { n })}
+                      title={t("smart.removeRule", { n })}
+                      onClick={() => setRules((cur) => cur.filter((_, j) => j !== i))}
+                    >
+                      <Trash2Icon />
                     </Button>
                   </div>
                 </div>
                 <div>
-                  <p className="mb-1.5 text-[13px] font-medium">{t("smart.devices")}</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                  <p className="mb-2 text-[13px] font-medium">{t("smart.devices")}</p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2">
                     {DEVICES.map((d) => (
-                      <Checkbox
+                      <DeviceCheckbox
                         key={d}
                         label={t(`smart.device.${d}`)}
-                        aria-label={`${t("smart.ruleN", { n })} ${t(`smart.device.${d}`)}`}
+                        ariaLabel={`${t("smart.ruleN", { n })} ${t(`smart.device.${d}`)}`}
                         checked={r.devices.includes(d)}
-                        onChange={(e) => setRule(i, { devices: e.target.checked ? [...r.devices, d] : r.devices.filter((x) => x !== d) })}
+                        disabled={readOnly}
+                        onCheckedChange={(on) => setRule(i, { devices: on ? [...r.devices, d] : r.devices.filter((x) => x !== d) })}
                       />
                     ))}
                   </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label={t("smart.countries")} hint={t("smart.countriesHint")}>
+                  <FormField label={t("smart.countries")} hint={t("smart.countriesHint")}>
                     {(id) => <Input id={id} aria-label={`${t("smart.ruleN", { n })} ${t("smart.countriesShort")}`} placeholder="IT, US" value={r.countries} onChange={(e) => setRule(i, { countries: e.target.value })} />}
-                  </Field>
-                  <Field label={t("smart.languages")} hint={t("smart.languagesHint")}>
+                  </FormField>
+                  <FormField label={t("smart.languages")} hint={t("smart.languagesHint")}>
                     {(id) => <Input id={id} aria-label={`${t("smart.ruleN", { n })} ${t("smart.languagesShort")}`} placeholder="it, en" value={r.languages} onChange={(e) => setRule(i, { languages: e.target.value })} />}
-                  </Field>
+                  </FormField>
                 </div>
-                <Field label={t("smart.destination")}>
+                <FormField label={t("smart.destination")}>
                   {(id) => (
                     <Input id={id} type="url" required placeholder="https://" aria-label={`${t("smart.ruleN", { n })} ${t("smart.destinationShort")}`} value={r.url} onChange={(e) => setRule(i, { url: e.target.value })} />
                   )}
-                </Field>
-                <Field label={t("smart.appLink")} hint={t("smart.appLinkHint")}>
+                </FormField>
+                <FormField label={t("smart.appLink")} hint={t("smart.appLinkHint")}>
                   {(id) => <Input id={id} placeholder="myapp://" aria-label={`${t("smart.ruleN", { n })} ${t("smart.appLinkShort")}`} value={r.appUrl} onChange={(e) => setRule(i, { appUrl: e.target.value })} />}
-                </Field>
+                </FormField>
               </fieldset>
             );
           })}
-        </CardBody>
-      </Card>
+      </SectionCard>
 
-      <Card>
-        <CardHeader
-          title={t("smart.variantsTitle")}
-          description={t("smart.variantsHint")}
-          action={
-            <Button
-              size="sm"
-              disabled={readOnly || variants.length >= 10}
-              onClick={() => setVariants((cur) => [...cur, { url: cur.length === 0 ? link.url : "", weight: "1" }])}
-            >
-              {t("smart.addVariant")}
-            </Button>
-          }
-        />
-        <CardBody className="flex flex-col gap-3">
+      <SectionCard
+        title={t("smart.variantsTitle")}
+        description={t("smart.variantsHint")}
+        className="flex flex-col gap-3"
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={readOnly || variants.length >= 10}
+            onClick={() => setVariants((cur) => [...cur, { url: cur.length === 0 ? link.url : "", weight: "1" }])}
+          >
+            <PlusIcon data-icon="inline-start" />
+            {t("smart.addVariant")}
+          </Button>
+        }
+      >
           {variants.length === 0 && <p className="text-[13px] text-muted-foreground">{t("smart.noVariants")}</p>}
           {variants.length === 1 && <p className="text-[13px] text-warning">{t("smart.variantsMin")}</p>}
           {variants.map((v, i) => (
-            <fieldset key={i} disabled={readOnly} className="grid items-end gap-3 sm:grid-cols-[1fr_110px_56px_auto]">
-              <Field label={t("smart.variantUrl", { n: i + 1 })}>
+            <fieldset key={i} disabled={readOnly} className="grid items-end gap-3 sm:grid-cols-[1fr_110px_48px_auto]">
+              <FormField label={t("smart.variantUrl", { n: i + 1 })}>
                 {(id) => (
                   <Input
                     id={id}
@@ -161,8 +185,8 @@ export function SmartTab({ link }: { link: Link }) {
                     onChange={(e) => setVariants((cur) => cur.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
                   />
                 )}
-              </Field>
-              <Field label={t("smart.variantWeight", { n: i + 1 })}>
+              </FormField>
+              <FormField label={t("smart.variantWeight", { n: i + 1 })}>
                 {(id) => (
                   <Input
                     id={id}
@@ -173,30 +197,58 @@ export function SmartTab({ link }: { link: Link }) {
                     onChange={(e) => setVariants((cur) => cur.map((x, j) => (j === i ? { ...x, weight: e.target.value } : x)))}
                   />
                 )}
-              </Field>
-              <p className="pb-1.5 text-sm font-medium tabular-nums">{percent(i)}%</p>
-              <Button size="sm" variant="ghost" aria-label={t("smart.removeVariant", { n: i + 1 })} onClick={() => setVariants((cur) => cur.filter((_, j) => j !== i))}>
-                {t("smart.remove")}
+              </FormField>
+              <p className="pb-2 text-sm font-medium tabular-nums">{percent(i)}%</p>
+              <Button
+                size="icon"
+                variant="destructive-ghost"
+                aria-label={t("smart.removeVariant", { n: i + 1 })}
+                title={t("smart.removeVariant", { n: i + 1 })}
+                onClick={() => setVariants((cur) => cur.filter((_, j) => j !== i))}
+              >
+                <Trash2Icon />
               </Button>
             </fieldset>
           ))}
-        </CardBody>
-      </Card>
+      </SectionCard>
 
-      <Card>
-        <CardHeader title={t("smart.mainAppTitle")} description={t("smart.mainAppHint")} />
-        <CardBody>
+      <SectionCard title={t("smart.mainAppTitle")} description={t("smart.mainAppHint")}>
           <fieldset disabled={readOnly}>
-            <Field label={t("smart.mainAppLabel")}>
+            <FormField label={t("smart.mainAppLabel")}>
               {(id) => <Input id={id} placeholder="myapp://" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} />}
-            </Field>
+            </FormField>
           </fieldset>
-        </CardBody>
-      </Card>
+      </SectionCard>
 
       <SaveBar disabled={readOnly} loading={patch.isPending} onClick={save}>
+        {!patch.isPending && <SaveIcon data-icon="inline-start" />}
         {t("smart.save")}
       </SaveBar>
+    </div>
+  );
+}
+
+/** A device choice: the visible label is the device, the accessible name also says which rule. */
+function DeviceCheckbox({
+  label,
+  ariaLabel,
+  checked,
+  disabled,
+  onCheckedChange,
+}: {
+  label: string;
+  ariaLabel: string;
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (on: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox id={id} aria-label={ariaLabel} checked={checked} disabled={disabled} onCheckedChange={(v) => onCheckedChange(v)} />
+      <Label htmlFor={id} className="text-sm font-normal">
+        {label}
+      </Label>
     </div>
   );
 }

@@ -18,6 +18,7 @@
   "filters": {
     "owner": "Owner",
     "anyOwner": "Created by anyone",
+    "noOwner": "No one with this name",
     "tag": "Tag",
     "anyTag": "All tags",
     "folder": "Folder",
@@ -54,6 +55,7 @@
   "total_one": "{{count}} link",
   "total_other": "{{count}} links",
   "pageOf": "Page {{page}} of {{pages}}",
+  "pagination": "Pages",
   "card": {
     "meta": "{{clicks}} clicks · {{owner}} · {{date}}"
   },
