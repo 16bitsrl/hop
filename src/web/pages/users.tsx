@@ -1,29 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BanIcon, CircleCheckIcon, KeyRoundIcon, MailIcon, UserPlusIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { PageHeader, RequireAdmin } from "../components/page";
-import {
-  Badge,
-  Button,
-  Card,
-  ConfirmDialog,
-  CopyButton,
-  Dialog,
-  EmptyState,
-  ErrorState,
-  Field,
-  Input,
-  PageSpinner,
-  PlusIcon,
-  Select,
-  Table,
-  TBody,
-  Td,
-  Th,
-  THead,
-  Tr,
-  useToast,
-} from "../components/legacy";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { CopyButton } from "@/components/copy-button";
+import { FormField } from "@/components/form-field";
+import { OptionSelect } from "@/components/option-select";
+import { PageHeader, RequireAdmin } from "@/components/page";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/lib/toast";
 import { AllApiKeysCard } from "../features/api-keys/keys";
 import { api } from "../lib/api";
 import { formatDate } from "../lib/cn";
@@ -34,6 +26,11 @@ type UserRow = { id: string; name: string; email: string; role: Role; disabled: 
 type InviteRow = { id: string; email: string; role: Role; expiresAt: string };
 
 const ROLES: Role[] = ["admin", "member", "viewer"];
+
+function useRoleOptions() {
+  const { t } = useTranslation("users");
+  return ROLES.map((r) => ({ value: r, label: t(`common:roles.${r}`) }));
+}
 
 export function UsersPage() {
   return (
@@ -46,8 +43,8 @@ export function UsersPage() {
 function UsersContent() {
   const { t, i18n } = useTranslation("users");
   const me = useMe();
-  const toast = useToast();
   const queryClient = useQueryClient();
+  const roleOptions = useRoleOptions();
   const [inviting, setInviting] = useState(false);
   const [resetFor, setResetFor] = useState<UserRow | null>(null);
   const [disableFor, setDisableFor] = useState<UserRow | null>(null);
@@ -77,113 +74,136 @@ function UsersContent() {
     onError: (e) => toast.error(errorMessage(t, e)),
   });
 
-  if (users.isPending || invites.isPending) return <PageSpinner />;
-
   return (
     <>
       <PageHeader
         title={t("title")}
         description={t("description")}
         actions={
-          <Button variant="primary" onClick={() => setInviting(true)}>
-            <PlusIcon />
+          <Button onClick={() => setInviting(true)}>
+            <UserPlusIcon data-icon="inline-start" />
             {t("invite")}
           </Button>
         }
       />
 
-      <Card>
-        <Table stack>
-          <THead>
-            <tr>
-              <Th>{t("columns.user")}</Th>
-              <Th>{t("columns.role")}</Th>
-              <Th>{t("columns.status")}</Th>
-              <Th className="text-right">{t("columns.actions")}</Th>
-            </tr>
-          </THead>
-          <TBody>
-            {users.data?.users.map((u) => {
-              const self = u.id === me.id;
-              return (
-                <Tr key={u.id}>
-                  <Td>
-                    <div className="font-medium">
-                      {u.name}
-                      {self && <span className="ml-2 text-xs font-normal text-muted-foreground">{t("you")}</span>}
-                    </div>
-                    <div className="text-[13px] text-muted-foreground">{u.email}</div>
-                  </Td>
-                  <Td label={t("columns.role")}>
-                    <Select
-                      className="w-36"
-                      aria-label={t("roleFor", { email: u.email })}
-                      value={u.role}
-                      disabled={self || patch.isPending}
-                      onChange={(e) => patch.mutate({ id: u.id, role: e.target.value as Role })}
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {t(`common:roles.${r}`)}
-                        </option>
-                      ))}
-                    </Select>
-                  </Td>
-                  <Td label={t("columns.status")}>{u.disabled ? <Badge tone="red">{t("disabled")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
-                  <Td className="text-right">
-                    <div className="flex justify-end gap-1.5 max-md:-ml-2.5 max-md:justify-start">
-                      <Button size="sm" variant="ghost" onClick={() => setResetFor(u)}>
-                        {t("resetPassword")}
-                      </Button>
-                      {!self &&
-                        (u.disabled ? (
-                          <Button size="sm" variant="ghost" onClick={() => patch.mutate({ id: u.id, disabled: false })}>
-                            {t("enable")}
-                          </Button>
-                        ) : (
-                          <Button size="sm" variant="ghost" onClick={() => setDisableFor(u)}>
-                            {t("disable")}
-                          </Button>
-                        ))}
-                    </div>
-                  </Td>
-                </Tr>
-              );
-            })}
-          </TBody>
-        </Table>
+      <Card className="gap-0 py-0">
+        {users.isPending ? (
+          <ListSkeleton rows={3} />
+        ) : users.isError ? (
+          <ErrorState onRetry={() => users.refetch()} retrying={users.isFetching} />
+        ) : (
+          <Table stack>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.user")}</TableHead>
+                <TableHead>{t("columns.role")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.data.users.map((u) => {
+                const self = u.id === me.id;
+                return (
+                  <TableRow key={u.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {u.name}
+                        {self && (
+                          <Badge variant="outline" className="ml-2 align-middle">
+                            {t("you")}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-[13px] text-muted-foreground">{u.email}</div>
+                    </TableCell>
+                    <TableCell label={t("columns.role")} className="max-md:flex max-md:items-center">
+                      <OptionSelect
+                        size="sm"
+                        className="w-36"
+                        aria-label={t("roleFor", { email: u.email })}
+                        value={u.role}
+                        disabled={self || patch.isPending}
+                        options={roleOptions}
+                        onValueChange={(role) => role !== u.role && patch.mutate({ id: u.id, role })}
+                      />
+                    </TableCell>
+                    <TableCell label={t("columns.status")}>
+                      {u.disabled ? (
+                        <Badge variant="destructive">
+                          <BanIcon data-icon="inline-start" />
+                          {t("disabled")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="success">
+                          <CircleCheckIcon data-icon="inline-start" />
+                          {t("active")}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1 max-md:-ml-2.5 max-md:justify-start">
+                        <Button size="sm" variant="ghost" onClick={() => setResetFor(u)}>
+                          <KeyRoundIcon data-icon="inline-start" />
+                          {t("resetPassword")}
+                        </Button>
+                        {!self &&
+                          (u.disabled ? (
+                            <Button size="sm" variant="ghost" onClick={() => patch.mutate({ id: u.id, disabled: false })}>
+                              {t("enable")}
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="destructive-ghost" onClick={() => setDisableFor(u)}>
+                              {t("disable")}
+                            </Button>
+                          ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </Card>
       <p className="mt-2 text-[13px] text-muted-foreground">{t("roleHelp")}</p>
 
-      <h2 className="mb-3 mt-8 text-sm font-semibold tracking-tight">{t("pending")}</h2>
-      <Card>
-        {invites.data?.invites.length ? (
+      <h2 className="mt-8 mb-3 text-sm font-semibold tracking-tight">{t("pending")}</h2>
+      <Card className="gap-0 py-0">
+        {invites.isPending ? (
+          <ListSkeleton rows={2} />
+        ) : invites.isError ? (
+          <ErrorState onRetry={() => invites.refetch()} retrying={invites.isFetching} />
+        ) : invites.data.invites.length ? (
           <Table stack>
-            <THead>
-              <tr>
-                <Th>{t("columns.user")}</Th>
-                <Th>{t("columns.role")}</Th>
-                <Th>{t("columns.expires")}</Th>
-                <Th className="text-right">{t("columns.actions")}</Th>
-              </tr>
-            </THead>
-            <TBody>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.user")}</TableHead>
+                <TableHead>{t("columns.role")}</TableHead>
+                <TableHead>{t("columns.expires")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {invites.data.invites.map((i) => (
-                <Tr key={i.id}>
-                  <Td className="font-medium">{i.email}</Td>
-                  <Td label={t("columns.role")}>{t(`common:roles.${i.role}`)}</Td>
-                  <Td className="text-muted-foreground" label={t("columns.expires")}>{formatDate(i.expiresAt, i18n.language)}</Td>
-                  <Td className="text-right max-md:-ml-2.5 max-md:text-left">
-                    <Button size="sm" variant="ghost" onClick={() => setRevokeFor(i)}>
+                <TableRow key={i.id}>
+                  <TableCell className="font-medium">{i.email}</TableCell>
+                  <TableCell label={t("columns.role")}>{t(`common:roles.${i.role}`)}</TableCell>
+                  <TableCell className="text-muted-foreground tabular-nums" label={t("columns.expires")}>
+                    {formatDate(i.expiresAt, i18n.language)}
+                  </TableCell>
+                  <TableCell className="text-right max-md:-ml-2.5 max-md:text-left">
+                    <Button size="sm" variant="destructive-ghost" onClick={() => setRevokeFor(i)}>
                       {t("revoke")}
                     </Button>
-                  </Td>
-                </Tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </TBody>
+            </TableBody>
           </Table>
         ) : (
-          <EmptyState title={t("pendingEmpty")} />
+          <EmptyState icon={<MailIcon />} title={t("pendingEmpty")} className="py-8" />
         )}
       </Card>
 
@@ -217,8 +237,14 @@ function UsersContent() {
 function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation("users");
   return (
-    <Dialog open={open} onClose={onClose} title={t("inviteTitle")} description={t("inviteText")}>
-      <InviteForm onClose={onClose} />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("inviteTitle")}</DialogTitle>
+          <DialogDescription>{t("inviteText")}</DialogDescription>
+        </DialogHeader>
+        <InviteForm onClose={onClose} />
+      </DialogContent>
     </Dialog>
   );
 }
@@ -226,6 +252,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
 function InviteForm({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation("users");
   const queryClient = useQueryClient();
+  const roleOptions = useRoleOptions();
   const { data: config } = useQuery(appConfigQuery);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("member");
@@ -240,22 +267,22 @@ function InviteForm({ onClose }: { onClose: () => void }) {
   if (create.data) {
     const { url, emailed } = create.data;
     return (
-      <div className="flex flex-col gap-4">
-        <p className="text-sm">{emailed ? t("inviteSent") : config?.mailConfigured ? t("inviteMailFailed") : t("inviteNoMail")}</p>
-        <Field label={t("inviteLink")} hint={t("inviteLinkHint")}>
-          {(id) => (
-            <div className="flex gap-2">
-              <Input id={id} readOnly value={url} onFocus={(e) => e.target.select()} />
-              <CopyButton value={url} />
-            </div>
-          )}
-        </Field>
-        <div className="flex justify-end">
-          <Button variant="primary" onClick={onClose}>
-            {t("common:done")}
-          </Button>
+      <>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm">{emailed ? t("inviteSent") : config?.mailConfigured ? t("inviteMailFailed") : t("inviteNoMail")}</p>
+          <FormField label={t("inviteLink")} hint={t("inviteLinkHint")}>
+            {(id) => (
+              <div className="flex gap-2">
+                <Input id={id} readOnly value={url} onFocus={(e) => e.target.select()} />
+                <CopyButton value={url} size="default" />
+              </div>
+            )}
+          </FormField>
         </div>
-      </div>
+        <DialogFooter>
+          <Button onClick={onClose}>{t("common:done")}</Button>
+        </DialogFooter>
+      </>
     );
   }
 
@@ -266,32 +293,26 @@ function InviteForm({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3.5">
-      <Field label={t("email")}>
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <FormField label={t("email")}>
         {(id) => <Input id={id} type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />}
-      </Field>
-      <Field label={t("role")} hint={t("roleHelp")}>
-        {(id) => (
-          <Select id={id} value={role} onChange={(e) => setRole(e.target.value as Role)}>
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {t(`common:roles.${r}`)}
-              </option>
-            ))}
-          </Select>
-        )}
-      </Field>
+      </FormField>
+      <FormField label={t("role")} hint={t("roleHelp")}>
+        {(id) => <OptionSelect id={id} className="w-full" value={role} onValueChange={setRole} options={roleOptions} />}
+      </FormField>
       {error && (
         <p role="alert" className="text-[13px] text-destructive">
           {error}
         </p>
       )}
-      <div className="flex justify-end gap-2 pt-1">
-        <Button onClick={onClose}>{t("common:cancel")}</Button>
-        <Button type="submit" variant="primary" loading={create.isPending}>
+      <DialogFooter className="mt-1">
+        <Button variant="outline" onClick={onClose}>
+          {t("common:cancel")}
+        </Button>
+        <Button type="submit" loading={create.isPending}>
           {t("create")}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }
@@ -307,31 +328,33 @@ function ResetDialog({ user, onClose }: { user: UserRow; onClose: () => void }) 
     retry: false,
   });
   return (
-    <Dialog
-      open
-      onClose={onClose}
-      title={t("resetTitle", { name: user.name })}
-      description={t("resetText")}
-      footer={
-        <Button variant="primary" onClick={onClose}>
-          {t("common:done")}
-        </Button>
-      }
-    >
-      {link.data ? (
-        <Field label={t("resetLink")}>
-          {(id) => (
-            <div className="flex gap-2">
-              <Input id={id} readOnly value={link.data.url} onFocus={(e) => e.target.select()} />
-              <CopyButton value={link.data.url} />
-            </div>
-          )}
-        </Field>
-      ) : link.isError ? (
-        <ErrorState onRetry={() => link.refetch()} retrying={link.isFetching} />
-      ) : (
-        <PageSpinner />
-      )}
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("resetTitle", { name: user.name })}</DialogTitle>
+          <DialogDescription>{t("resetText")}</DialogDescription>
+        </DialogHeader>
+        {link.data ? (
+          <FormField label={t("resetLink")}>
+            {(id) => (
+              <div className="flex gap-2">
+                <Input id={id} readOnly value={link.data.url} onFocus={(e) => e.target.select()} />
+                <CopyButton value={link.data.url} size="default" />
+              </div>
+            )}
+          </FormField>
+        ) : link.isError ? (
+          <ErrorState onRetry={() => link.refetch()} retrying={link.isFetching} className="py-6" />
+        ) : (
+          <div role="status" aria-label={t("common:loading")} className="flex flex-col gap-2">
+            <Skeleton className="h-3.5 w-20" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        )}
+        <DialogFooter>
+          <Button onClick={onClose}>{t("common:done")}</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }
