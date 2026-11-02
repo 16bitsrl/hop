@@ -1,9 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, PageSpinner, useToast } from "../../components/legacy";
+import { CardSkeleton } from "../../components/card-skeleton";
+import { FormField } from "../../components/form-field";
+import { ErrorState } from "../../components/states";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
+import { toast } from "../../lib/toast";
 
 const settingsQuery = {
   queryKey: ["stats-settings"],
@@ -13,13 +19,19 @@ const settingsQuery = {
 
 /** Settings card (admins): how long click history is kept. Empty = forever. */
 export function RetentionCard() {
-  const { data } = useQuery(settingsQuery);
-  return data ? <RetentionForm days={data.retentionDays} /> : <PageSpinner />;
+  const { data, isError, isFetching, refetch } = useQuery(settingsQuery);
+  if (data) return <RetentionForm days={data.retentionDays} />;
+  if (isError)
+    return (
+      <Card>
+        <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+      </Card>
+    );
+  return <CardSkeleton fields={1} />;
 }
 
 function RetentionForm({ days }: { days: number | null }) {
   const { t } = useTranslation("stats");
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [value, setValue] = useState(days === null ? "" : String(days));
   const save = useMutation({
@@ -39,10 +51,13 @@ function RetentionForm({ days }: { days: number | null }) {
 
   return (
     <Card>
-      <CardHeader title={t("retention.title")} description={t("retention.description")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("retention.title")}</CardTitle>
+        <CardDescription>{t("retention.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Field label={t("retention.days")} hint={t("retention.hint")} className="sm:max-w-xs">
+          <FormField label={t("retention.days")} hint={t("retention.hint")} className="sm:max-w-xs">
             {(id) => (
               <Input
                 id={id}
@@ -56,14 +71,14 @@ function RetentionForm({ days }: { days: number | null }) {
                 onChange={(e) => setValue(e.target.value)}
               />
             )}
-          </Field>
+          </FormField>
           <div>
-            <Button type="submit" variant="primary" loading={save.isPending}>
+            <Button type="submit" loading={save.isPending}>
               {t("retention.save")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

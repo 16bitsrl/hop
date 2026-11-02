@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { apiAs, createUser, loginAs } from "./helpers";
+import { apiAs, choose, createUser, loginAs } from "./helpers";
 import { createLink, ensureDomain } from "./links-helpers";
 
 const FIXTURE = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures/yourls-sample.sql");
@@ -49,9 +49,9 @@ test("imports a YOURLS dump with the wizard, keeps conflicts safe and never dupl
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Options
-  await page.getByLabel("Short domain").selectOption(domain.id);
-  await page.getByLabel("Owner of imported links").selectOption(owner.id);
-  await expect(page.getByLabel("Redirect type")).toHaveValue("302");
+  await choose(page, page.getByLabel("Short domain"), domain.host);
+  await choose(page, page.getByLabel("Owner of imported links"), owner.name);
+  await expect(page.getByLabel("Redirect type")).toContainText("302");
   await expect(page.getByLabel("Time zone of the dates")).toHaveValue("UTC");
   await expect(page.getByTestId("import-conflicts")).toContainText("1");
   await expect(page.getByLabel("Skip existing links")).toBeChecked();
@@ -100,8 +100,8 @@ test("imports a YOURLS dump with the wizard, keeps conflicts safe and never dupl
   await page.getByRole("button", { name: "Import another file" }).click();
   await page.getByLabel("YOURLS backup file").setInputFiles(FIXTURE);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Short domain").selectOption(domain.id);
-  await page.getByLabel("Owner of imported links").selectOption(owner.id);
+  await choose(page, page.getByLabel("Short domain"), domain.host);
+  await choose(page, page.getByLabel("Owner of imported links"), owner.name);
   await expect(page.getByTestId("import-conflicts")).toContainText("7");
   await page.getByLabel("Replace existing links").check();
   await page.getByRole("button", { name: "Start import" }).click();

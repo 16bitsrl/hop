@@ -1,9 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Card, CardHeader, Switch, Table, TBody, Td, Th, THead, Tr } from "../components/legacy";
+import { ErrorState } from "../components/states";
+import { SwitchField } from "../components/toggle-field";
+import { Card, CardHeader, CardTitle } from "../components/ui/card";
+import { Skeleton } from "../components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import {
   Breakdowns,
+  BreakdownsSkeleton,
   BreakdownTable,
   ExportLinks,
   Kpi,
@@ -16,14 +21,13 @@ import { BrokenLinksCard } from "../features/data/health";
 import { useFormat } from "../features/stats/format";
 import { exportUrl, useDashboard } from "../features/stats/queries";
 import type { Dashboard } from "../features/stats/types";
-import { errorMessage } from "../lib/errors";
 
 /** Team dashboard: the whole installation over a period. */
 export function DashboardPage() {
   const { t } = useTranslation("stats");
   const f = useFormat();
   const { range, setRange, bots, setBots, params } = useStatsControls();
-  const { data, error } = useDashboard(params);
+  const { data, isError, isFetching, refetch } = useDashboard(params);
 
   return (
     <>
@@ -32,26 +36,33 @@ export function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <RangePicker value={range} onChange={setRange} />
           <div className="flex flex-wrap items-center gap-4">
-            <Switch checked={bots} onChange={setBots} label={t("includeBots")} />
+            <SwitchField checked={bots} onCheckedChange={setBots} label={t("includeBots")} className="items-center" />
             {params && <ExportLinks clicksUrl={exportUrl("clicks", null, params)} summaryUrl={exportUrl("summary", null, params)} />}
           </div>
         </div>
-        {error && !data && <p role="alert" className="text-sm text-destructive">{errorMessage(t, error)}</p>}
-        <KpiRow
-          data={data}
-          extra={<Kpi id="links" label={t("kpi.links")} value={data ? f.number(data.linkCount) : "–"} hint={t("kpi.linksHint")} />}
-        />
-        <SeriesChart data={data} />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <TopLinks data={data} />
-          <Breakdowns data={data} show={["countries"]} />
-        </div>
-        <Breakdowns data={data} show={["referrers", "devices"]} />
-        <div className="grid gap-4 lg:grid-cols-2">
-          <RecentLinks data={data} />
-          <LinksByOwner data={data} />
-        </div>
-        <BrokenLinksCard />
+        {isError && !data ? (
+          <Card>
+            <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+          </Card>
+        ) : (
+          <>
+            <KpiRow
+              data={data}
+              extra={<Kpi id="links" label={t("kpi.links")} value={data ? f.number(data.linkCount) : undefined} hint={t("kpi.linksHint")} />}
+            />
+            <SeriesChart data={data} />
+            <div className="grid gap-4 lg:grid-cols-2">
+              <TopLinks data={data} />
+              <Breakdowns data={data} show={["countries"]} />
+            </div>
+            <Breakdowns data={data} show={["referrers", "devices"]} />
+            <div className="grid gap-4 lg:grid-cols-2">
+              <RecentLinks data={data} />
+              <LinksByOwner data={data} />
+            </div>
+            <BrokenLinksCard />
+          </>
+        )}
       </div>
     </>
   );
@@ -59,6 +70,7 @@ export function DashboardPage() {
 
 function TopLinks({ data }: { data: Dashboard | undefined }) {
   const { t } = useTranslation("stats");
+  if (!data) return <BreakdownsSkeleton count={1} />;
   const total = data?.totals.clicks ?? 0;
   return (
     <BreakdownTable
@@ -79,37 +91,56 @@ function TopLinks({ data }: { data: Dashboard | undefined }) {
   );
 }
 
+/** Placeholder rows for the small dashboard tables. */
+function RowsSkeleton() {
+  const { t } = useTranslation();
+  return (
+    <div role="status" aria-label={t("loading")} className="flex flex-col gap-3 p-4">
+      {[60, 45, 52].map((w) => (
+        <div key={w} className="flex items-center gap-4">
+          <Skeleton className="h-3.5" style={{ width: `${w}%` }} />
+          <Skeleton className="ml-auto h-3.5 w-12" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function RecentLinks({ data }: { data: Dashboard | undefined }) {
   const { t } = useTranslation("stats");
   const f = useFormat();
   return (
-    <Card data-testid="dash-recent">
-      <CardHeader title={t("dashboard.recent")} />
-      {!data?.recentLinks.length ? (
+    <Card data-testid="dash-recent" className="gap-0 pb-0">
+      <CardHeader className="border-b">
+        <CardTitle>{t("dashboard.recent")}</CardTitle>
+      </CardHeader>
+      {!data ? (
+        <RowsSkeleton />
+      ) : !data.recentLinks.length ? (
         <p className="px-5 py-8 text-center text-[13px] text-muted-foreground">{t("dashboard.noLinks")}</p>
       ) : (
         <Table stack>
-          <THead className="sr-only">
-            <tr>
-              <Th>{t("dashboard.link")}</Th>
-              <Th>{t("dashboard.createdBy")}</Th>
-              <Th>{t("dashboard.created")}</Th>
-            </tr>
-          </THead>
-          <TBody>
+          <TableHeader className="sr-only">
+            <TableRow>
+              <TableHead>{t("dashboard.link")}</TableHead>
+              <TableHead>{t("dashboard.createdBy")}</TableHead>
+              <TableHead>{t("dashboard.created")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.recentLinks.map((l) => (
-              <Tr key={l.id}>
-                <Td className="max-w-0 w-full truncate">
+              <TableRow key={l.id}>
+                <TableCell className="w-full max-w-0 truncate">
                   <Link to="/stats/$linkId" params={{ linkId: l.id }} className="font-mono text-[13px] hover:underline">
                     {l.host}/{l.slug}
                   </Link>
                   {l.title && <span className="ml-1.5 text-xs text-muted-foreground">{l.title}</span>}
-                </Td>
-                <Td className="whitespace-nowrap text-[13px] text-muted-foreground">{l.ownerName}</Td>
-                <Td className="whitespace-nowrap text-right text-[13px] tabular-nums text-muted-foreground">{f.date(l.createdAt)}</Td>
-              </Tr>
+                </TableCell>
+                <TableCell className="whitespace-nowrap text-[13px] text-muted-foreground">{l.ownerName}</TableCell>
+                <TableCell className="whitespace-nowrap text-right text-[13px] tabular-nums text-muted-foreground">{f.date(l.createdAt)}</TableCell>
+              </TableRow>
             ))}
-          </TBody>
+          </TableBody>
         </Table>
       )}
     </Card>
@@ -120,26 +151,30 @@ function LinksByOwner({ data }: { data: Dashboard | undefined }) {
   const { t } = useTranslation("stats");
   const f = useFormat();
   return (
-    <Card data-testid="dash-owners">
-      <CardHeader title={t("dashboard.byOwner")} />
-      {!data?.linksByOwner.length ? (
+    <Card data-testid="dash-owners" className="gap-0 pb-0">
+      <CardHeader className="border-b">
+        <CardTitle>{t("dashboard.byOwner")}</CardTitle>
+      </CardHeader>
+      {!data ? (
+        <RowsSkeleton />
+      ) : !data.linksByOwner.length ? (
         <p className="px-5 py-8 text-center text-[13px] text-muted-foreground">{t("dashboard.noLinks")}</p>
       ) : (
         <Table>
-          <THead className="sr-only">
-            <tr>
-              <Th>{t("dashboard.owner")}</Th>
-              <Th>{t("dashboard.links")}</Th>
-            </tr>
-          </THead>
-          <TBody>
+          <TableHeader className="sr-only">
+            <TableRow>
+              <TableHead>{t("dashboard.owner")}</TableHead>
+              <TableHead>{t("dashboard.links")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.linksByOwner.map((o) => (
-              <Tr key={o.ownerId ?? "none"}>
-                <Td className="w-full">{o.name ?? t("dashboard.noOwner")}</Td>
-                <Td className="text-right font-medium tabular-nums">{f.number(o.links)}</Td>
-              </Tr>
+              <TableRow key={o.ownerId ?? "none"}>
+                <TableCell className="w-full">{o.name ?? t("dashboard.noOwner")}</TableCell>
+                <TableCell className="text-right font-medium tabular-nums">{f.number(o.links)}</TableCell>
+              </TableRow>
             ))}
-          </TBody>
+          </TableBody>
         </Table>
       )}
     </Card>

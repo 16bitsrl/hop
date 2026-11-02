@@ -1,6 +1,9 @@
 import { useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Card, EmptyState } from "../components/legacy";
+import { ChartNoAxesColumnIcon } from "lucide-react";
+import { EmptyState, ErrorState } from "../components/states";
+import { Card } from "../components/ui/card";
+import { Skeleton } from "../components/ui/skeleton";
 import { Breakdowns, KpiRow, RangePicker, SeriesChart, useStatsControls } from "../features/stats/components";
 import { usePublicSummary } from "../features/stats/queries";
 import { ApiError } from "../lib/api";
@@ -10,7 +13,7 @@ export function PublicStatsPage() {
   const { t } = useTranslation("stats");
   const { linkId } = useParams({ from: "/s/$linkId" });
   const { range, setRange, params } = useStatsControls();
-  const { data, error } = usePublicSummary(linkId, params);
+  const { data, error, isFetching, refetch } = usePublicSummary(linkId, params);
   const notPublic = error instanceof ApiError && error.status === 404;
 
   return (
@@ -21,14 +24,18 @@ export function PublicStatsPage() {
       </header>
       {notPublic ? (
         <Card>
-          <EmptyState title={t("public.off")} description={t("public.offHint")} />
+          <EmptyState icon={<ChartNoAxesColumnIcon />} title={t("public.off")} description={t("public.offHint")} />
+        </Card>
+      ) : error && !data ? (
+        <Card>
+          <ErrorState onRetry={() => refetch()} retrying={isFetching} />
         </Card>
       ) : (
         <>
           <div>
             <p className="text-[13px] text-muted-foreground">{t("public.title")}</p>
             <h1 className="text-xl font-semibold tracking-tight">
-              {data?.link ? `${data.link.host}/${data.link.slug}` : " "}
+              {data?.link ? `${data.link.host}/${data.link.slug}` : <Skeleton className="my-1 h-5 w-48" />}
             </h1>
             {data?.link?.title && <p className="mt-0.5 text-[13px] text-muted-foreground">{data.link.title}</p>}
           </div>

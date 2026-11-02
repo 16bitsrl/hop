@@ -42,7 +42,8 @@
       "skipHint": "Lascia com'è ciò che c'è già. Neanche i loro clic vengono importati.",
       "overwrite": "Sostituisci i link esistenti",
       "overwriteHint": "Aggiornali con i dati del file. Usalo per completare un'importazione interrotta: i clic già importati non vengono mai duplicati.",
-      "start": "Avvia l'importazione"
+      "start": "Avvia l'importazione",
+      "noOwnerMatch": "Nessuna persona corrisponde."
     },
     "progress": {
       "title": "Importazione in corso…",

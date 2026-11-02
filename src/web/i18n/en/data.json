@@ -42,7 +42,8 @@
       "skipHint": "Keep what is already there. Their clicks are not imported either.",
       "overwrite": "Replace existing links",
       "overwriteHint": "Update them with the data from the file. Use this to finish an interrupted import: clicks that were already imported are never duplicated.",
-      "start": "Start import"
+      "start": "Start import",
+      "noOwnerMatch": "No one matches."
     },
     "progress": {
       "title": "Importing…",

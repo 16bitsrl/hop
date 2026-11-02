@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { Card, EmptyState, Switch } from "../../components/legacy";
-import { errorMessage } from "../../lib/errors";
+import { ErrorState } from "../../components/states";
+import { SwitchField } from "../../components/toggle-field";
+import { Card } from "../../components/ui/card";
 import { Breakdowns, ExportLinks, KpiRow, RangePicker, SeriesChart, TargetsCard, useStatsControls } from "./components";
 import { exportUrl, useSummary } from "./queries";
 
@@ -13,12 +14,12 @@ import { exportUrl, useSummary } from "./queries";
 export function LinkStats({ linkId }: { linkId: string }) {
   const { t } = useTranslation("stats");
   const { range, setRange, bots, setBots, params } = useStatsControls();
-  const { data, error } = useSummary(linkId, params);
+  const { data, isError, isFetching, refetch } = useSummary(linkId, params);
 
-  if (error && !data) {
+  if (isError && !data) {
     return (
       <Card>
-        <EmptyState title={errorMessage(t, error)} />
+        <ErrorState onRetry={() => refetch()} retrying={isFetching} />
       </Card>
     );
   }
@@ -28,7 +29,7 @@ export function LinkStats({ linkId }: { linkId: string }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <RangePicker value={range} onChange={setRange} />
         <div className="flex flex-wrap items-center gap-4">
-          <Switch checked={bots} onChange={setBots} label={t("includeBots")} />
+          <SwitchField checked={bots} onCheckedChange={setBots} label={t("includeBots")} className="items-center" />
           {params && <ExportLinks clicksUrl={exportUrl("clicks", linkId, params)} summaryUrl={exportUrl("summary", linkId, params)} />}
         </div>
       </div>

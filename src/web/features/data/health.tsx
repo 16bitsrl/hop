@@ -2,10 +2,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, PageSpinner, Select, Switch, useToast } from "../../components/legacy";
+import { CircleCheckIcon, RefreshCwIcon } from "lucide-react";
+import { CardSkeleton } from "../../components/card-skeleton";
+import { FormField } from "../../components/form-field";
+import { OptionSelect } from "../../components/option-select";
+import { ErrorState } from "../../components/states";
+import { SwitchField } from "../../components/toggle-field";
+import { Button } from "../../components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Skeleton } from "../../components/ui/skeleton";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
+import { toast } from "../../lib/toast";
 import { useMe } from "../../lib/session";
 import type { Link } from "../links/api";
 
@@ -20,14 +29,20 @@ const settingsQuery = {
 
 /** Settings card (admins): turn the broken link check on or off and choose how often links are rechecked. */
 export function HealthSettingsCard() {
-  const { data } = useQuery(settingsQuery);
-  return data ? <HealthForm initial={data} /> : <PageSpinner />;
+  const { data, isError, isFetching, refetch } = useQuery(settingsQuery);
+  if (data) return <HealthForm initial={data} />;
+  if (isError)
+    return (
+      <Card>
+        <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+      </Card>
+    );
+  return <CardSkeleton fields={1} />;
 }
 
 function HealthForm({ initial }: { initial: HealthSettings }) {
   const { t } = useTranslation("data");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [value, setValue] = useState(initial);
   const save = useMutation({
@@ -44,28 +59,34 @@ function HealthForm({ initial }: { initial: HealthSettings }) {
   };
   return (
     <Card data-testid="health-settings">
-      <CardHeader title={t("health.title")} description={t("health.description")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("health.title")}</CardTitle>
+        <CardDescription>{t("health.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Switch checked={value.enabled} onChange={(enabled) => setValue({ ...value, enabled })} label={t("health.enabled")} description={t("health.enabledHint")} />
-          <Field label={t("health.every")} className="sm:max-w-xs">
+          <SwitchField checked={value.enabled} onCheckedChange={(enabled) => setValue({ ...value, enabled })} label={t("health.enabled")} description={t("health.enabledHint")} />
+          <FormField label={t("health.every")} className="sm:max-w-xs">
             {(id) => (
-              <Select id={id} value={value.recheckDays} disabled={!value.enabled} onChange={(e) => setValue({ ...value, recheckDays: Number(e.target.value) })}>
-                {(DAYS.includes(value.recheckDays) ? DAYS : [...DAYS, value.recheckDays].sort((a, b) => a - b)).map((d) => (
-                  <option key={d} value={d}>
-                    {t("health.days", { count: d })}
-                  </option>
-                ))}
-              </Select>
+              <OptionSelect
+                id={id}
+                value={String(value.recheckDays)}
+                disabled={!value.enabled}
+                onValueChange={(v) => setValue({ ...value, recheckDays: Number(v) })}
+                options={(DAYS.includes(value.recheckDays) ? DAYS : [...DAYS, value.recheckDays].sort((a, b) => a - b)).map((d) => ({
+                  value: String(d),
+                  label: t("health.days", { count: d }),
+                }))}
+              />
             )}
-          </Field>
+          </FormField>
           <div>
-            <Button type="submit" variant="primary" loading={save.isPending}>
+            <Button type="submit" loading={save.isPending}>
               {t("health.save")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -73,25 +94,36 @@ function HealthForm({ initial }: { initial: HealthSettings }) {
 /** Dashboard card: a few broken links and a way to see them all. */
 export function BrokenLinksCard() {
   const { t } = useTranslation("data");
-  const { data } = useQuery({
+  const tc = useTranslation().t;
+  const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["links", "broken-dashboard"],
     queryFn: () => api<{ items: Link[]; total: number }>("/api/links?state=broken&pageSize=5"),
     staleTime: 0,
   });
   return (
-    <Card data-testid="dash-broken">
-      <CardHeader
-        title={t("health.dashboardTitle")}
-        action={
-          data && data.total > 0 ? (
+    <Card data-testid="dash-broken" className="gap-0 pb-0">
+      <CardHeader className="border-b">
+        <CardTitle>{t("health.dashboardTitle")}</CardTitle>
+        {data && data.total > 0 && (
+          <CardAction>
             <RouterLink to="/links" search={{ state: "broken" }} className="text-[13px] font-medium text-primary hover:underline">
               {t("health.viewAll", { count: data.total })}
             </RouterLink>
-          ) : undefined
-        }
-      />
-      {!data?.items.length ? (
-        <p className="px-5 py-6 text-center text-[13px] text-muted-foreground">{t("health.dashboardEmpty")}</p>
+          </CardAction>
+        )}
+      </CardHeader>
+      {isError && !data ? (
+        <ErrorState onRetry={() => refetch()} retrying={isFetching} className="py-8" />
+      ) : !data ? (
+        <div role="status" aria-label={tc("loading")} className="flex flex-col gap-3 px-5 py-4">
+          <Skeleton className="h-3.5 w-1/2" />
+          <Skeleton className="h-3.5 w-2/5" />
+        </div>
+      ) : !data.items.length ? (
+        <p className="flex items-center justify-center gap-2 px-5 py-6 text-[13px] text-muted-foreground">
+          <CircleCheckIcon className="size-4 text-success" aria-hidden />
+          {t("health.dashboardEmpty")}
+        </p>
       ) : (
         <ul className="divide-y divide-border">
           {data.items.map((l) => (
@@ -118,7 +150,6 @@ export function LinkHealth({ link }: { link: Link }) {
   const { t, i18n } = useTranslation("data");
   const tc = useTranslation().t;
   const me = useMe();
-  const toast = useToast();
   const queryClient = useQueryClient();
   const check = useMutation({
     mutationFn: () => api<{ link: Link }>(`/api/links/${link.id}/check`, { method: "POST", body: {} }),
@@ -142,7 +173,8 @@ export function LinkHealth({ link }: { link: Link }) {
         </span>
       )}
       {me.role !== "viewer" && (
-        <Button size="sm" loading={check.isPending} onClick={() => check.mutate()}>
+        <Button size="sm" variant="outline" loading={check.isPending} onClick={() => check.mutate()}>
+          {!check.isPending && <RefreshCwIcon data-icon="inline-start" />}
           {t("health.checkNow")}
         </Button>
       )}
