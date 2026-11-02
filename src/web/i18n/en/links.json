@@ -100,7 +100,7 @@
   "fields": {
     "url": "Destination URL",
     "slug": "Short link ending",
-    "slugHint": "Leave empty to create one automatically. Letters, numbers, - and _.",
+    "slugHint": "Leave it empty and we create one for you. You can use letters without accents, numbers, hyphens (-) and underscores (_), up to 64 characters, for example summer-sale_2026.",
     "domain": "Domain",
     "title": "Title",
     "tags": "Tags",
@@ -348,7 +348,7 @@
     "slugLength": "Ending length",
     "slugLengthHint": "Between 3 and 32 characters.",
     "slugAlphabet": "Allowed characters",
-    "slugAlphabetHint": "Letters, numbers, - and _. Fewer characters mean more repeats.",
+    "slugAlphabetHint": "The characters used for automatic endings: letters without accents, numbers, hyphens (-) and underscores (_). With fewer characters there are fewer possible endings.",
     "slugSave": "Save",
     "blockedTitle": "Blocked destinations",
     "blockedDescription": "Links can't point to these websites or to any of their subdomains.",

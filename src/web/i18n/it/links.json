@@ -100,7 +100,7 @@
   "fields": {
     "url": "Destinazione",
     "slug": "Finale del link breve",
-    "slugHint": "Lascia vuoto per crearlo in automatico. Lettere, numeri, - e _.",
+    "slugHint": "Lascialo vuoto e lo creiamo noi. Puoi usare lettere senza accenti, numeri, trattini (-) e trattini bassi (_), fino a 64 caratteri, per esempio saldi-estate_2026.",
     "domain": "Dominio",
     "title": "Titolo",
     "tags": "Tag",
@@ -348,7 +348,7 @@
     "slugLength": "Lunghezza del finale",
     "slugLengthHint": "Da 3 a 32 caratteri.",
     "slugAlphabet": "Caratteri consentiti",
-    "slugAlphabetHint": "Lettere, numeri, - e _. Meno caratteri significano più ripetizioni.",
+    "slugAlphabetHint": "I caratteri usati per i finali automatici: lettere senza accenti, numeri, trattini (-) e trattini bassi (_). Con meno caratteri ci sono meno finali possibili.",
     "slugSave": "Salva",
     "blockedTitle": "Destinazioni bloccate",
     "blockedDescription": "I link non possono puntare a questi siti né ai loro sottodomini.",
