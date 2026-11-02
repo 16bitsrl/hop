@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Card, CardBody, EmptyState, HistoryIcon, PageSpinner } from "../../components/legacy";
+import { HistoryIcon } from "lucide-react";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { Card } from "@/components/ui/card";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 
@@ -39,7 +41,20 @@ export function HistoryTab({ linkId }: { linkId: string }) {
     staleTime: 0,
   });
 
-  if (history.isPending) return <PageSpinner />;
+  if (history.isPending) {
+    return (
+      <Card className="gap-0 py-0">
+        <ListSkeleton rows={3} />
+      </Card>
+    );
+  }
+  if (history.isError) {
+    return (
+      <Card>
+        <ErrorState onRetry={() => history.refetch()} retrying={history.isFetching} />
+      </Card>
+    );
+  }
   const items = history.data?.items ?? [];
   if (items.length === 0) {
     return (
@@ -50,7 +65,7 @@ export function HistoryTab({ linkId }: { linkId: string }) {
   }
 
   return (
-    <Card>
+    <Card className="gap-0 py-0">
       <ul className="divide-y divide-border">
         {items.map((entry) => {
           const verb = VERBS[entry.action] ?? "updated";
@@ -59,13 +74,13 @@ export function HistoryTab({ linkId }: { linkId: string }) {
           const keys = verb === "updated" ? Object.keys(after) : [];
           return (
             <li key={entry.id} data-testid="history-entry">
-              <CardBody className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 px-(--card-spacing) py-4">
                 <p className="text-sm">
                   <span className="font-medium">{entry.userName ?? t("history.system")}</span>{" "}
                   {t(`history.verb.${verb}`)}
                   {entry.data?.bulk ? <span className="text-muted-foreground"> {t("history.bulk")}</span> : null}
                   {entry.data?.source === "import" ? <span className="text-muted-foreground"> {t("history.imported")}</span> : null}
-                  <span className="text-muted-foreground"> · {formatDateTime(entry.ts, i18n.language)}</span>
+                  <span className="text-muted-foreground tabular-nums"> · {formatDateTime(entry.ts, i18n.language)}</span>
                 </p>
                 {keys.length > 0 && (
                   <dl className="flex flex-col gap-1 text-[13px]">
@@ -83,7 +98,7 @@ export function HistoryTab({ linkId }: { linkId: string }) {
                     ))}
                   </dl>
                 )}
-              </CardBody>
+              </div>
             </li>
           );
         })}

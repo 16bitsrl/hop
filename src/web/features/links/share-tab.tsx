@@ -1,19 +1,25 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, Select, Textarea, useToast } from "../../components/legacy";
+import { DownloadIcon, SparklesIcon, WandSparklesIcon, XIcon } from "lucide-react";
+import { FormField } from "@/components/form-field";
+import { OptionSelect } from "@/components/option-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/lib/toast";
 import { ApiError } from "../../lib/api";
 import { downloadBlob } from "../../lib/clipboard";
 import { errorMessage } from "../../lib/errors";
 import { applyUtm, parseUtm, UTM_FIELDS, type Utm } from "../../lib/utm";
 import { usePatchLink, type Link } from "./api";
 import { fetchMeta } from "./create-dialog";
-import { ReadOnlyNotice } from "./edit-tab";
+import { ReadOnlyNotice, SectionCard } from "./edit-tab";
 import { qrPng, qrSvg } from "./qr";
 
 export function ShareTab({ link }: { link: Link }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <ReadOnlyNotice show={!link.canModify} />
       <UtmCard link={link} />
       <QrCard link={link} />
@@ -32,29 +38,27 @@ function UtmCard({ link }: { link: Link }) {
   const unchanged = result === link.url;
 
   return (
-    <Card>
-      <CardHeader title={t("utm.title")} description={t("utm.description")} />
-      <CardBody className="flex flex-col gap-4">
-        <fieldset disabled={!link.canModify} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <SectionCard title={t("utm.title")} description={t("utm.description")} className="flex flex-col gap-4">
+        <fieldset disabled={!link.canModify} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {UTM_FIELDS.map((f) => (
-            <Field key={f} label={t(`utm.${f}`)} hint={t(`utm.${f}Hint`)}>
+            <FormField key={f} label={t(`utm.${f}`)} hint={t(`utm.${f}Hint`)}>
               {(id) => <Input id={id} value={utm[f]} onChange={(e) => setUtm((cur) => ({ ...cur, [f]: e.target.value }))} />}
-            </Field>
+            </FormField>
           ))}
         </fieldset>
-        <div className="rounded-lg border border-border bg-muted px-3.5 py-3">
+        <div className="rounded-lg border border-border bg-muted/60 px-3.5 py-3">
           <p className="text-[13px] font-medium">{t("utm.result")}</p>
           <code data-testid="utm-result" className="mt-1 block break-all font-mono text-xs">
             {result}
           </code>
         </div>
         <div>
-          <Button variant="primary" disabled={!link.canModify || unchanged} loading={patch.isPending} onClick={() => patch.mutate({ url: result })}>
+          <Button disabled={!link.canModify || unchanged} loading={patch.isPending} onClick={() => patch.mutate({ url: result })}>
+            {!patch.isPending && <WandSparklesIcon data-icon="inline-start" />}
             {t("utm.apply")}
           </Button>
         </div>
-      </CardBody>
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -70,7 +74,6 @@ const readAsDataUrl = (file: File) =>
 
 function QrCard({ link }: { link: Link }) {
   const { t } = useTranslation("links");
-  const toast = useToast();
   const [foreground, setForeground] = useState("#000000");
   const [background, setBackground] = useState("#ffffff");
   const [size, setSize] = useState("512");
@@ -105,9 +108,7 @@ function QrCard({ link }: { link: Link }) {
   });
 
   return (
-    <Card>
-      <CardHeader title={t("qr.title")} description={t("qr.description")} />
-      <CardBody className="grid gap-6 sm:grid-cols-[auto_1fr]">
+    <SectionCard title={t("qr.title")} description={t("qr.description")} className="grid gap-6 sm:grid-cols-[auto_1fr]">
         <div
           className="size-48 shrink-0 overflow-hidden rounded-lg border border-border [&>svg]:size-full"
           style={{ background }}
@@ -116,48 +117,42 @@ function QrCard({ link }: { link: Link }) {
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="flex flex-col gap-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label={t("qr.foreground")}>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <FormField label={t("qr.foreground")}>
               {(id) => <Input id={id} type="color" className="p-1" value={foreground} onChange={(e) => setForeground(e.target.value)} />}
-            </Field>
-            <Field label={t("qr.background")}>
+            </FormField>
+            <FormField label={t("qr.background")}>
               {(id) => <Input id={id} type="color" className="p-1" value={background} onChange={(e) => setBackground(e.target.value)} />}
-            </Field>
-            <Field label={t("qr.size")}>
-              {(id) => (
-                <Select id={id} value={size} onChange={(e) => setSize(e.target.value)}>
-                  {[256, 512, 1024, 2048].map((n) => (
-                    <option key={n} value={n}>
-                      {n} px
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </Field>
+            </FormField>
+            <FormField label={t("qr.size")}>
+              {(id) => <OptionSelect id={id} value={size} onValueChange={setSize} options={["256", "512", "1024", "2048"].map((n) => ({ value: n, label: `${n} px` }))} />}
+            </FormField>
           </div>
-          <Field label={t("qr.logo")} hint={t("qr.logoHint")}>
+          <FormField label={t("qr.logo")} hint={t("qr.logoHint")}>
             {(id) => (
               <div className="flex items-center gap-2">
                 <Input id={id} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => void onLogo(e)} />
                 {logo && (
-                  <Button size="sm" onClick={() => setLogo(null)}>
+                  <Button variant="outline" onClick={() => setLogo(null)}>
+                    <XIcon data-icon="inline-start" />
                     {t("qr.removeLogo")}
                   </Button>
                 )}
               </div>
             )}
-          </Field>
+          </FormField>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" loading={download.isPending && download.variables === "svg"} onClick={() => download.mutate("svg")}>
+            <Button loading={download.isPending && download.variables === "svg"} onClick={() => download.mutate("svg")}>
+              {!(download.isPending && download.variables === "svg") && <DownloadIcon data-icon="inline-start" />}
               {t("qr.downloadSvg")}
             </Button>
-            <Button loading={download.isPending && download.variables === "png"} onClick={() => download.mutate("png")}>
+            <Button variant="outline" loading={download.isPending && download.variables === "png"} onClick={() => download.mutate("png")}>
+              {!(download.isPending && download.variables === "png") && <DownloadIcon data-icon="inline-start" />}
               {t("qr.downloadPng")}
             </Button>
           </div>
         </div>
-      </CardBody>
-    </Card>
+    </SectionCard>
   );
 }
 
@@ -166,7 +161,6 @@ function QrCard({ link }: { link: Link }) {
 function SocialCard({ link }: { link: Link }) {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
-  const toast = useToast();
   const readOnly = !link.canModify;
   const patch = usePatchLink(link.id);
   const [title, setTitle] = useState(link.ogTitle ?? "");
@@ -198,28 +192,28 @@ function SocialCard({ link }: { link: Link }) {
   const shownImage = /^https?:\/\//i.test(image) ? image : "";
 
   return (
-    <Card>
-      <CardHeader
-        title={t("social.title")}
-        description={t("social.description")}
-        action={
-          <Button size="sm" disabled={readOnly} loading={fill.isPending} onClick={() => fill.mutate()}>
-            {t("social.fill")}
-          </Button>
-        }
-      />
-      <CardBody className="grid gap-6 lg:grid-cols-2">
+    <SectionCard
+      title={t("social.title")}
+      description={t("social.description")}
+      className="grid gap-6 lg:grid-cols-2"
+      action={
+        <Button size="sm" variant="outline" disabled={readOnly} loading={fill.isPending} onClick={() => fill.mutate()}>
+          {!fill.isPending && <SparklesIcon data-icon="inline-start" />}
+          {t("social.fill")}
+        </Button>
+      }
+    >
         <fieldset disabled={readOnly} className="flex flex-col gap-4">
-          <Field label={t("social.ogTitle")}>
+          <FormField label={t("social.ogTitle")}>
             {(id) => <Input id={id} value={title} maxLength={300} onChange={(e) => setTitle(e.target.value)} />}
-          </Field>
-          <Field label={t("social.ogDescription")}>
+          </FormField>
+          <FormField label={t("social.ogDescription")}>
             {(id) => <Textarea id={id} value={description} maxLength={1000} onChange={(e) => setDescription(e.target.value)} />}
-          </Field>
-          <Field label={t("social.imageUrl")}>
+          </FormField>
+          <FormField label={t("social.imageUrl")}>
             {(id) => <Input id={id} type="url" placeholder="https://" value={image} onChange={(e) => setImage(e.target.value)} />}
-          </Field>
-          <Field label={t("social.upload")} hint={t("social.uploadHint")}>
+          </FormField>
+          <FormField label={t("social.upload")} hint={t("social.uploadHint")}>
             {(id) => (
               <Input
                 id={id}
@@ -232,9 +226,9 @@ function SocialCard({ link }: { link: Link }) {
                 }}
               />
             )}
-          </Field>
+          </FormField>
           <div>
-            <Button variant="primary" disabled={readOnly} loading={patch.isPending} onClick={() => patch.mutate({ ogTitle: title, ogDescription: description, ogImage: image })}>
+            <Button disabled={readOnly} loading={patch.isPending} onClick={() => patch.mutate({ ogTitle: title, ogDescription: description, ogImage: image })}>
               {t("social.save")}
             </Button>
           </div>
@@ -255,7 +249,6 @@ function SocialCard({ link }: { link: Link }) {
             </div>
           </div>
         </div>
-      </CardBody>
-    </Card>
+    </SectionCard>
   );
 }
