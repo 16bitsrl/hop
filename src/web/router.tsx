@@ -5,6 +5,7 @@ import { Shell } from "./components/shell";
 import { CompassIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/states";
+import { rememberReturnTo } from "./lib/return-to";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
 import { AuditPage } from "./pages/audit";
@@ -54,7 +55,10 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
-  validateSearch: (s: Record<string, unknown>): { error?: string } => (typeof s.error === "string" ? { error: s.error } : {}),
+  validateSearch: (s: Record<string, unknown>): { error?: string; next?: string } => ({
+    ...(typeof s.error === "string" ? { error: s.error } : {}),
+    ...(typeof s.next === "string" ? { next: s.next } : {}),
+  }),
   beforeLoad: async ({ context: { queryClient } }) => {
     const config = await queryClient.ensureQueryData(appConfigQuery);
     if (config.setupRequired) throw redirect({ to: "/setup" });
@@ -109,6 +113,7 @@ const appRoute = createRoute({
     if (!(await queryClient.ensureQueryData(meQuery))) {
       // A link shared to hop before signing in is picked up again after the sign-in.
       if (location.pathname === "/links") rememberShared(location.search as Record<string, unknown>);
+      else rememberReturnTo(location.href);
       throw redirect({ to: "/login" });
     }
   },

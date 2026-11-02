@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { APP } from "../playwright.config";
+import { createUser, loginViaUi } from "./helpers";
 import { HOST, HOUR, seedClicks, seedLink, uniq } from "./stats-helpers";
 
 const shortUrl = (slug: string) => `${APP.replace("app.localhost", HOST)}/${encodeURIComponent(slug)}`;
@@ -45,7 +46,7 @@ test("public statistics page works signed out and shows nothing private", async 
   await ctx.close();
 });
 
-test("a slug followed by + opens the public statistics when they are on", async ({ request }) => {
+test("a slug followed by + opens the statistics: public ones, or the ones in the app", async ({ request }) => {
   const on = await seedLink(request, { publicStats: true });
   const off = await seedLink(request, { publicStats: false });
 
@@ -53,7 +54,10 @@ test("a slug followed by + opens the public statistics when they are on", async 
   expect(res.status()).toBe(302);
   expect(res.headers().location).toBe(`${APP}/s/${on.id}`);
 
-  expect((await request.get(shortUrl(`${off.slug}+`), { maxRedirects: 0 })).status()).toBe(404);
+  // Not public: the link's statistics in the app, which ask to sign in.
+  const notPublic = await request.get(shortUrl(`${off.slug}+`), { maxRedirects: 0 });
+  expect(notPublic.status()).toBe(302);
+  expect(notPublic.headers().location).toBe(`${APP}/stats/${off.id}`);
   expect((await request.get(shortUrl(`${uniq("missing")}+`), { maxRedirects: 0 })).status()).toBe(404);
   // The plain slug still redirects to the destination.
   expect((await request.get(shortUrl(on.slug), { maxRedirects: 0 })).status()).toBe(302);
@@ -65,4 +69,20 @@ test("a real slug that ends with + keeps working as a normal link", async ({ req
   await seedLink(request, { slug, url: "https://example.com/plus" });
   const res = await request.get(shortUrl(slug), { maxRedirects: 0 });
   expect(res.headers().location).toBe("https://example.com/plus");
+});
+
+test("after signing in you land on the page you asked for", async ({ page, request }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const link = await seedLink(request, { publicStats: false, title: "Back here" });
+  await page.goto(`/stats/${link.id}`);
+  await expect(page).toHaveURL(/\/login/);
+  await loginViaUi(page, admin);
+  await expect(page).toHaveURL(new RegExp(`/stats/${link.id}$`));
+  // Only paths inside the app are followed.
+  await page.context().clearCookies();
+  await page.goto("/login?next=//evil.example/x");
+  await page.getByLabel("Email").fill(admin.email);
+  await page.getByLabel("Password").fill(admin.password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/links$/);
 });

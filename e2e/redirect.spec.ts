@@ -257,3 +257,24 @@ test("on links without a limit, bots are logged but only people count", async ({
   await clicks(request, l.id, 2);
   await expect.poll(async () => (await counters(request, l.id)).clickCount).toBe(1);
 });
+
+test("a slug followed by .qr or .qrv shows its QR code, like YOURLS", async ({ request }) => {
+  const slug = uniq("qr");
+  const l = await seed(request, { slug, url: "https://example.com/qr" });
+  for (const suffix of [".qr", "."]) {
+    const png = await get(request, slug + suffix);
+    expect(png.status(), suffix).toBe(200);
+    expect(png.headers()["content-type"]).toBe("image/png");
+    expect((await png.body()).subarray(1, 4).toString()).toBe("PNG");
+  }
+  for (const suffix of [".qrv", ".v"]) {
+    const svg = await get(request, slug + suffix);
+    expect(svg.status(), suffix).toBe(200);
+    expect(svg.headers()["content-type"]).toContain("image/svg+xml");
+    expect(await svg.text()).toContain("<svg");
+  }
+  // Looking at the code is not a visit.
+  const rows = (await (await request.get(`/api/_test/clicks?linkId=${l.id}`)).json()) as unknown[];
+  expect(rows).toHaveLength(0);
+  expect((await get(request, `${uniq("missing")}.qr`)).status()).toBe(404);
+});

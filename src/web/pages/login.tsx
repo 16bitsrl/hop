@@ -1,3 +1,4 @@
+import { takeReturnTo } from "../lib/return-to";
 import { SsoIcon } from "@/components/sso-icon";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
@@ -17,7 +18,7 @@ import { appConfigQuery, meQuery } from "../lib/session";
 export function LoginPage() {
   const { t } = useTranslation("auth");
   const { data: config } = useQuery(appConfigQuery);
-  const { error: urlError } = useSearch({ from: "/login" });
+  const { error: urlError, next } = useSearch({ from: "/login" });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ export function LoginPage() {
 
   async function enter() {
     queryClient.removeQueries({ queryKey: meQuery.queryKey });
-    await navigate({ to: "/links" });
+    await navigate({ href: takeReturnTo(next) });
   }
 
   async function submit(e: FormEvent) {
@@ -56,7 +57,7 @@ export function LoginPage() {
   }
 
   async function sso() {
-    await authClient.signIn.social({ provider: "oidc", callbackURL: "/links", errorCallbackURL: "/login" });
+    await authClient.signIn.social({ provider: "oidc", callbackURL: takeReturnTo(next), errorCallbackURL: "/login" });
   }
 
   return (

@@ -24,7 +24,13 @@ import {
   pickLang,
   previewPage,
 } from "./pages";
+import { qrPng, qrSvg } from "./qr";
 import { createUnlockCookie, hasValidUnlock } from "./unlock";
+
+async function linkExists(db: AppEnv["Variables"]["platform"]["db"], domainId: string, slug: string): Promise<boolean> {
+  const [row] = await db.select({ id: links.id }).from(links).where(and(eq(links.domainId, domainId), eq(links.slug, slug))).limit(1);
+  return !!row;
+}
 
 const REDIRECT_HEADERS = {
   // Not cacheable even for 301/308, otherwise browsers would skip us and stats would break.
@@ -76,9 +82,18 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     return isHttpUrl(domain.rootUrl) ? redirect(domain.rootUrl, 302) : landingPage(lang, url.host);
   }
   if (!link) {
-    // YOURLS convention: "<slug>+" opens the link's public statistics when they are on.
+    // YOURLS conventions: "<slug>+" opens the link's statistics, "<slug>.qr" / "<slug>.qrv" its QR code.
     const stats = slug.length > 1 && slug.endsWith("+") ? await publicStatsUrl(platform, domain.id, slug.slice(0, -1)) : null;
-    return stats ? redirect(stats, 302) : notFound();
+    if (stats) return redirect(stats, 302);
+    const qr = /^(.+)\.(?:qr)?(v?)$/.exec(slug);
+    if (qr && (await linkExists(platform.db, domain.id, qr[1]!))) {
+      const target = `${url.protocol}//${url.host}/${qr[1]}`;
+      const headers = { "cache-control": "public, max-age=3600", "x-content-type-options": "nosniff" };
+      return qr[2]
+        ? new Response(qrSvg(target), { headers: { "content-type": "image/svg+xml; charset=utf-8", ...headers } })
+        : new Response(await qrPng(target), { headers: { "content-type": "image/png", ...headers } });
+    }
+    return notFound();
   }
 
   const fallbackOr = (page: () => Response) => (isHttpUrl(link.fallbackUrl) ? redirect(link.fallbackUrl, 302) : page());
