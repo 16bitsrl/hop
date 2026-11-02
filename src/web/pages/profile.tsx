@@ -16,7 +16,7 @@ import {
   PlusIcon,
   Select,
   useToast,
-} from "../components/ui";
+} from "../components/legacy";
 import { setLanguage, type Language } from "../i18n";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
@@ -235,16 +235,16 @@ function PasskeysCard() {
         }
       />
       {list.data && list.data.length > 0 ? (
-        <ul className="divide-y divide-line">
+        <ul className="divide-y divide-border">
           {list.data.map((p) => (
             <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="text-muted">
+                <span className="text-muted-foreground">
                   <KeyIcon />
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{p.name || t("passkeys.unnamed")}</p>
-                  {p.createdAt && <p className="text-xs text-muted">{t("passkeys.addedOn", { date: formatDate(p.createdAt, i18n.language) })}</p>}
+                  {p.createdAt && <p className="text-xs text-muted-foreground">{t("passkeys.addedOn", { date: formatDate(p.createdAt, i18n.language) })}</p>}
                 </div>
               </div>
               <Button size="sm" variant="ghost" onClick={() => setRemoving(p)}>

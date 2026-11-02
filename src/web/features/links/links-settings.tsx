@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, ConfirmDialog, Field, Input, PageSpinner, useToast } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, ConfirmDialog, Field, Input, PageSpinner, useToast } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { tagsQuery, type Tag } from "./api";
@@ -120,14 +120,14 @@ function BlockedCard() {
             {t("settings.blockedAdd")}
           </Button>
         </form>
-        {list.data && list.data.blocked.length === 0 && <p className="text-[13px] text-muted">{t("settings.blockedEmpty")}</p>}
+        {list.data && list.data.blocked.length === 0 && <p className="text-[13px] text-muted-foreground">{t("settings.blockedEmpty")}</p>}
         {list.data && list.data.blocked.length > 0 && (
-          <ul className="divide-y divide-line rounded-lg border border-line">
+          <ul className="divide-y divide-border rounded-lg border border-border">
             {list.data.blocked.map((b) => (
               <li key={b.id} className="flex items-center justify-between gap-3 px-3 py-2">
                 <div className="min-w-0">
                   <p className="truncate font-mono text-sm">{b.host}</p>
-                  {b.reason && <p className="truncate text-[13px] text-muted">{b.reason}</p>}
+                  {b.reason && <p className="truncate text-[13px] text-muted-foreground">{b.reason}</p>}
                 </div>
                 <Button size="sm" variant="ghost" aria-label={t("settings.unblock", { host: b.host })} onClick={() => remove.mutate(b.id)}>
                   {t("settings.unblockButton")}
@@ -172,8 +172,8 @@ function TagsCard() {
     <Card>
       <CardHeader title={t("settings.tagsTitle")} description={t("settings.tagsDescription")} />
       <CardBody>
-        {tags.data && tags.data.length === 0 && <p className="text-[13px] text-muted">{t("settings.tagsEmpty")}</p>}
-        <ul className="divide-y divide-line">
+        {tags.data && tags.data.length === 0 && <p className="text-[13px] text-muted-foreground">{t("settings.tagsEmpty")}</p>}
+        <ul className="divide-y divide-border">
           {tags.data?.map((tag) => (
             <li key={tag.id} className="flex items-center gap-3 py-2">
               <input
@@ -181,10 +181,10 @@ function TagsCard() {
                 aria-label={t("settings.tagColor", { name: tag.name })}
                 value={tag.color ?? COLOR_FALLBACK}
                 onChange={(e) => update.mutate({ id: tag.id, color: e.target.value })}
-                className="size-7 shrink-0 cursor-pointer rounded border border-line bg-transparent p-0.5"
+                className="size-7 shrink-0 cursor-pointer rounded border border-border bg-transparent p-0.5"
               />
               <TagNameInput tag={tag} onRename={(name) => update.mutate({ id: tag.id, name })} />
-              <span className="shrink-0 text-[13px] text-muted">{t("settings.tagLinks", { count: tag.linkCount })}</span>
+              <span className="shrink-0 text-[13px] text-muted-foreground">{t("settings.tagLinks", { count: tag.linkCount })}</span>
               <Button size="sm" variant="ghost" aria-label={t("settings.tagDelete", { name: tag.name })} onClick={() => setRemoving(tag)}>
                 {t("delete")}
               </Button>

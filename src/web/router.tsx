@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, createRoute, createRouter, Link, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Shell } from "./components/shell";
-import { Button } from "./components/ui";
+import { Button } from "./components/legacy";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
 import { AuditPage } from "./pages/audit";
@@ -29,7 +29,7 @@ function NotFound() {
   const { t } = useTranslation();
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center">
-      <p className="text-sm text-muted">{t("notFound")}</p>
+      <p className="text-sm text-muted-foreground">{t("notFound")}</p>
       <Link to="/links">
         <Button>{t("goHome")}</Button>
       </Link>

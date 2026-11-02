@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Dialog, Field, Input, Select } from "../../components/ui";
+import { Button, Dialog, Field, Input, Select } from "../../components/legacy";
 import { api, qs } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { useMe } from "../../lib/session";
@@ -160,7 +160,7 @@ function CreateForm({ onClose, initialUrl }: { onClose: () => void; initialUrl: 
         )}
       </Field>
       {create.error && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-[13px] text-destructive">
           {errorMessage(tc, create.error)}
         </p>
       )}

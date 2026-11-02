@@ -16,7 +16,7 @@ import {
   SettingsIcon,
   UserIcon,
   UsersIcon,
-} from "./ui/icons";
+} from "./legacy/icons";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -24,8 +24,8 @@ function NavLink({ item }: { item: NavItem }) {
   return (
     <Link
       to={item.to}
-      className="group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-subtle hover:text-fg"
-      activeProps={{ className: "bg-subtle !text-fg" }}
+      className="group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      activeProps={{ className: "bg-muted !text-foreground" }}
     >
       <span className="text-current opacity-80 group-hover:opacity-100">{item.icon}</span>
       {item.label}
@@ -64,7 +64,7 @@ function SidebarContent({ onSignOut }: { onSignOut: () => void }) {
         ))}
         {isAdmin(me) && (
           <>
-            <p className="mb-1 mt-5 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted/80">{t("nav.admin")}</p>
+            <p className="mb-1 mt-5 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">{t("nav.admin")}</p>
             {admin.map((i) => (
               <NavLink key={i.to} item={i} />
             ))}
@@ -74,20 +74,20 @@ function SidebarContent({ onSignOut }: { onSignOut: () => void }) {
           <NavLink item={{ to: "/profile", label: t("nav.profile"), icon: <UserIcon /> }} />
         </div>
       </nav>
-      <div className="mx-2 flex items-center gap-2.5 border-t border-line px-1 pt-3">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-subtle text-xs font-semibold uppercase text-muted">
+      <div className="mx-2 flex items-center gap-2.5 border-t border-border px-1 pt-3">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold uppercase text-muted-foreground">
           {me.name.slice(0, 1)}
         </span>
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-[13px] font-medium">{me.name}</p>
-          <p className="truncate text-xs text-muted">{t(`roles.${me.role}`)}</p>
+          <p className="truncate text-xs text-muted-foreground">{t(`roles.${me.role}`)}</p>
         </div>
         <button
           type="button"
           onClick={onSignOut}
           aria-label={t("signOut")}
           title={t("signOut")}
-          className="rounded-md p-1.5 text-muted hover:bg-subtle hover:text-fg"
+          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <LogOutIcon />
         </button>
@@ -130,18 +130,18 @@ export function Shell() {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[224px_1fr]">
-      <aside className="sticky top-0 hidden h-dvh border-r border-line bg-surface lg:block">
+      <aside className="sticky top-0 hidden h-dvh border-r border-border bg-card lg:block">
         <SidebarContent onSignOut={signOut} />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-surface/90 px-3 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-border bg-card/90 px-3 backdrop-blur lg:hidden">
         <button
           type="button"
           onClick={() => setDrawer(true)}
           aria-label={t("openMenu")}
           aria-expanded={drawer}
           aria-controls={drawerId}
-          className="rounded-md p-2 text-muted hover:bg-subtle hover:text-fg"
+          className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <MenuIcon />
         </button>
@@ -161,7 +161,7 @@ export function Shell() {
           if (e.target === drawerRef.current) setDrawer(false);
         }}
         className={cn(
-          "fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-64 max-w-[85%] border-0 border-r border-line bg-surface p-0 text-fg shadow-xl",
+          "fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-64 max-w-[85%] border-0 border-r border-border bg-card p-0 text-foreground shadow-xl",
           "open:animate-[hop-slide_160ms_ease-out] backdrop:bg-black/45 lg:hidden",
         )}
       >
@@ -171,7 +171,7 @@ export function Shell() {
               type="button"
               onClick={() => setDrawer(false)}
               aria-label={t("closeMenu")}
-              className="absolute right-2 top-3 rounded-md p-2 text-muted hover:bg-subtle hover:text-fg"
+              className="absolute right-2 top-3 rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <CloseIcon />
             </button>

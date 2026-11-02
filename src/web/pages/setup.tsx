@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input } from "../components/ui";
+import { Button, Field, Input } from "../components/legacy";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { errorMessage } from "../lib/errors";
@@ -60,14 +60,14 @@ export function SetupPage() {
           </Field>
         )}
         {error && (
-          <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-[13px] text-danger">
+          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
             {error}
           </p>
         )}
         <Button type="submit" variant="primary" loading={busy} className="mt-1">
           {t("setup.submit")}
         </Button>
-        <Link to="/restore" className="tap-link text-center text-[13px] text-muted hover:text-fg hover:underline">
+        <Link to="/restore" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
           {tData("restore.link")}
         </Link>
       </form>

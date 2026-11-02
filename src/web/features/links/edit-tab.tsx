@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, CardBody, CardHeader, Field, Input, Select, Switch, Textarea, useToast } from "../../components/ui";
+import { Badge, Button, Card, CardBody, CardHeader, Field, Input, Select, Switch, Textarea, useToast } from "../../components/legacy";
 import { foldersQuery, folderTree, tagsQuery, usePatchLink, type Link } from "./api";
 import { TagInput } from "./parts";
 
@@ -17,7 +17,7 @@ function toLocalInput(iso: string | null): string {
 export function ReadOnlyNotice({ show }: { show: boolean }) {
   const { t } = useTranslation("links");
   if (!show) return null;
-  return <p className="rounded-md bg-subtle px-3 py-2 text-[13px] text-muted">{t("readOnly")}</p>;
+  return <p className="rounded-md bg-muted px-3 py-2 text-[13px] text-muted-foreground">{t("readOnly")}</p>;
 }
 
 export function EditTab({ link }: { link: Link }) {

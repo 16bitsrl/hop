@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, PageSpinner, Select, Switch, useToast } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, Field, PageSpinner, Select, Switch, useToast } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
@@ -84,22 +84,22 @@ export function BrokenLinksCard() {
         title={t("health.dashboardTitle")}
         action={
           data && data.total > 0 ? (
-            <RouterLink to="/links" search={{ state: "broken" }} className="text-[13px] font-medium text-accent hover:underline">
+            <RouterLink to="/links" search={{ state: "broken" }} className="text-[13px] font-medium text-primary hover:underline">
               {t("health.viewAll", { count: data.total })}
             </RouterLink>
           ) : undefined
         }
       />
       {!data?.items.length ? (
-        <p className="px-5 py-6 text-center text-[13px] text-muted">{t("health.dashboardEmpty")}</p>
+        <p className="px-5 py-6 text-center text-[13px] text-muted-foreground">{t("health.dashboardEmpty")}</p>
       ) : (
-        <ul className="divide-y divide-line">
+        <ul className="divide-y divide-border">
           {data.items.map((l) => (
             <li key={l.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
               <RouterLink to="/links/$id" params={{ id: l.id }} className="min-w-0 truncate font-mono text-[13px] hover:underline">
                 {l.host}/{l.slug}
               </RouterLink>
-              <span className="shrink-0 text-xs text-muted">{codeText(t, l.healthCode)}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{codeText(t, l.healthCode)}</span>
             </li>
           ))}
         </ul>
@@ -136,7 +136,7 @@ export function LinkHealth({ link }: { link: Link }) {
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span>{verdict}</span>
       {link.healthCode !== null && (
-        <span data-testid="health-code" className="text-muted">
+        <span data-testid="health-code" className="text-muted-foreground">
           {codeText(t, link.healthCode)}
           {link.healthCheckedAt ? `, ${t("health.checkedAt", { when: formatDateTime(link.healthCheckedAt, i18n.language) })}` : ""}
         </span>

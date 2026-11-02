@@ -23,7 +23,7 @@ import {
   THead,
   Tr,
   useToast,
-} from "../components/ui";
+} from "../components/legacy";
 import { AllApiKeysCard } from "../features/api-keys/keys";
 import { api } from "../lib/api";
 import { formatDate } from "../lib/cn";
@@ -110,9 +110,9 @@ function UsersContent() {
                   <Td>
                     <div className="font-medium">
                       {u.name}
-                      {self && <span className="ml-2 text-xs font-normal text-muted">{t("you")}</span>}
+                      {self && <span className="ml-2 text-xs font-normal text-muted-foreground">{t("you")}</span>}
                     </div>
-                    <div className="text-[13px] text-muted">{u.email}</div>
+                    <div className="text-[13px] text-muted-foreground">{u.email}</div>
                   </Td>
                   <Td label={t("columns.role")}>
                     <Select
@@ -153,7 +153,7 @@ function UsersContent() {
           </TBody>
         </Table>
       </Card>
-      <p className="mt-2 text-[13px] text-muted">{t("roleHelp")}</p>
+      <p className="mt-2 text-[13px] text-muted-foreground">{t("roleHelp")}</p>
 
       <h2 className="mb-3 mt-8 text-sm font-semibold tracking-tight">{t("pending")}</h2>
       <Card>
@@ -172,7 +172,7 @@ function UsersContent() {
                 <Tr key={i.id}>
                   <Td className="font-medium">{i.email}</Td>
                   <Td label={t("columns.role")}>{t(`common:roles.${i.role}`)}</Td>
-                  <Td className="text-muted" label={t("columns.expires")}>{formatDate(i.expiresAt, i18n.language)}</Td>
+                  <Td className="text-muted-foreground" label={t("columns.expires")}>{formatDate(i.expiresAt, i18n.language)}</Td>
                   <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                     <Button size="sm" variant="ghost" onClick={() => setRevokeFor(i)}>
                       {t("revoke")}
@@ -282,7 +282,7 @@ function InviteForm({ onClose }: { onClose: () => void }) {
         )}
       </Field>
       {error && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-[13px] text-destructive">
           {error}
         </p>
       )}

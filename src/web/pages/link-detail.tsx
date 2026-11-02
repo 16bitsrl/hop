@@ -3,7 +3,7 @@ import { Link as RouterLink, useNavigate, useParams } from "@tanstack/react-rout
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Button, Card, ConfirmDialog, EmptyState, PageSpinner, TabPanel, Tabs, useToast } from "../components/ui";
+import { Button, Card, ConfirmDialog, EmptyState, PageSpinner, TabPanel, Tabs, useToast } from "../components/legacy";
 import { linkQuery } from "../features/links/api";
 import { EditTab } from "../features/links/edit-tab";
 import { HistoryTab } from "../features/links/history-tab";
@@ -58,7 +58,7 @@ export function LinkDetailPage() {
 
   return (
     <>
-      <RouterLink to="/links" className="tap-link mb-3  inline-block text-[13px] text-muted hover:text-fg">
+      <RouterLink to="/links" className="tap-link mb-3  inline-block text-[13px] text-muted-foreground hover:text-foreground">
         ← {tc("nav.links")}
       </RouterLink>
       <PageHeader

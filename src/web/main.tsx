@@ -3,7 +3,8 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./i18n";
-import { ToastProvider } from "./components/ui/toast";
+import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { ApiError } from "./lib/api";
 import { createAppRouter } from "./router";
 import "./styles.css";
@@ -23,9 +24,10 @@ const router = createAppRouter(queryClient);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
+      <TooltipProvider delay={400}>
         <RouterProvider router={router} />
-      </ToastProvider>
+        <Toaster />
+      </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

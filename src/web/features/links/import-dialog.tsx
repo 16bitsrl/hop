@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Dialog, Field, Input, Table, TBody, Td, Th, THead, Tr, useToast } from "../../components/ui";
+import { Badge, Button, Dialog, Field, Input, Table, TBody, Td, Th, THead, Tr, useToast } from "../../components/legacy";
 import { splitCsv } from "../../../shared/csv";
 import { api } from "../../lib/api";
 import { BATCH_SIZE } from "../../lib/batches";
@@ -86,7 +86,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
         {result.failed.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium">{t("import.skipped", { count: result.failed.length })}</p>
-            <ul className="flex flex-col gap-1 text-[13px] text-muted">
+            <ul className="flex flex-col gap-1 text-[13px] text-muted-foreground">
               {result.failed.map((f) => (
                 <li key={f.line}>{t("import.lineProblem", { line: f.line, problems: f.errors.map((c) => t(`import.errors.${c}`, { defaultValue: c })).join(", ") })}</li>
               ))}
@@ -117,7 +117,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
             <Badge tone="green">{t("import.ready", { count: preview.validCount })}</Badge>
             {problems > 0 && <Badge tone="red">{t("import.problems", { count: problems })}</Badge>}
           </div>
-          <div className="max-h-72 overflow-y-auto rounded-lg border border-line">
+          <div className="max-h-72 overflow-y-auto rounded-lg border border-border">
             <Table>
               <THead>
                 <tr>
@@ -130,7 +130,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
               <TBody>
                 {preview.rows.map((r) => (
                   <Tr key={r.line}>
-                    <Td className="tabular-nums text-muted">{r.line}</Td>
+                    <Td className="tabular-nums text-muted-foreground">{r.line}</Td>
                     <Td className="max-w-64 truncate" title={r.url}>
                       {r.url}
                     </Td>
@@ -139,7 +139,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
                       {r.errors.length === 0 ? (
                         <span className="text-success">{t("import.ok")}</span>
                       ) : (
-                        <span className="text-danger">{r.errors.map((c) => t(`import.errors.${c}`, { defaultValue: c })).join(" ")}</span>
+                        <span className="text-destructive">{r.errors.map((c) => t(`import.errors.${c}`, { defaultValue: c })).join(" ")}</span>
                       )}
                     </Td>
                   </Tr>
@@ -152,7 +152,7 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
 
       <div className="flex items-center justify-end gap-2">
         {progress && progress.total > 0 && (
-          <p role="status" className="mr-auto text-[13px] text-muted">
+          <p role="status" className="mr-auto text-[13px] text-muted-foreground">
             {t("import.progress", { done: progress.done, total: progress.total })}
           </p>
         )}

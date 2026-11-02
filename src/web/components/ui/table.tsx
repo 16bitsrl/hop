@@ -1,45 +1,113 @@
-import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import { cn } from "../../lib/cn";
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-// On a phone, `stack` turns every row into a small card: cells one under the other, headers hidden.
-const stacked =
-  "max-md:block max-md:[&_thead]:sr-only max-md:[&_tbody]:block max-md:[&_tr]:block max-md:[&_tr]:px-4 max-md:[&_tr]:py-3 " +
-  "max-md:[&_td]:block max-md:[&_td]:max-w-none max-md:[&_td]:whitespace-normal max-md:[&_td]:px-0 max-md:[&_td]:py-1 max-md:[&_td]:text-left";
-
-/** Dense, quiet table. Wrap in a Card (flush) for the bordered look. */
-export function Table({ className, stack, ...rest }: HTMLAttributes<HTMLTableElement> & { stack?: boolean }) {
+function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div className="w-full overflow-x-auto">
-      <table className={cn("w-full border-collapse text-left text-sm", stack && stacked, className)} {...rest} />
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto"
+    >
+      <table
+        data-slot="table"
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
     </div>
-  );
+  )
 }
-export function THead(props: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead {...props} />;
+
+function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("[&_tr]:border-b", className)}
+      {...props}
+    />
+  )
 }
-export function TBody({ className, ...rest }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={cn("divide-y divide-line", className)} {...rest} />;
+
+function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn("[&_tr:last-child]:border-0", className)}
+      {...props}
+    />
+  )
 }
-export function Tr({ className, ...rest }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("hover:bg-subtle/60", className)} {...rest} />;
+
+function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+  return (
+    <tfoot
+      data-slot="table-footer"
+      className={cn(
+        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        className
+      )}
+      {...props}
+    />
+  )
 }
-export function Th({ className, ...rest }: ThHTMLAttributes<HTMLTableCellElement>) {
+
+function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn(
+        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
+      data-slot="table-head"
       className={cn(
-        "whitespace-nowrap border-b border-line px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted",
-        className,
+        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        className
       )}
-      {...rest}
+      {...props}
     />
-  );
+  )
 }
-/** `label` names the cell on a phone when the table is stacked (the header row is hidden there). */
-export function Td({ className, label, children, ...rest }: TdHTMLAttributes<HTMLTableCellElement> & { label?: ReactNode }) {
+
+function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
-    <td className={cn("px-4 py-2.5 align-middle", className)} {...rest}>
-      {label && <span className="mr-1.5 text-xs text-muted md:hidden">{label}:</span>}
-      {children}
-    </td>
-  );
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableCaption({
+  className,
+  ...props
+}: React.ComponentProps<"caption">) {
+  return (
+    <caption
+      data-slot="table-caption"
+      className={cn("mt-4 text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
 }

@@ -1,73 +1,85 @@
-import type { KeyboardEvent, ReactNode } from "react";
-import { cn } from "../../lib/cn";
+import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 
-const tabId = (base: string, id: string) => `${base}-tab-${id}`;
-const panelId = (base: string) => `${base}-panel`;
+function Tabs({ className, orientation = "horizontal", ...props }: TabsPrimitive.Root.Props) {
+  return (
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      data-orientation={orientation}
+      orientation={orientation}
+      className={cn("group/tabs flex gap-4 data-horizontal:flex-col", className)}
+      {...props}
+    />
+  )
+}
 
-/**
- * Controlled tab strip. Render the active panel yourself inside <TabPanel> with the same `id` and `value`.
- * Arrow keys, Home and End move between tabs; only the active tab is a Tab stop.
- */
-export function Tabs<T extends string>({
-  id,
-  tabs,
-  value,
-  onChange,
-}: {
-  id: string;
-  tabs: { id: T; label: string }[];
-  value: T;
-  onChange: (id: T) => void;
-}) {
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    const current = tabs.findIndex((tab) => tab.id === value);
-    const last = tabs.length - 1;
-    const next =
-      e.key === "ArrowRight" ? (current + 1) % tabs.length
-      : e.key === "ArrowLeft" ? (current - 1 + tabs.length) % tabs.length
-      : e.key === "Home" ? 0
-      : e.key === "End" ? last
-      : -1;
-    const tab = tabs[next];
-    if (!tab) return;
-    e.preventDefault();
-    onChange(tab.id);
-    document.getElementById(tabId(id, tab.id))?.focus();
+const tabsListVariants = cva(
+  "group/tabs-list relative inline-flex w-fit items-center text-muted-foreground group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col",
+  {
+    variants: {
+      variant: {
+        /** Segmented control: a pill slides behind the active tab. */
+        default: "h-8 rounded-lg bg-muted p-[3px]",
+        /** Underlined tabs for page sections: a bar slides under the active tab. */
+        line: "w-full gap-1 overflow-x-auto border-b [scrollbar-width:none]",
+      },
+    },
+    defaultVariants: {
+      variant: "line",
+    },
   }
+)
 
+/** Arrow keys move and select (activateOnFocus), Home and End jump, focus wraps around. */
+function TabsList({
+  className,
+  variant = "line",
+  children,
+  activateOnFocus = true,
+  ...props
+}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
   return (
-    <div role="tablist" onKeyDown={onKeyDown} className="flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none]">
-      {tabs.map((tab) => {
-        const selected = tab.id === value;
-        return (
-          <button
-            key={tab.id}
-            id={tabId(id, tab.id)}
-            role="tab"
-            type="button"
-            aria-selected={selected}
-            aria-controls={selected ? panelId(id) : undefined}
-            tabIndex={selected ? 0 : -1}
-            onClick={() => onChange(tab.id)}
-            className={cn(
-              "-mb-px shrink-0 whitespace-nowrap rounded-t-md border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50",
-              selected ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg",
-            )}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/** The panel of the active tab, labelled by it. */
-export function TabPanel({ id, value, className, children }: { id: string; value: string; className?: string; children: ReactNode }) {
-  return (
-    <div role="tabpanel" id={panelId(id)} aria-labelledby={tabId(id, value)} tabIndex={0} className={className}>
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      data-variant={variant}
+      activateOnFocus={activateOnFocus}
+      className={cn(tabsListVariants({ variant }), className)}
+      {...props}
+    >
       {children}
-    </div>
-  );
+      <TabsPrimitive.Indicator
+        data-slot="tabs-indicator"
+        renderBeforeHydration
+        className={cn(
+          "absolute left-(--active-tab-left) w-(--active-tab-width) transition-[left,width] duration-200 ease-(--ease-snappy)",
+          variant === "line"
+            ? "bottom-0 h-0.5 rounded-full bg-primary"
+            : "top-(--active-tab-top) z-0 h-(--active-tab-height) rounded-md bg-card shadow-(--shadow-raised) dark:bg-accent"
+        )}
+      />
+    </TabsPrimitive.List>
+  )
 }
+
+function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+  return (
+    <TabsPrimitive.Tab
+      data-slot="tabs-trigger"
+      className={cn(
+        "relative z-[1] inline-flex shrink-0 items-center justify-center gap-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none hover:text-foreground disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset",
+        "group-data-[variant=default]/tabs-list:h-full group-data-[variant=default]/tabs-list:flex-1 group-data-[variant=default]/tabs-list:rounded-md group-data-[variant=default]/tabs-list:px-2.5",
+        "group-data-[variant=line]/tabs-list:rounded-t-md group-data-[variant=line]/tabs-list:px-3 group-data-[variant=line]/tabs-list:py-2",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
+  return <TabsPrimitive.Panel data-slot="tabs-content" className={cn("flex-1 text-sm outline-none", className)} {...props} />
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }

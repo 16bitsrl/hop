@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { Card, CardBody, CardHeader } from "../../components/ui";
+import { Card, CardBody, CardHeader } from "../../components/legacy";
 import { YourlsImport } from "./yourls-import";
 
 const buttonClass =
-  "inline-flex h-8 max-md:h-10 items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
+  "inline-flex h-8 max-md:h-10 items-center justify-center whitespace-nowrap rounded-md border border-input bg-card px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted";
 
 /** Settings > Data: import from YOURLS, backup and export, restore instructions. */
 export function DataTab() {
@@ -20,7 +20,7 @@ export function DataTab() {
           <a href="/api/data/links.csv" download className={buttonClass}>
             {t("backup.csv")}
           </a>
-          <span className="text-[13px] text-muted">{t("backup.csvHint")}</span>
+          <span className="text-[13px] text-muted-foreground">{t("backup.csvHint")}</span>
         </CardBody>
       </Card>
       <Card>

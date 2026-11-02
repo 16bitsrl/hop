@@ -1,24 +1,48 @@
-import type { HTMLAttributes } from "react";
-import { cn } from "../../lib/cn";
+import { mergeProps } from "@base-ui/react/merge-props"
+import { useRender } from "@base-ui/react/use-render"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 
-type Tone = "neutral" | "green" | "amber" | "red" | "blue";
-const tones: Record<Tone, string> = {
-  neutral: "bg-subtle text-muted border-line",
-  green: "bg-success-soft text-success border-transparent",
-  amber: "bg-warn-soft text-warn border-transparent",
-  red: "bg-danger-soft text-danger border-transparent",
-  blue: "bg-info-soft text-info border-transparent",
-};
+const badgeVariants = cva(
+  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-md border border-transparent px-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary-soft text-primary",
+        secondary: "border-border bg-muted text-muted-foreground",
+        outline: "border-border text-foreground",
+        success: "bg-success-soft text-success",
+        warning: "bg-warning-soft text-warning",
+        destructive: "bg-destructive-soft text-destructive",
+        info: "bg-info-soft text-info",
+      },
+    },
+    defaultVariants: {
+      variant: "secondary",
+    },
+  }
+)
 
-export function Badge({ tone = "neutral", className, ...rest }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-medium",
-        tones[tone],
-        className,
-      )}
-      {...rest}
-    />
-  );
+function Badge({
+  className,
+  variant = "secondary",
+  render,
+  ...props
+}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+  return useRender({
+    defaultTagName: "span",
+    props: mergeProps<"span">(
+      {
+        className: cn(badgeVariants({ variant }), className),
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: "badge",
+      variant,
+    },
+  })
 }
+
+export { Badge, badgeVariants }

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Card, CardHeader, Switch, Table, TBody, Td, Th, THead, Tr } from "../components/ui";
+import { Card, CardHeader, Switch, Table, TBody, Td, Th, THead, Tr } from "../components/legacy";
 import {
   Breakdowns,
   BreakdownTable,
@@ -36,7 +36,7 @@ export function DashboardPage() {
             {params && <ExportLinks clicksUrl={exportUrl("clicks", null, params)} summaryUrl={exportUrl("summary", null, params)} />}
           </div>
         </div>
-        {error && !data && <p role="alert" className="text-sm text-danger">{errorMessage(t, error)}</p>}
+        {error && !data && <p role="alert" className="text-sm text-destructive">{errorMessage(t, error)}</p>}
         <KpiRow
           data={data}
           extra={<Kpi id="links" label={t("kpi.links")} value={data ? f.number(data.linkCount) : "–"} hint={t("kpi.linksHint")} />}
@@ -86,7 +86,7 @@ function RecentLinks({ data }: { data: Dashboard | undefined }) {
     <Card data-testid="dash-recent">
       <CardHeader title={t("dashboard.recent")} />
       {!data?.recentLinks.length ? (
-        <p className="px-5 py-8 text-center text-[13px] text-muted">{t("dashboard.noLinks")}</p>
+        <p className="px-5 py-8 text-center text-[13px] text-muted-foreground">{t("dashboard.noLinks")}</p>
       ) : (
         <Table stack>
           <THead className="sr-only">
@@ -103,10 +103,10 @@ function RecentLinks({ data }: { data: Dashboard | undefined }) {
                   <Link to="/stats/$linkId" params={{ linkId: l.id }} className="font-mono text-[13px] hover:underline">
                     {l.host}/{l.slug}
                   </Link>
-                  {l.title && <span className="ml-1.5 text-xs text-muted">{l.title}</span>}
+                  {l.title && <span className="ml-1.5 text-xs text-muted-foreground">{l.title}</span>}
                 </Td>
-                <Td className="whitespace-nowrap text-[13px] text-muted">{l.ownerName}</Td>
-                <Td className="whitespace-nowrap text-right text-[13px] tabular-nums text-muted">{f.date(l.createdAt)}</Td>
+                <Td className="whitespace-nowrap text-[13px] text-muted-foreground">{l.ownerName}</Td>
+                <Td className="whitespace-nowrap text-right text-[13px] tabular-nums text-muted-foreground">{f.date(l.createdAt)}</Td>
               </Tr>
             ))}
           </TBody>
@@ -123,7 +123,7 @@ function LinksByOwner({ data }: { data: Dashboard | undefined }) {
     <Card data-testid="dash-owners">
       <CardHeader title={t("dashboard.byOwner")} />
       {!data?.linksByOwner.length ? (
-        <p className="px-5 py-8 text-center text-[13px] text-muted">{t("dashboard.noLinks")}</p>
+        <p className="px-5 py-8 text-center text-[13px] text-muted-foreground">{t("dashboard.noLinks")}</p>
       ) : (
         <Table>
           <THead className="sr-only">

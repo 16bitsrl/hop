@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Card, EmptyState, Switch } from "../../components/ui";
+import { Card, EmptyState, Switch } from "../../components/legacy";
 import { errorMessage } from "../../lib/errors";
 import { Breakdowns, ExportLinks, KpiRow, RangePicker, SeriesChart, TargetsCard, useStatsControls } from "./components";
 import { exportUrl, useSummary } from "./queries";

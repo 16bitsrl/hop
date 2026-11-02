@@ -20,7 +20,7 @@ import {
   THead,
   Tr,
   useToast,
-} from "../../components/ui";
+} from "../../components/legacy";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
@@ -51,7 +51,7 @@ function Status({ k }: { k: Key }) {
   const { t, i18n } = useTranslation("apiKeys");
   return (
     <>
-      <Td className="whitespace-nowrap text-[13px] text-muted" label={t("columns.lastUsed")}>{k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}</Td>
+      <Td className="whitespace-nowrap text-[13px] text-muted-foreground" label={t("columns.lastUsed")}>{k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}</Td>
       <Td>{k.revokedAt ? <Badge tone="neutral">{t("revoked")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
     </>
   );
@@ -89,7 +89,7 @@ export function MyApiKeysCard() {
         title={t("title")}
         description={t("description")}
         action={
-          <Link to="/api-help" className="tap-link text-[13px] font-medium text-accent hover:underline">
+          <Link to="/api-help" className="tap-link text-[13px] font-medium text-primary hover:underline">
             {t("helpLink")}
           </Link>
         }
@@ -104,7 +104,7 @@ export function MyApiKeysCard() {
           </Button>
         </form>
         {data && data.keys.length === 0 ? (
-          <p className="text-[13px] text-muted">{t("empty")}</p>
+          <p className="text-[13px] text-muted-foreground">{t("empty")}</p>
         ) : (
           data && (
             <Table stack>
@@ -124,9 +124,9 @@ export function MyApiKeysCard() {
                   <Tr key={k.id}>
                     <Td className="font-medium">
                       {k.name}
-                      <span className="block text-xs font-normal text-muted">{formatDateTime(k.createdAt, i18n.language)}</span>
+                      <span className="block text-xs font-normal text-muted-foreground">{formatDateTime(k.createdAt, i18n.language)}</span>
                     </Td>
-                    <Td className="font-mono text-[13px] text-muted">{k.prefix}…</Td>
+                    <Td className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</Td>
                     <Status k={k} />
                     <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                       {!k.revokedAt && (
@@ -154,7 +154,7 @@ export function MyApiKeysCard() {
           </Button>
         }
       >
-        <div className="flex items-center gap-2 rounded-md border border-line bg-subtle p-3">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted p-3">
           <code data-testid="new-key-secret" className="min-w-0 flex-1 break-all font-mono text-[13px]">
             {secret}
           </code>
@@ -185,7 +185,7 @@ export function AllApiKeysCard() {
     <Card data-testid="all-api-keys" className="mt-8">
       <CardHeader title={t("adminTitle")} description={t("adminDescription")} />
       {data && data.keys.length === 0 ? (
-        <p className="px-5 py-6 text-center text-[13px] text-muted">{t("adminEmpty")}</p>
+        <p className="px-5 py-6 text-center text-[13px] text-muted-foreground">{t("adminEmpty")}</p>
       ) : (
         data && (
           <Table stack>
@@ -206,10 +206,10 @@ export function AllApiKeysCard() {
                 <Tr key={k.id}>
                   <Td>
                     {k.userName}
-                    <span className="block text-xs text-muted">{k.userEmail}</span>
+                    <span className="block text-xs text-muted-foreground">{k.userEmail}</span>
                   </Td>
                   <Td className="font-medium">{k.name}</Td>
-                  <Td className="font-mono text-[13px] text-muted">{k.prefix}…</Td>
+                  <Td className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</Td>
                   <Status k={k} />
                   <Td className="text-right max-md:-ml-2.5 max-md:text-left">
                     {!k.revokedAt && (

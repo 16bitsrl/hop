@@ -22,7 +22,7 @@ import {
   THead,
   Tr,
   useToast,
-} from "../components/ui";
+} from "../components/legacy";
 import { domainsQuery, type Domain } from "../features/links/api";
 import { api, ApiError } from "../lib/api";
 import { errorMessage } from "../lib/errors";
@@ -92,10 +92,10 @@ export function DomainsPage() {
                     <span className="font-medium">{d.host}</span> {d.isDefault && <Badge tone="green">{t("default")}</Badge>}
                   </Td>
                   <Td className="text-right tabular-nums max-md:text-left" label={t("columns.links")}>{d.linkCount}</Td>
-                  <Td className="max-w-56 truncate text-muted" label={t("columns.root")} title={d.rootUrl ?? undefined}>
+                  <Td className="max-w-56 truncate text-muted-foreground" label={t("columns.root")} title={d.rootUrl ?? undefined}>
                     {d.rootUrl ?? t("builtIn")}
                   </Td>
-                  <Td className="max-w-56 truncate text-muted" label={t("columns.notFound")} title={d.notFoundUrl ?? undefined}>
+                  <Td className="max-w-56 truncate text-muted-foreground" label={t("columns.notFound")} title={d.notFoundUrl ?? undefined}>
                     {d.notFoundUrl ?? t("builtIn")}
                   </Td>
                   {admin && (
@@ -175,7 +175,7 @@ function DomainForm({ domain, onClose }: { domain: Domain | null; onClose: () =>
       </Field>
       <Switch checked={isDefault} onChange={setIsDefault} disabled={domain?.isDefault} label={t("fields.default")} description={t("fields.defaultHint")} />
       {generalError && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-[13px] text-destructive">
           {generalError}
         </p>
       )}

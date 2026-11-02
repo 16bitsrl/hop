@@ -1,3 +1,4 @@
+import path from "node:path";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -76,5 +77,6 @@ export default defineConfig({
         : undefined,
     }),
   ],
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "src/web") } },
   server: { port, strictPort: true, allowedHosts: [".localhost"] },
 });

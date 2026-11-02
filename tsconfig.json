@@ -11,6 +11,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "paths": { "@/*": ["./src/web/*"] },
     "types": ["./worker-configuration.d.ts", "vite/client", "vite-plugin-pwa/client", "node"]
   },
   "include": ["src", "e2e", "scripts", "*.ts"]

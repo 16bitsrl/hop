@@ -25,7 +25,7 @@ import {
   THead,
   Tr,
   useToast,
-} from "../components/ui";
+} from "../components/legacy";
 import { directoryQuery, domainsQuery, foldersQuery, folderTree, tagsQuery, type Link } from "../features/links/api";
 import { CreateLinkDialog } from "../features/links/create-dialog";
 import { FoldersDialog } from "../features/links/folders-dialog";
@@ -233,7 +233,7 @@ export function LinksPage() {
       </div>
 
       {selected.size > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-line bg-subtle px-3 py-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
           <span className="mr-2 text-sm font-medium">{t("bulk.selected", { count: selected.size })}</span>
           {canCreate(me) && (
             <>
@@ -287,7 +287,7 @@ export function LinksPage() {
                   <input
                     type="checkbox"
                     aria-label={t("bulk.selectAll")}
-                    className="size-4 accent-[var(--accent)]"
+                    className="size-4 accent-[var(--primary)]"
                     checked={allSelected}
                     onChange={(e) => toggleAll(e.target.checked)}
                   />
@@ -310,7 +310,7 @@ export function LinksPage() {
                     <input
                       type="checkbox"
                       aria-label={t("bulk.select", { slug: l.slug })}
-                      className="size-4 accent-[var(--accent)]"
+                      className="size-4 accent-[var(--primary)]"
                       checked={selected.has(l.id)}
                       onChange={(e) => toggle(l.id, e.target.checked)}
                     />
@@ -318,7 +318,7 @@ export function LinksPage() {
                   <Td className="max-w-64">
                     <div className="flex items-center gap-1.5">
                       <RouterLink to="/links/$id" params={{ id: l.id }} className="truncate font-medium hover:underline">
-                        <span className="text-muted">{l.host}/</span>
+                        <span className="text-muted-foreground">{l.host}/</span>
                         {l.slug}
                       </RouterLink>
                       <button
@@ -326,22 +326,22 @@ export function LinksPage() {
                         aria-label={t("copyShort")}
                         title={t("copyShort")}
                         onClick={() => void copy(l)}
-                        className="shrink-0 rounded p-1 text-muted hover:bg-subtle hover:text-fg"
+                        className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
                         <CopyIcon />
                       </button>
                     </div>
                     {/* Always there, so every row has the same height. */}
-                    <p className="truncate text-[13px] text-muted" aria-hidden={!l.title}>
+                    <p className="truncate text-[13px] text-muted-foreground" aria-hidden={!l.title}>
                       {l.title || "\u00a0"}
                     </p>
                   </Td>
                   <Td className="max-w-48">
-                    <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="block truncate text-muted hover:text-fg hover:underline">
+                    <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="block truncate text-muted-foreground hover:text-foreground hover:underline">
                       {l.url}
                     </a>
                   </Td>
-                  <Td className="hidden whitespace-nowrap text-muted 2xl:table-cell">{l.ownerName ?? "—"}</Td>
+                  <Td className="hidden whitespace-nowrap text-muted-foreground 2xl:table-cell">{l.ownerName ?? "—"}</Td>
                   <Td>
                     <div className="flex flex-wrap gap-1">
                       {l.tags.map((x) => (
@@ -382,22 +382,22 @@ export function LinksPage() {
                   />
                   <div className="min-w-0 flex-1">
                     <RouterLink to="/links/$id" params={{ id: l.id }} className="block truncate font-medium">
-                      <span className="text-muted">{l.host}/</span>
+                      <span className="text-muted-foreground">{l.host}/</span>
                       {l.slug}
                     </RouterLink>
                     {l.title && <p className="truncate text-[13px]">{l.title}</p>}
-                    <p className="truncate text-[13px] text-muted">{l.url}</p>
+                    <p className="truncate text-[13px] text-muted-foreground">{l.url}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <StateBadges states={l.states} />
                       {l.tags.map((x) => (
                         <TagChip key={x.id} tag={x} />
                       ))}
                     </div>
-                    <p className="mt-2 text-xs text-muted">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       {t("card.meta", { clicks: l.clickCount, owner: l.ownerName ?? "—", date: formatDate(l.createdAt) })}
                     </p>
                   </div>
-                  <button type="button" aria-label={t("copyShort")} onClick={() => void copy(l)} className="rounded p-2 text-muted hover:bg-subtle">
+                  <button type="button" aria-label={t("copyShort")} onClick={() => void copy(l)} className="rounded p-2 text-muted-foreground hover:bg-muted">
                     <CopyIcon />
                   </button>
                 </div>
@@ -408,7 +408,7 @@ export function LinksPage() {
       )}
 
       {total > 0 && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted-foreground">
           <span>{t("total", { count: total })}</span>
           <div className="flex items-center gap-2">
             <Button size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>

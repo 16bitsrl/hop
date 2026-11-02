@@ -23,7 +23,7 @@ export function LinkStatsPage() {
         title={link?.title || address || t("page.title")}
         description={link?.title ? <span className="font-mono">{address}</span> : undefined}
         actions={
-          <Link to="/dashboard" className="tap-link text-[13px] text-muted hover:text-fg">
+          <Link to="/dashboard" className="tap-link text-[13px] text-muted-foreground hover:text-foreground">
             {t("page.backToDashboard")}
           </Link>
         }

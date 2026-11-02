@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, PageSpinner, useToast } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, Field, Input, PageSpinner, useToast } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 

@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
-import { Card, CardBody, CopyButton } from "../components/ui";
+import { Card, CardBody, CopyButton } from "../components/legacy";
 import { bookmarklet } from "../lib/share";
 
 function Code({ children }: { children: string }) {
   return (
     <div className="relative">
-      <pre className="overflow-x-auto rounded-md border border-line bg-subtle p-3 pr-20 font-mono text-[12.5px] leading-relaxed">{children}</pre>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-3 pr-20 font-mono text-[12.5px] leading-relaxed">{children}</pre>
       <div className="absolute right-2 top-2">
         <CopyButton value={children} />
       </div>
@@ -22,7 +22,7 @@ function Section({ title, text, children }: { title: string; text: string; child
       <CardBody className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="mt-1 text-[13px] leading-snug text-muted">{text}</p>
+          <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{text}</p>
         </div>
         {children}
       </CardBody>
@@ -37,7 +37,7 @@ export function ApiHelpPage() {
   const auth = `-H "Authorization: Bearer hop_your_key_here"`;
   return (
     <>
-      <Link to="/profile" className="tap-link mb-3 inline-block text-[13px] text-muted hover:text-fg">
+      <Link to="/profile" className="tap-link mb-3 inline-block text-[13px] text-muted-foreground hover:text-foreground">
         ← {t("help.back")}
       </Link>
       <PageHeader title={t("help.title")} description={t("help.description")} />

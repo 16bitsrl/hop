@@ -1,69 +1,22 @@
-import { createContext, useContext, useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from "react";
-import { cn } from "../../lib/cn";
+import * as React from "react"
+import { Input as InputPrimitive } from "@base-ui/react/input"
+import { cn } from "@/lib/utils"
+import { useFieldAria } from "@/components/ui/field"
 
-const control =
-  "w-full rounded-md border border-line-strong bg-surface px-2.5 text-sm text-fg placeholder:text-muted/70 " +
-  "transition-colors hover:border-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 " +
-  "aria-invalid:border-danger aria-invalid:focus:ring-danger/25 disabled:cursor-not-allowed disabled:bg-subtle disabled:opacity-70";
-
-const FieldContext = createContext<{ id: string; describedBy?: string; invalid: boolean } | null>(null);
-
-/** aria-describedby and aria-invalid for the control a surrounding <Field> labels (matched by id). */
-export function useFieldAria(id: string | undefined) {
-  const field = useContext(FieldContext);
-  if (!field || field.id !== id) return {};
-  return { "aria-describedby": field.describedBy, "aria-invalid": field.invalid || undefined };
-}
-
-export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn(control, "h-8", className)} {...useFieldAria(rest.id)} {...rest} />;
-}
-
-export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={cn(control, "min-h-20 py-1.5", className)} {...useFieldAria(rest.id)} {...rest} />;
-}
-
-export const controlClass = control;
-
-/**
- * Label + control + hint/error, wired together. Input, Textarea and Select given the id get
- * aria-describedby (hint or error) and aria-invalid (error) on their own; spread the second
- * argument onto any other control.
- *   <Field label="Email">{(id) => <Input id={id} type="email" />}</Field>
- */
-export function Field({
-  label,
-  hint,
-  error,
-  children,
-  className,
-}: {
-  label: string;
-  hint?: ReactNode;
-  error?: ReactNode;
-  children: (id: string, aria: { "aria-describedby"?: string; "aria-invalid"?: true }) => ReactNode;
-  className?: string;
-}) {
-  const id = useId();
-  const noteId = `${id}-note`;
-  const describedBy = error || hint ? noteId : undefined;
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  const aria = useFieldAria(props.id)
   return (
-    <FieldContext.Provider value={{ id, describedBy, invalid: !!error }}>
-      <div className={cn("flex flex-col gap-1.5", className)}>
-        <label htmlFor={id} className="text-[13px] font-medium text-fg">
-          {label}
-        </label>
-        {children(id, { "aria-describedby": describedBy, "aria-invalid": error ? true : undefined })}
-        {error ? (
-          <p id={noteId} role="alert" className="text-[13px] text-danger">
-            {error}
-          </p>
-        ) : hint ? (
-          <p id={noteId} className="text-[13px] leading-snug text-muted">
-            {hint}
-          </p>
-        ) : null}
-      </div>
-    </FieldContext.Provider>
-  );
+    <InputPrimitive
+      type={type}
+      data-slot="input"
+      className={cn(
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-card px-2.5 py-1 text-base transition-[color,border-color,box-shadow] duration-150 outline-none hover:not-disabled:not-focus-visible:border-muted-foreground/50 max-md:h-10 file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-muted/40 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        className
+      )}
+      {...aria}
+      {...props}
+    />
+  )
 }
+
+export { Input }

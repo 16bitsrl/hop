@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, PageSpinner } from "../components/ui";
+import { Button, Field, Input, PageSpinner } from "../components/legacy";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
 import { errorMessage, ssoErrorMessage } from "../lib/errors";
@@ -33,7 +33,7 @@ export function InvitePage() {
     return (
       <AuthCard title={t("invite.title")}>
         <p className="text-sm">{t("invite.invalid")}</p>
-        <p className="mt-1 text-[13px] text-muted">{t("invite.ask")}</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">{t("invite.ask")}</p>
       </AuthCard>
     );
   }
@@ -58,7 +58,7 @@ export function InvitePage() {
 
   return (
     <AuthCard title={t("invite.title")} description={t("invite.description", { role: t(`common:roles.${role}`).toLowerCase() })}>
-      <p className="mb-4 rounded-md bg-subtle px-3 py-2 text-sm font-medium">{email}</p>
+      <p className="mb-4 rounded-md bg-muted px-3 py-2 text-sm font-medium">{email}</p>
       <form onSubmit={submit} className="flex flex-col gap-3.5">
         <Field label={t("invite.name")}>
           {(id) => <Input id={id} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />}
@@ -69,7 +69,7 @@ export function InvitePage() {
           )}
         </Field>
         {error && (
-          <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-[13px] text-danger">
+          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
             {error}
           </p>
         )}
@@ -79,10 +79,10 @@ export function InvitePage() {
       </form>
       {config.oidc && (
         <>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted">
-            <span className="h-px flex-1 bg-line" />
+          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
             {t("login.or")}
-            <span className="h-px flex-1 bg-line" />
+            <span className="h-px flex-1 bg-border" />
           </div>
           <Button
             className="w-full"

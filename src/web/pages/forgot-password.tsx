@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, PageSpinner } from "../components/ui";
+import { Button, Field, Input, PageSpinner } from "../components/legacy";
 import { authClient } from "../lib/auth-client";
 import { appConfigQuery } from "../lib/session";
 
@@ -25,7 +25,7 @@ export function ForgotPasswordPage() {
   }
 
   const back = (
-    <Link to="/login" className="tap-link mt-4 block text-center text-[13px] text-muted hover:text-fg hover:underline">
+    <Link to="/login" className="tap-link mt-4 block text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
       {t("forgot.back")}
     </Link>
   );
@@ -33,7 +33,7 @@ export function ForgotPasswordPage() {
   if (!config.mailConfigured || !config.passwordLogin) {
     return (
       <AuthCard title={t("forgot.title")}>
-        <p className="text-sm text-muted">{t("forgot.noMail")}</p>
+        <p className="text-sm text-muted-foreground">{t("forgot.noMail")}</p>
         {back}
       </AuthCard>
     );

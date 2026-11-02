@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, ConfirmDialog, Dialog, Field, Input, Select, useToast } from "../../components/ui";
+import { Button, ConfirmDialog, Dialog, Field, Input, Select, useToast } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { canCreate, useMe } from "../../lib/session";
@@ -64,9 +64,9 @@ function FoldersBody() {
   return (
     <div className="flex flex-col gap-4">
       {tree.length === 0 ? (
-        <p className="text-[13px] text-muted">{t("folders.empty")}</p>
+        <p className="text-[13px] text-muted-foreground">{t("folders.empty")}</p>
       ) : (
-        <ul className="divide-y divide-line rounded-lg border border-line">
+        <ul className="divide-y divide-border rounded-lg border border-border">
           {tree.map((f) => (
             <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2" style={{ paddingLeft: `${0.75 + f.depth * 1.25}rem` }}>
               {editing?.id === f.id ? (
@@ -88,7 +88,7 @@ function FoldersBody() {
               ) : (
                 <>
                   <span className="min-w-0 truncate text-sm">
-                    {f.name} <span className="text-muted">({f.linkCount})</span>
+                    {f.name} <span className="text-muted-foreground">({f.linkCount})</span>
                   </span>
                   <span className="flex shrink-0 gap-1">
                     <Button size="sm" variant="ghost" disabled={!f.canModify} title={f.canModify ? undefined : t("folders.notYours")} aria-label={t("folders.rename", { name: f.name })} onClick={() => setEditing({ id: f.id, name: f.name })}>

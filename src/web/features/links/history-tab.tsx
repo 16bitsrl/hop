@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Card, CardBody, EmptyState, HistoryIcon, PageSpinner } from "../../components/ui";
+import { Card, CardBody, EmptyState, HistoryIcon, PageSpinner } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 
@@ -51,7 +51,7 @@ export function HistoryTab({ linkId }: { linkId: string }) {
 
   return (
     <Card>
-      <ul className="divide-y divide-line">
+      <ul className="divide-y divide-border">
         {items.map((entry) => {
           const verb = VERBS[entry.action] ?? "updated";
           const before = entry.data?.before ?? {};
@@ -63,18 +63,18 @@ export function HistoryTab({ linkId }: { linkId: string }) {
                 <p className="text-sm">
                   <span className="font-medium">{entry.userName ?? t("history.system")}</span>{" "}
                   {t(`history.verb.${verb}`)}
-                  {entry.data?.bulk ? <span className="text-muted"> {t("history.bulk")}</span> : null}
-                  {entry.data?.source === "import" ? <span className="text-muted"> {t("history.imported")}</span> : null}
-                  <span className="text-muted"> · {formatDateTime(entry.ts, i18n.language)}</span>
+                  {entry.data?.bulk ? <span className="text-muted-foreground"> {t("history.bulk")}</span> : null}
+                  {entry.data?.source === "import" ? <span className="text-muted-foreground"> {t("history.imported")}</span> : null}
+                  <span className="text-muted-foreground"> · {formatDateTime(entry.ts, i18n.language)}</span>
                 </p>
                 {keys.length > 0 && (
                   <dl className="flex flex-col gap-1 text-[13px]">
                     {keys.map((key) => (
                       <div key={key} className="grid gap-x-3 sm:grid-cols-[140px_1fr]">
-                        <dt className="text-muted">{t(`history.fields.${key}`, { defaultValue: key })}</dt>
+                        <dt className="text-muted-foreground">{t(`history.fields.${key}`, { defaultValue: key })}</dt>
                         <dd className="min-w-0 break-words">
-                          <span className="text-muted line-through decoration-muted/50">{format(key, before[key])}</span>
-                          <span className="mx-1.5 text-muted" aria-label={t("history.changedTo")}>
+                          <span className="text-muted-foreground line-through decoration-muted-foreground/50">{format(key, before[key])}</span>
+                          <span className="mx-1.5 text-muted-foreground" aria-label={t("history.changedTo")}>
                             →
                           </span>
                           <span>{format(key, after[key])}</span>

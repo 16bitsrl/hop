@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useToast } from "../../components/ui";
+import { useToast } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 

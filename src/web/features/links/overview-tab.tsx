@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Card, CardBody, CopyButton, Switch } from "../../components/ui";
+import { Card, CardBody, CopyButton, Switch } from "../../components/legacy";
 import { formatDateTime } from "../../lib/cn";
 import { LinkHealth } from "../data/health";
 import { foldersQuery, usePatchLink, type Link } from "./api";
@@ -9,7 +9,7 @@ import { StateBadges, TagChip } from "./parts";
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr] sm:gap-4">
-      <dt className="text-[13px] text-muted">{label}</dt>
+      <dt className="text-[13px] text-muted-foreground">{label}</dt>
       <dd className="min-w-0 break-words text-sm">{children}</dd>
     </div>
   );
@@ -21,7 +21,7 @@ export function OverviewTab({ link }: { link: Link }) {
   const folders = useQuery(foldersQuery);
   const patch = usePatchLink(link.id);
   const folder = folders.data?.find((f) => f.id === link.folderId);
-  const dash = <span className="text-muted">{t("none")}</span>;
+  const dash = <span className="text-muted-foreground">{t("none")}</span>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,14 +29,14 @@ export function OverviewTab({ link }: { link: Link }) {
         <CardBody className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[13px] text-muted">{t("overview.shortLink")}</p>
-              <a href={link.shortUrl} target="_blank" rel="noreferrer" data-testid="short-url" className="break-all text-lg font-semibold text-accent hover:underline">
+              <p className="text-[13px] text-muted-foreground">{t("overview.shortLink")}</p>
+              <a href={link.shortUrl} target="_blank" rel="noreferrer" data-testid="short-url" className="break-all text-lg font-semibold text-primary hover:underline">
                 {link.shortUrl}
               </a>
             </div>
             <CopyButton value={link.shortUrl} label={t("copyShort")} />
           </div>
-          <div className="border-t border-line pt-4">
+          <div className="border-t border-border pt-4">
             <Switch
               checked={link.enabled}
               onChange={(enabled) => patch.mutate({ enabled })}
@@ -50,7 +50,7 @@ export function OverviewTab({ link }: { link: Link }) {
 
       <Card>
         <CardBody>
-          <dl className="divide-y divide-line">
+          <dl className="divide-y divide-border">
             <Row label={t("fields.url")}>
               <a href={link.url} target="_blank" rel="noreferrer" className="break-all hover:underline">
                 {link.url}

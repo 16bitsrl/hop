@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, EmptyState, ErrorState, Field, HistoryIcon, PageSpinner, Select, Table, TBody, Td, Th, THead, Tr } from "../components/ui";
+import { Button, Card, EmptyState, ErrorState, Field, HistoryIcon, PageSpinner, Select, Table, TBody, Td, Th, THead, Tr } from "../components/legacy";
 import { directoryQuery } from "../features/links/api";
 import { api, qs } from "../lib/api";
 import { formatDateTime } from "../lib/cn";
@@ -139,19 +139,19 @@ function AuditContent() {
               <TBody>
                 {data.items.map((e) => (
                   <Tr key={e.id}>
-                    <Td className="whitespace-nowrap text-xs text-muted md:text-sm">{formatDateTime(e.ts, i18n.language)}</Td>
+                    <Td className="whitespace-nowrap text-xs text-muted-foreground md:text-sm">{formatDateTime(e.ts, i18n.language)}</Td>
                     <Td className="whitespace-nowrap">{e.userName ?? t("system")}</Td>
                     <Td className="whitespace-nowrap font-medium">{actionLabel(t, e.action)}</Td>
                     <Td className="text-[13px]">
-                      <span className="text-muted">{entityLabel(t, e.entityType)}</span>
+                      <span className="text-muted-foreground">{entityLabel(t, e.entityType)}</span>
                       {itemLabel(t, e) && <span className="ml-1.5 break-all">{itemLabel(t, e)}</span>}
                       {e.entityId && !itemLabel(t, e) && (
-                        <span className="ml-1.5 break-all font-mono text-xs text-muted" title={e.entityId}>
+                        <span className="ml-1.5 break-all font-mono text-xs text-muted-foreground" title={e.entityId}>
                           {e.entityId}
                         </span>
                       )}
                     </Td>
-                    <Td className="max-w-64 truncate font-mono text-xs text-muted max-md:!hidden" title={e.data ? JSON.stringify(e.data) : undefined}>
+                    <Td className="max-w-64 truncate font-mono text-xs text-muted-foreground max-md:!hidden" title={e.data ? JSON.stringify(e.data) : undefined}>
                       {e.data ? JSON.stringify(e.data) : ""}
                     </Td>
                   </Tr>
@@ -163,7 +163,7 @@ function AuditContent() {
       )}
 
       {data && data.total > 0 && (
-        <div className="mt-3 flex items-center justify-between text-[13px] text-muted">
+        <div className="mt-3 flex items-center justify-between text-[13px] text-muted-foreground">
           <span>{t("total", { count: data.total })}</span>
           <div className="flex items-center gap-2">
             <span>{t("page", { page, pages })}</span>

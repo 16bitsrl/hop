@@ -1,57 +1,30 @@
-import { useId, type InputHTMLAttributes, type ReactNode } from "react";
-import { cn } from "../../lib/cn";
 
-/** On/off toggle with its label and optional description. */
-export function Switch({
-  checked,
-  onChange,
-  label,
-  description,
-  disabled,
-}: {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  label: string;
-  description?: ReactNode;
-  disabled?: boolean;
+import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
+import { cn } from "@/lib/utils"
+
+function Switch({
+  className,
+  size = "default",
+  ...props
+}: SwitchPrimitive.Root.Props & {
+  size?: "sm" | "default"
 }) {
-  const id = useId();
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0">
-        <span id={id} className="text-sm font-medium text-fg">
-          {label}
-        </span>
-        {description && <p className="mt-0.5 text-[13px] leading-snug text-muted">{description}</p>}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={id}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] disabled:opacity-50",
-          checked ? "border-accent bg-accent" : "border-line-strong bg-subtle",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-1/2 size-3.5 -translate-y-1/2 rounded-full bg-white shadow transition-[left]",
-            checked ? "left-[19px]" : "left-[3px]",
-          )}
-        />
-      </button>
-    </div>
-  );
+    <SwitchPrimitive.Root
+      data-slot="switch"
+      data-size={size}
+      className={cn(
+        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent transition-all outline-none group-has-[:focus-visible]/field-label:border-transparent group-has-[:focus-visible]/field-label:ring-0 after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 data-checked:bg-primary data-unchecked:bg-input dark:data-unchecked:bg-input/80 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className="pointer-events-none block rounded-full bg-background ring-0 transition-transform group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] dark:data-checked:bg-primary-foreground group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 dark:data-unchecked:bg-foreground"
+      />
+    </SwitchPrimitive.Root>
+  )
 }
 
-export function Checkbox({ label, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  return (
-    <label className={cn("inline-flex items-center gap-2 text-sm text-fg", className)}>
-      <input type="checkbox" className="size-4 rounded border-line-strong accent-[var(--accent)]" {...rest} />
-      {label}
-    </label>
-  );
-}
+export { Switch }

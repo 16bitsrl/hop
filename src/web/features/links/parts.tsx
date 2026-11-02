@@ -1,14 +1,14 @@
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, CloseIcon } from "../../components/ui";
-import { controlClass } from "../../components/ui/input";
+import { Badge, CloseIcon } from "../../components/legacy";
+import { controlClass } from "../../components/legacy/input";
 import { cn } from "../../lib/cn";
 import type { LinkState, TagRef } from "./api";
 
 export function TagChip({ tag }: { tag: Pick<TagRef, "name" | "color"> }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-subtle px-1.5 py-0.5 text-xs font-medium text-fg">
-      <span className="size-2 rounded-full" style={{ background: tag.color ?? "var(--muted)" }} aria-hidden="true" />
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-xs font-medium text-foreground">
+      <span className="size-2 rounded-full" style={{ background: tag.color ?? "var(--muted-foreground)" }} aria-hidden="true" />
       {tag.name}
     </span>
   );
@@ -57,10 +57,10 @@ export function TagInput({
   return (
     <div className={cn(controlClass, "flex min-h-8 flex-wrap max-md:min-h-10 items-center gap-1.5 py-1", disabled && "opacity-70")}>
       {value.map((name) => (
-        <span key={name} className="inline-flex items-center gap-1 rounded-md bg-subtle px-1.5 py-0.5 text-xs font-medium">
+        <span key={name} className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium">
           {name}
           {!disabled && (
-            <button type="button" aria-label={t("tags.remove", { name })} onClick={() => onChange(value.filter((v) => v !== name))} className="no-tap relative text-muted hover:text-fg after:absolute after:-inset-3 after:content-['']">
+            <button type="button" aria-label={t("tags.remove", { name })} onClick={() => onChange(value.filter((v) => v !== name))} className="no-tap relative text-muted-foreground hover:text-foreground after:absolute after:-inset-3 after:content-['']">
               <CloseIcon width={12} height={12} />
             </button>
           )}
@@ -84,7 +84,7 @@ export function TagInput({
           } else if (e.key === "Backspace" && !text && value.length) onChange(value.slice(0, -1));
         }}
         onBlur={() => add(text)}
-        className="no-tap min-w-24 flex-1 border-0 bg-transparent p-0 text-sm outline-none placeholder:text-muted/70"
+        className="no-tap min-w-24 flex-1 border-0 bg-transparent p-0 text-sm outline-none placeholder:text-muted-foreground/70"
       />
       <datalist id={listId}>
         {suggestions.filter((s) => !value.includes(s)).map((s) => (

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, Select, Textarea, useToast } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, Field, Input, Select, Textarea, useToast } from "../../components/legacy";
 import { ApiError } from "../../lib/api";
 import { downloadBlob } from "../../lib/clipboard";
 import { errorMessage } from "../../lib/errors";
@@ -42,7 +42,7 @@ function UtmCard({ link }: { link: Link }) {
             </Field>
           ))}
         </fieldset>
-        <div className="rounded-lg border border-line bg-subtle px-3.5 py-3">
+        <div className="rounded-lg border border-border bg-muted px-3.5 py-3">
           <p className="text-[13px] font-medium">{t("utm.result")}</p>
           <code data-testid="utm-result" className="mt-1 block break-all font-mono text-xs">
             {result}
@@ -109,7 +109,7 @@ function QrCard({ link }: { link: Link }) {
       <CardHeader title={t("qr.title")} description={t("qr.description")} />
       <CardBody className="grid gap-6 sm:grid-cols-[auto_1fr]">
         <div
-          className="size-48 shrink-0 overflow-hidden rounded-lg border border-line [&>svg]:size-full"
+          className="size-48 shrink-0 overflow-hidden rounded-lg border border-border [&>svg]:size-full"
           style={{ background }}
           aria-label={t("qr.preview")}
           role="img"
@@ -242,16 +242,16 @@ function SocialCard({ link }: { link: Link }) {
 
         <div>
           <p className="mb-2 text-[13px] font-medium">{t("social.preview")}</p>
-          <div data-testid="social-card" className="overflow-hidden rounded-xl border border-line bg-surface">
+          <div data-testid="social-card" className="overflow-hidden rounded-xl border border-border bg-card">
             {shownImage ? (
-              <img src={shownImage} alt="" className="aspect-[1.91/1] w-full bg-subtle object-cover" />
+              <img src={shownImage} alt="" className="aspect-[1.91/1] w-full bg-muted object-cover" />
             ) : (
-              <div className="flex aspect-[1.91/1] w-full items-center justify-center bg-subtle text-[13px] text-muted">{t("social.noImage")}</div>
+              <div className="flex aspect-[1.91/1] w-full items-center justify-center bg-muted text-[13px] text-muted-foreground">{t("social.noImage")}</div>
             )}
-            <div className="border-t border-line px-3.5 py-3">
-              <p className="text-xs uppercase tracking-wide text-muted">{link.host}</p>
+            <div className="border-t border-border px-3.5 py-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{link.host}</p>
               <p className="mt-0.5 line-clamp-2 text-sm font-semibold">{shownTitle}</p>
-              {description && <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">{description}</p>}
+              {description && <p className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground">{description}</p>}
             </div>
           </div>
         </div>

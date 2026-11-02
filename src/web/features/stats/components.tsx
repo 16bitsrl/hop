@@ -1,8 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Card, CardBody, CardHeader, EmptyState, Input, Table, TBody, Td, Th, THead, Tr } from "../../components/ui";
-import { ChartIcon } from "../../components/ui/icons";
+import { Card, CardBody, CardHeader, EmptyState, Input, Table, TBody, Td, Th, THead, Tr } from "../../components/legacy";
+import { ChartIcon } from "../../components/legacy/icons";
 import { cn } from "../../lib/cn";
 import { useFormat } from "./format";
 import type { StatsParams } from "./queries";
@@ -28,7 +28,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
   const invalid = value.id === "custom" && !resolveRange(value);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div role="group" aria-label={t("range.label")} className="inline-flex flex-wrap rounded-lg border border-line bg-surface p-0.5 shadow-sm">
+      <div role="group" aria-label={t("range.label")} className="inline-flex flex-wrap rounded-lg border border-border bg-card p-0.5 shadow-sm">
         {RANGE_IDS.map((id) => (
           <button
             key={id}
@@ -42,7 +42,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
             }}
             className={cn(
               "h-7 rounded-md px-2.5 text-[13px] font-medium transition-colors",
-              value.id === id ? "bg-subtle text-fg shadow-[inset_0_0_0_1px_var(--line-strong)]" : "text-muted hover:text-fg",
+              value.id === id ? "bg-muted text-foreground shadow-[inset_0_0_0_1px_var(--input)]" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {t(`range.${id}`)}
@@ -51,7 +51,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
       </div>
       {value.id === "custom" && (
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-1.5 text-[13px] text-muted">
+          <label className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
             {t("range.from")}
             <Input
               type="date"
@@ -61,7 +61,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
               onChange={(e) => onChange({ ...value, from: e.target.value })}
             />
           </label>
-          <label className="flex items-center gap-1.5 text-[13px] text-muted">
+          <label className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
             {t("range.to")}
             <Input
               type="date"
@@ -72,7 +72,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
             />
           </label>
           {invalid && (
-            <p role="alert" className="text-[13px] text-danger">
+            <p role="alert" className="text-[13px] text-destructive">
               {t("range.invalid")}
             </p>
           )}
@@ -83,7 +83,7 @@ export function RangePicker({ value, onChange }: { value: RangeState; onChange: 
 }
 
 const linkClass =
-  "inline-flex h-7 max-md:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-line-strong bg-surface px-2.5 text-[13px] font-medium text-fg shadow-sm transition-colors hover:bg-subtle";
+  "inline-flex h-7 max-md:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-input bg-card px-2.5 text-[13px] font-medium text-foreground shadow-sm transition-colors hover:bg-muted";
 
 /** Plain download links: the browser sends the session cookie. */
 export function ExportLinks({ clicksUrl, summaryUrl }: { clicksUrl: string; summaryUrl: string }) {
@@ -104,12 +104,12 @@ export function ExportLinks({ clicksUrl, summaryUrl }: { clicksUrl: string; summ
 
 export function Kpi({ id, label, value, hint }: { id: string; label: string; value: ReactNode; hint?: string }) {
   return (
-    <div data-testid={`kpi-${id}`} className="rounded-xl border border-line bg-surface px-4 py-3.5">
-      <p className="text-[13px] text-muted">{label}</p>
+    <div data-testid={`kpi-${id}`} className="rounded-xl border border-border bg-card px-4 py-3.5">
+      <p className="text-[13px] text-muted-foreground">{label}</p>
       <p data-testid={`kpi-${id}-value`} className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
         {value}
       </p>
-      {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
+      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -131,7 +131,7 @@ export function KpiRow({ data, withBots = true, extra }: { data: Summary | undef
 
 /* ------------------------------ time series ------------------------------ */
 
-const axisTick = { fill: "var(--muted)", fontSize: 12 };
+const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
 
 function SeriesTooltip({
   active,
@@ -147,8 +147,8 @@ function SeriesTooltip({
   if (!active || !payload?.length) return null;
   const p = payload[0]!.payload;
   return (
-    <div className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-[13px] shadow-lg">
-      <p className="text-muted">{f.bucket(p.key, bucket, true)}</p>
+    <div className="rounded-lg border border-input bg-card px-3 py-2 text-[13px] shadow-lg">
+      <p className="text-muted-foreground">{f.bucket(p.key, bucket, true)}</p>
       <p className="font-medium tabular-nums">{t("chart.clicks", { count: p.clicks, formatted: f.number(p.clicks) })}</p>
     </div>
   );
@@ -166,13 +166,13 @@ export function SeriesChart({ data, title }: { data: Summary | undefined; title?
   };
   const axes = (
     <>
-      <CartesianGrid stroke="var(--line)" vertical={false} />
+      <CartesianGrid stroke="var(--border)" vertical={false} />
       <XAxis
         dataKey="key"
         tickFormatter={(k: string) => f.bucket(k, bucket)}
         tick={axisTick}
         tickLine={false}
-        axisLine={{ stroke: "var(--line-strong)" }}
+        axisLine={{ stroke: "var(--input)" }}
         minTickGap={24}
       />
       <YAxis
@@ -183,7 +183,7 @@ export function SeriesChart({ data, title }: { data: Summary | undefined; title?
         axisLine={false}
         tickFormatter={(n: number) => f.number(n)}
       />
-      <Tooltip cursor={{ fill: "var(--subtle)", stroke: "var(--line-strong)" }} content={<SeriesTooltip bucket={bucket} />} />
+      <Tooltip cursor={{ fill: "var(--muted)", stroke: "var(--input)" }} content={<SeriesTooltip bucket={bucket} />} />
     </>
   );
 
@@ -204,12 +204,12 @@ export function SeriesChart({ data, title }: { data: Summary | undefined; title?
               {series.length > 45 ? (
                 <AreaChart {...common}>
                   {axes}
-                  <Area isAnimationActive={false} type="monotone" dataKey="clicks" stroke="var(--accent)" strokeWidth={2} fill="var(--accent)" fillOpacity={0.14} />
+                  <Area isAnimationActive={false} type="monotone" dataKey="clicks" stroke="var(--primary)" strokeWidth={2} fill="var(--primary)" fillOpacity={0.14} />
                 </AreaChart>
               ) : (
                 <BarChart {...common}>
                   {axes}
-                  <Bar isAnimationActive={false} dataKey="clicks" fill="var(--accent)" radius={[3, 3, 0, 0]} maxBarSize={36} />
+                  <Bar isAnimationActive={false} dataKey="clicks" fill="var(--primary)" radius={[3, 3, 0, 0]} maxBarSize={36} />
                 </BarChart>
               )}
             </ResponsiveContainer>
@@ -245,7 +245,7 @@ export function BreakdownTable({
     <Card data-testid={`breakdown-${id}`} className={className}>
       <CardHeader title={title} />
       {items.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[13px] text-muted">{t("noData")}</p>
+        <p className="px-5 py-8 text-center text-[13px] text-muted-foreground">{t("noData")}</p>
       ) : (
         <Table>
           <THead className="sr-only">
@@ -261,16 +261,16 @@ export function BreakdownTable({
                 <Td className="relative w-full max-w-0 py-2">
                   <span
                     aria-hidden
-                    className="absolute inset-y-1 left-3 rounded bg-accent/12"
+                    className="absolute inset-y-1 left-3 rounded bg-primary/12"
                     style={{ width: `calc(${(item.clicks / max) * 100}% - 0.5rem)` }}
                   />
                   <span className="relative block truncate">
                     {item.label}
-                    {item.sub && <span className="ml-1.5 text-xs text-muted">{item.sub}</span>}
+                    {item.sub && <span className="ml-1.5 text-xs text-muted-foreground">{item.sub}</span>}
                   </span>
                 </Td>
                 <Td className="text-right font-medium tabular-nums">{f.number(item.clicks)}</Td>
-                <Td className="w-14 pl-0 text-right text-[13px] tabular-nums text-muted">
+                <Td className="w-14 pl-0 text-right text-[13px] tabular-nums text-muted-foreground">
                   {total > 0 ? f.percent(item.clicks / total) : ""}
                 </Td>
               </Tr>

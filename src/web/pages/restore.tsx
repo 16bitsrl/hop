@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input } from "../components/ui";
+import { Button, Field, Input } from "../components/legacy";
 import { InvalidBackupError, restoreBackup } from "../features/data/restore";
 import { errorMessage } from "../lib/errors";
 import { appConfigQuery } from "../lib/session";
@@ -53,8 +53,8 @@ export function RestorePage() {
   if (config && !config.setupRequired) {
     return (
       <AuthCard title={t("restore.page.title")}>
-        <p className="text-sm text-muted">{t("restore.page.notEmpty")}</p>
-        <Link to="/login" className="tap-link mt-4 inline-block text-[13px] text-muted hover:text-fg hover:underline">
+        <p className="text-sm text-muted-foreground">{t("restore.page.notEmpty")}</p>
+        <Link to="/login" className="tap-link mt-4 inline-block text-[13px] text-muted-foreground hover:text-foreground hover:underline">
           {t("restore.page.signIn")}
         </Link>
       </AuthCard>
@@ -72,7 +72,7 @@ export function RestorePage() {
               accept=".ndjson,.gz,application/gzip,application/x-ndjson,text/plain"
               required
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border file:border-line file:bg-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-fg"
+              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground"
             />
           )}
         </Field>
@@ -84,18 +84,18 @@ export function RestorePage() {
         {progress && (
           <div role="status" className="flex flex-col gap-1.5">
             <progress className="h-2 w-full" max={progress.total || 1} value={progress.done} />
-            <p className="text-[13px] text-muted">{progress.total ? t("restore.page.progress", { done: progress.done, total: progress.total }) : t("restore.page.working")}</p>
+            <p className="text-[13px] text-muted-foreground">{progress.total ? t("restore.page.progress", { done: progress.done, total: progress.total }) : t("restore.page.working")}</p>
           </div>
         )}
         {error && (
-          <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-[13px] text-danger">
+          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
             {error}
           </p>
         )}
         <Button type="submit" variant="primary" loading={!!progress} disabled={!file}>
           {t("restore.page.submit")}
         </Button>
-        <Link to="/setup" className="tap-link text-center text-[13px] text-muted hover:text-fg hover:underline">
+        <Link to="/setup" className="tap-link text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
           {t("restore.page.back")}
         </Link>
       </form>

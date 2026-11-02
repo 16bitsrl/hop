@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, CardBody, CardHeader, CopyButton, ErrorState, Field, Input, PageSpinner, Select, Switch, TabPanel, Tabs, useToast } from "../components/ui";
+import { Button, Card, CardBody, CardHeader, CopyButton, ErrorState, Field, Input, PageSpinner, Select, Switch, TabPanel, Tabs, useToast } from "../components/legacy";
 import { DataTab } from "../features/data/data-tab";
 import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
@@ -197,13 +197,13 @@ function OidcCard({ s }: { s: Settings }) {
               </Field>
             </div>
           )}
-          <div className="rounded-lg border border-line bg-subtle px-3.5 py-3">
+          <div className="rounded-lg border border-border bg-muted px-3.5 py-3">
             <p className="text-[13px] font-medium">{t("sso.redirect")}</p>
             <div className="mt-1.5 flex items-center justify-between gap-3">
               <code className="min-w-0 break-all font-mono text-xs">{s.redirectUri}</code>
               <CopyButton value={s.redirectUri} />
             </div>
-            <p className="mt-1.5 text-[13px] text-muted">{t("sso.redirectHint")}</p>
+            <p className="mt-1.5 text-[13px] text-muted-foreground">{t("sso.redirectHint")}</p>
           </div>
           <div>
             <Button type="submit" variant="primary" loading={save.isPending}>

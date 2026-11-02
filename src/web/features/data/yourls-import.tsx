@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, Select, Spinner } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, Field, Input, Select, Spinner } from "../../components/legacy";
 import { api } from "../../lib/api";
 import { formatDate } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
@@ -110,7 +110,7 @@ export function YourlsImport() {
                     const f = e.target.files?.[0];
                     if (f) void choose(f);
                   }}
-                  className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border file:border-line file:bg-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-fg"
+                  className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground"
                 />
               )}
             </Field>
@@ -118,7 +118,7 @@ export function YourlsImport() {
         )}
 
         {step.kind === "reading" && (
-          <div className="flex items-center gap-3 text-sm text-muted" role="status">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
             <Spinner />
             {t("yourls.reading")} {Math.round(step.fraction * 100)}%
           </div>
@@ -155,7 +155,7 @@ export function YourlsImport() {
           <>
             <h3 className="text-sm font-semibold">{t("yourls.options.title")}</h3>
             {domains.data?.length === 0 ? (
-              <p className="text-sm text-muted">{t("yourls.options.noDomains")}</p>
+              <p className="text-sm text-muted-foreground">{t("yourls.options.noDomains")}</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={t("yourls.options.domain")} hint={t("yourls.options.domainHint")}>
@@ -209,9 +209,9 @@ export function YourlsImport() {
 
             <div className="flex flex-col gap-2" data-testid="import-conflicts">
               {conflicts.isPending ? (
-                <p className="text-sm text-muted">{t("yourls.options.checking")}</p>
+                <p className="text-sm text-muted-foreground">{t("yourls.options.checking")}</p>
               ) : (conflicts.data?.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted">{t("yourls.options.noConflicts")}</p>
+                <p className="text-sm text-muted-foreground">{t("yourls.options.noConflicts")}</p>
               ) : (
                 <>
                   <p className="text-sm font-medium">{t("yourls.options.conflicts", { count: conflicts.data!.length })}</p>
@@ -219,12 +219,12 @@ export function YourlsImport() {
                     <input type="radio" name="conflict" checked={opts.onConflict === "skip"} onChange={() => setOpts({ ...opts, onConflict: "skip" })} />
                     <span>{t("yourls.options.skip")}</span>
                   </label>
-                  <p className="-mt-1 pl-6 text-[13px] text-muted">{t("yourls.options.skipHint")}</p>
+                  <p className="-mt-1 pl-6 text-[13px] text-muted-foreground">{t("yourls.options.skipHint")}</p>
                   <label className="flex items-center gap-2 text-sm">
                     <input type="radio" name="conflict" checked={opts.onConflict === "overwrite"} onChange={() => setOpts({ ...opts, onConflict: "overwrite" })} />
                     <span>{t("yourls.options.overwrite")}</span>
                   </label>
-                  <p className="-mt-1 pl-6 text-[13px] text-muted">{t("yourls.options.overwriteHint")}</p>
+                  <p className="-mt-1 pl-6 text-[13px] text-muted-foreground">{t("yourls.options.overwriteHint")}</p>
                 </>
               )}
             </div>
@@ -242,13 +242,13 @@ export function YourlsImport() {
           <div className="flex flex-col gap-3" role="status">
             <h3 className="text-sm font-semibold">{t("yourls.progress.title")}</h3>
             <progress className="h-2 w-full" max={step.progress.total || 1} value={step.progress.done} />
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted-foreground">
               {t(step.progress.phase === "links" ? "yourls.progress.links" : "yourls.progress.clicks", {
                 done: num(step.progress.done, i18n.language),
                 total: num(step.progress.total, i18n.language),
               })}
             </p>
-            <p className="text-[13px] text-muted">{t("yourls.progress.keepOpen")}</p>
+            <p className="text-[13px] text-muted-foreground">{t("yourls.progress.keepOpen")}</p>
           </div>
         )}
 
@@ -262,8 +262,8 @@ export function YourlsImport() {
 
 function Stat({ label, value, id, hint }: { label: string; value: string; id?: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-line px-3 py-2.5" title={hint}>
-      <dt className="text-[13px] text-muted">{label}</dt>
+    <div className="rounded-lg border border-border px-3 py-2.5" title={hint}>
+      <dt className="text-[13px] text-muted-foreground">{label}</dt>
       <dd data-testid={id} className="mt-0.5 text-lg font-semibold tabular-nums">
         {value}
       </dd>
@@ -287,14 +287,14 @@ function Report({ report, host, onAgain }: { report: ImportReport; host: string;
         <Stat label={t("yourls.report.orphans")} value={n(report.clicksOrphans)} id="report-orphans" />
       </dl>
       {report.totals && (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-muted-foreground">
           {t("yourls.report.check", { host, links: n(report.totals.links), clicks: n(report.totals.lifetimeClicks), history: n(report.totals.importedClicks) })}
         </p>
       )}
       {report.failed.length > 0 && (
         <div className="text-sm">
           <p className="font-medium">{t("yourls.report.problems")}</p>
-          <ul className="mt-1 list-disc pl-5 text-muted">
+          <ul className="mt-1 list-disc pl-5 text-muted-foreground">
             {report.failed.slice(0, 20).map((f) => (
               <li key={f.keyword}>
                 <code className="font-mono text-xs">{f.keyword}</code>: {t(`yourls.report.reasons.${f.error}`, { defaultValue: f.error })}

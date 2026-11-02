@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Checkbox, Field, Input, useToast } from "../../components/ui";
+import { Button, Card, CardBody, CardHeader, Checkbox, Field, Input, useToast } from "../../components/legacy";
 import { usePatchLink, type Link, type LinkRule } from "./api";
 import { ReadOnlyNotice, SaveBar } from "./edit-tab";
 
@@ -76,11 +76,11 @@ export function SmartTab({ link }: { link: Link }) {
           }
         />
         <CardBody className="flex flex-col gap-4">
-          {rules.length === 0 && <p className="text-[13px] text-muted">{t("smart.noRules")}</p>}
+          {rules.length === 0 && <p className="text-[13px] text-muted-foreground">{t("smart.noRules")}</p>}
           {rules.map((r, i) => {
             const n = i + 1;
             return (
-              <fieldset key={i} disabled={readOnly} className="flex flex-col gap-3 rounded-lg border border-line p-4">
+              <fieldset key={i} disabled={readOnly} className="flex flex-col gap-3 rounded-lg border border-border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium">{t("smart.ruleN", { n })}</p>
                   <div className="flex gap-1">
@@ -146,8 +146,8 @@ export function SmartTab({ link }: { link: Link }) {
           }
         />
         <CardBody className="flex flex-col gap-3">
-          {variants.length === 0 && <p className="text-[13px] text-muted">{t("smart.noVariants")}</p>}
-          {variants.length === 1 && <p className="text-[13px] text-warn">{t("smart.variantsMin")}</p>}
+          {variants.length === 0 && <p className="text-[13px] text-muted-foreground">{t("smart.noVariants")}</p>}
+          {variants.length === 1 && <p className="text-[13px] text-warning">{t("smart.variantsMin")}</p>}
           {variants.map((v, i) => (
             <fieldset key={i} disabled={readOnly} className="grid items-end gap-3 sm:grid-cols-[1fr_110px_56px_auto]">
               <Field label={t("smart.variantUrl", { n: i + 1 })}>

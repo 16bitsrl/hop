@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthCard } from "../components/auth-layout";
-import { Button, Field, Input, useToast } from "../components/ui";
+import { Button, Field, Input, useToast } from "../components/legacy";
 import { authClient } from "../lib/auth-client";
 
 export function ResetPasswordPage() {
@@ -17,8 +17,8 @@ export function ResetPasswordPage() {
   if (!token || urlError) {
     return (
       <AuthCard title={t("reset.title")}>
-        <p className="text-sm text-muted">{t("reset.invalid")} {t("reset.requestAnother")}</p>
-        <Link to="/login" className="tap-link mt-4 block text-center text-[13px] text-muted hover:text-fg hover:underline">
+        <p className="text-sm text-muted-foreground">{t("reset.invalid")} {t("reset.requestAnother")}</p>
+        <Link to="/login" className="tap-link mt-4 block text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline">
           {t("forgot.back")}
         </Link>
       </AuthCard>
@@ -48,7 +48,7 @@ export function ResetPasswordPage() {
           )}
         </Field>
         {error && (
-          <p role="alert" className="rounded-md bg-danger-soft px-3 py-2 text-[13px] text-danger">
+          <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive">
             {error}
           </p>
         )}

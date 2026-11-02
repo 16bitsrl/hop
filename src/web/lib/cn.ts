@@ -1,7 +1,5 @@
-/** Joins class names, skipping falsy values. */
-export function cn(...parts: (string | false | null | undefined)[]): string {
-  return parts.filter(Boolean).join(" ");
-}
+/** Joins class names, skipping falsy values; later Tailwind classes win over earlier ones. */
+export { cn } from "./utils";
 
 /** Date and time in the current language, e.g. "1 Nov 2026, 14:05". */
 export function formatDateTime(value: string | number | Date, locale?: string): string {

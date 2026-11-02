@@ -1,103 +1,211 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens. Neutral and warm, one calm green accent. */
+/* Base UI state attributes (data-open, data-checked, ...) as Tailwind variants. */
+@custom-variant data-open {
+  &:where([data-state="open"]),
+  &:where([data-open]:not([data-open="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-closed {
+  &:where([data-state="closed"]),
+  &:where([data-closed]:not([data-closed="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-checked {
+  &:where([data-state="checked"]),
+  &:where([data-checked]:not([data-checked="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-unchecked {
+  &:where([data-state="unchecked"]),
+  &:where([data-unchecked]:not([data-unchecked="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-selected {
+  &:where([data-selected="true"]) {
+    @slot;
+  }
+}
+
+/*
+ * Design tokens. Neutral and warm, one calm green accent.
+ * The names follow shadcn/ui so its components read them directly; every color, radius and
+ * motion decision of the app lives here. Change the look here, not in the components.
+ *
+ *   background / foreground   page canvas and body text
+ *   card, popover             raised surfaces (cards, menus, dialogs)
+ *   primary                   the green accent: main actions, links, selection, focus ring
+ *   secondary, muted, accent  quiet fills: secondary buttons, subtle panels, hovered menu items
+ *   muted-foreground          secondary text
+ *   border / input            hairlines / control borders
+ *   destructive, success, warning, info (+ -soft)  statuses
+ */
 :root {
-  --canvas: #f7f7f5;
-  --surface: #ffffff;
-  --subtle: #f1f1ee;
-  --line: #e4e3de;
-  --line-strong: #cfcdc6;
-  --fg: #1b1b19;
-  --muted: #6b6a64;
-  --accent: #0f7a5c;
-  --accent-hover: #0c6a50;
-  --accent-fg: #ffffff;
-  --danger: #c2362b;
-  --danger-fg: #ffffff;
-  --danger-soft: #fbeceb;
+  --background: #f7f7f5;
+  --foreground: #1b1b19;
+  --card: #ffffff;
+  --card-foreground: #1b1b19;
+  --popover: #ffffff;
+  --popover-foreground: #1b1b19;
+  --primary: #0f7a5c;
+  --primary-hover: #0c6a50;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3f1eb;
+  --secondary: #f1f1ee;
+  --secondary-foreground: #1b1b19;
+  --muted: #f1f1ee;
+  --muted-foreground: #6b6a64;
+  --accent: #efeeea;
+  --accent-foreground: #1b1b19;
+  --destructive: #c2362b;
+  --destructive-foreground: #ffffff;
+  --destructive-soft: #fbeceb;
   --success: #17703f;
   --success-soft: #e6f4ec;
-  --warn: #8a5a00;
-  --warn-soft: #fbf1dc;
+  --warning: #8a5a00;
+  --warning-soft: #fbf1dc;
   --info: #25589a;
   --info-soft: #e8f0fa;
+  --border: #e4e3de;
+  --input: #cfcdc6;
+  --ring: #0f7a5c;
+  --overlay: rgb(20 20 18 / 0.4);
+  --chart-1: #0f7a5c;
+  --chart-2: #4fa386;
+  --chart-3: #9ac9b7;
+  --chart-4: #8a5a00;
+  --chart-5: #25589a;
+  --radius: 0.5rem;
+  --shadow-color: 40 20% 10%;
   color-scheme: light;
 }
 
 .dark {
-  --canvas: #0d0d0c;
-  --surface: #151514;
-  --subtle: #1d1d1b;
-  --line: #292927;
-  --line-strong: #3a3a37;
-  --fg: #ecebe7;
-  --muted: #9a988f;
-  --accent: #3cc596;
-  --accent-hover: #55d3a9;
-  --accent-fg: #06150f;
-  --danger: #f0746a;
-  --danger-fg: #1f0806;
-  --danger-soft: #2c1816;
+  --background: #0d0d0c;
+  --foreground: #ecebe7;
+  --card: #151514;
+  --card-foreground: #ecebe7;
+  --popover: #1a1a18;
+  --popover-foreground: #ecebe7;
+  --primary: #3cc596;
+  --primary-hover: #55d3a9;
+  --primary-foreground: #06150f;
+  --primary-soft: #12271f;
+  --secondary: #1d1d1b;
+  --secondary-foreground: #ecebe7;
+  --muted: #1d1d1b;
+  --muted-foreground: #9a988f;
+  --accent: #242422;
+  --accent-foreground: #ecebe7;
+  --destructive: #f0746a;
+  --destructive-foreground: #1f0806;
+  --destructive-soft: #2c1816;
   --success: #5ccf92;
   --success-soft: #11251a;
-  --warn: #e3b252;
-  --warn-soft: #2a2110;
+  --warning: #e3b252;
+  --warning-soft: #2a2110;
   --info: #7fb0ee;
   --info-soft: #111f30;
+  --border: #292927;
+  --input: #3a3a37;
+  --ring: #3cc596;
+  --overlay: rgb(0 0 0 / 0.6);
+  --chart-1: #3cc596;
+  --chart-2: #2a8f6c;
+  --chart-3: #1d5c47;
+  --chart-4: #e3b252;
+  --chart-5: #7fb0ee;
   color-scheme: dark;
 }
 
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-subtle: var(--subtle);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-fg: var(--fg);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-fg: var(--accent-fg);
-  --color-danger: var(--danger);
-  --color-danger-fg: var(--danger-fg);
-  --color-danger-soft: var(--danger-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
-  --color-warn: var(--warn);
-  --color-warn-soft: var(--warn-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-heading: var(--font-sans);
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Motion: small and quick. Everything is switched off under prefers-reduced-motion (below). */
+  --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --shadow-raised: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 1px 1px hsl(var(--shadow-color) / 0.03);
+  --shadow-overlay: 0 12px 32px -8px hsl(var(--shadow-color) / 0.18), 0 2px 6px hsl(var(--shadow-color) / 0.08);
 }
 
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
   html {
     font-size: 14px;
   }
   body {
-    background: var(--canvas);
-    color: var(--fg);
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
   ::selection {
-    background: color-mix(in oklab, var(--accent) 25%, transparent);
+    background: color-mix(in oklab, var(--primary) 25%, transparent);
   }
   dialog::backdrop {
-    background: rgb(10 10 9 / 0.45);
+    background: var(--overlay);
   }
   button:not(:disabled),
   [role="tab"],
   [role="switch"],
+  [role="checkbox"],
+  [role="combobox"],
+  [role="menuitem"],
+  [role="option"],
   select:not(:disabled) {
     cursor: pointer;
   }
@@ -105,19 +213,18 @@
 
 /* Touch screens: every control is at least 40px tall (and icon buttons 40px wide). */
 @media (max-width: 767px) {
-  button:not(.no-tap):not([role="switch"]),
+  button:not(.no-tap):not([role="switch"]):not([role="checkbox"]),
   select,
   textarea,
+  [role="combobox"],
+  [role="menuitem"],
+  [role="option"],
   input:not(.no-tap):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
   [role="tab"] {
     min-height: 40px;
   }
-  button:not(.no-tap):not([role="switch"]) {
+  button:not(.no-tap):not([role="switch"]):not([role="checkbox"]) {
     min-width: 40px;
-  }
-  input[type="checkbox"] {
-    width: 1.25rem;
-    height: 1.25rem;
   }
   .tap-link {
     display: inline-flex;
@@ -126,30 +233,12 @@
   }
 }
 
-@keyframes hop-pop {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes hop-slide {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
