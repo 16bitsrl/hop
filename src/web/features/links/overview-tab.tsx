@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { CopyButton } from "@/components/copy-button";
+import { CopyIconButton } from "@/components/copy-button";
 import { SwitchField } from "@/components/toggle-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "../../lib/cn";
@@ -29,14 +29,14 @@ export function OverviewTab({ link }: { link: Link }) {
     <div className="flex flex-col gap-5">
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[13px] text-muted-foreground">{t("overview.shortLink")}</p>
-              <a href={link.shortUrl} target="_blank" rel="noreferrer" data-testid="short-url" className="text-lg font-semibold break-all text-primary underline-offset-4 hover:underline">
+          <div className="min-w-0">
+            <p className="text-[13px] text-muted-foreground">{t("overview.shortLink")}</p>
+            <div className="flex items-center gap-1">
+              <a href={link.shortUrl} target="_blank" rel="noreferrer" data-testid="short-url" className="min-w-0 text-lg font-semibold break-all text-primary underline-offset-4 hover:underline">
                 {link.shortUrl}
               </a>
+              <CopyIconButton value={link.shortUrl} label={t("copyShort")} className="shrink-0" />
             </div>
-            <CopyButton value={link.shortUrl} label={t("copyShort")} />
           </div>
           <div className="border-t border-border pt-4">
             <SwitchField

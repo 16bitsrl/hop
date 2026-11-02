@@ -180,9 +180,7 @@ test("the copy button turns into a check for a moment, then back", async ({ page
   await expect(button).not.toHaveAttribute("data-copied");
   await button.click();
   await expect(button).toHaveAttribute("data-copied", "true");
-  await expect(button).toContainText("Copied");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(link.shortUrl);
   // About a second and a half later it is a copy button again.
   await expect(button).not.toHaveAttribute("data-copied", { timeout: 3000 });
-  await expect(button).toContainText("Copy short link");
 });
