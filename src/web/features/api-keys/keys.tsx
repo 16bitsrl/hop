@@ -1,26 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { KeyRoundIcon, PlusIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Badge,
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  ConfirmDialog,
-  CopyButton,
-  Dialog,
-  Field,
-  Input,
-  Table,
-  TBody,
-  Td,
-  Th,
-  THead,
-  Tr,
-  useToast,
-} from "../../components/legacy";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { CopyButton } from "@/components/copy-button";
+import { FormField } from "@/components/form-field";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/lib/toast";
 import { api } from "../../lib/api";
 import { formatDateTime } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
@@ -34,7 +27,6 @@ const allKeys = { queryKey: ["api-keys", "all"], queryFn: () => api<{ keys: Admi
 function useRevoke(onDone: () => void) {
   const { t } = useTranslation("apiKeys");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api(`/api/api-keys/${id}`, { method: "DELETE" }),
@@ -51,9 +43,24 @@ function Status({ k }: { k: Key }) {
   const { t, i18n } = useTranslation("apiKeys");
   return (
     <>
-      <Td className="whitespace-nowrap text-[13px] text-muted-foreground" label={t("columns.lastUsed")}>{k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}</Td>
-      <Td>{k.revokedAt ? <Badge tone="neutral">{t("revoked")}</Badge> : <Badge tone="green">{t("active")}</Badge>}</Td>
+      <TableCell className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums" label={t("columns.lastUsed")}>
+        {k.lastUsedAt ? formatDateTime(k.lastUsedAt, i18n.language) : t("neverUsed")}
+      </TableCell>
+      <TableCell>{k.revokedAt ? <Badge variant="secondary">{t("revoked")}</Badge> : <Badge variant="success">{t("active")}</Badge>}</TableCell>
     </>
+  );
+}
+
+function RevokeCell({ k, onRevoke }: { k: Key; onRevoke: () => void }) {
+  const { t } = useTranslation("apiKeys");
+  return (
+    <TableCell className="text-right max-md:-ml-2.5 max-md:text-left">
+      {!k.revokedAt && (
+        <Button size="sm" variant="destructive-ghost" onClick={onRevoke}>
+          {t("revoke")}
+        </Button>
+      )}
+    </TableCell>
   );
 }
 
@@ -61,9 +68,8 @@ function Status({ k }: { k: Key }) {
 export function MyApiKeysCard() {
   const { t, i18n } = useTranslation("apiKeys");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
-  const { data } = useQuery(myKeys);
+  const keys = useQuery(myKeys);
   const [name, setName] = useState("");
   const [secret, setSecret] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<Key | null>(null);
@@ -84,82 +90,80 @@ export function MyApiKeysCard() {
   };
 
   return (
-    <Card data-testid="api-keys">
-      <CardHeader
-        title={t("title")}
-        description={t("description")}
-        action={
+    <Card data-testid="api-keys" className="pb-0">
+      <CardHeader>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+        <CardAction>
           <Link to="/api-help" className="tap-link text-[13px] font-medium text-primary hover:underline">
             {t("helpLink")}
           </Link>
-        }
-      />
-      <CardBody className="flex flex-col gap-4">
+        </CardAction>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
-          <Field label={t("name")} className="min-w-56 flex-1">
+          <FormField label={t("name")} className="min-w-56 flex-1">
             {(id) => <Input id={id} maxLength={60} placeholder={t("namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />}
-          </Field>
-          <Button type="submit" variant="primary" loading={create.isPending} disabled={!name.trim()}>
+          </FormField>
+          <Button type="submit" loading={create.isPending} disabled={!name.trim()}>
+            {!create.isPending && <PlusIcon data-icon="inline-start" />}
             {t("create")}
           </Button>
         </form>
-        {data && data.keys.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">{t("empty")}</p>
+      </CardContent>
+      <div className="border-t">
+        {keys.isPending ? (
+          <ListSkeleton rows={2} />
+        ) : keys.isError ? (
+          <ErrorState onRetry={() => keys.refetch()} retrying={keys.isFetching} />
+        ) : keys.data.keys.length === 0 ? (
+          <EmptyState icon={<KeyRoundIcon />} title={t("empty")} className="py-8" />
         ) : (
-          data && (
-            <Table stack>
-              <THead>
-                <tr>
-                  <Th>{t("columns.name")}</Th>
-                  <Th>{t("columns.key")}</Th>
-                  <Th>{t("columns.lastUsed")}</Th>
-                  <Th>{t("columns.status")}</Th>
-                  <Th>
-                    <span className="sr-only">{t("revoke")}</span>
-                  </Th>
-                </tr>
-              </THead>
-              <TBody>
-                {data.keys.map((k) => (
-                  <Tr key={k.id}>
-                    <Td className="font-medium">
-                      {k.name}
-                      <span className="block text-xs font-normal text-muted-foreground">{formatDateTime(k.createdAt, i18n.language)}</span>
-                    </Td>
-                    <Td className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</Td>
-                    <Status k={k} />
-                    <Td className="text-right max-md:-ml-2.5 max-md:text-left">
-                      {!k.revokedAt && (
-                        <Button size="sm" variant="ghost" onClick={() => setRevoking(k)}>
-                          {t("revoke")}
-                        </Button>
-                      )}
-                    </Td>
-                  </Tr>
-                ))}
-              </TBody>
-            </Table>
-          )
+          <Table stack>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.name")}</TableHead>
+                <TableHead>{t("columns.key")}</TableHead>
+                <TableHead>{t("columns.lastUsed")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t("revoke")}</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {keys.data.keys.map((k) => (
+                <TableRow key={k.id}>
+                  <TableCell className="font-medium">
+                    {k.name}
+                    <span className="block text-xs font-normal text-muted-foreground tabular-nums">{formatDateTime(k.createdAt, i18n.language)}</span>
+                  </TableCell>
+                  <TableCell className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</TableCell>
+                  <Status k={k} />
+                  <RevokeCell k={k} onRevoke={() => setRevoking(k)} />
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </CardBody>
+      </div>
 
-      <Dialog
-        open={secret !== null}
-        onClose={() => setSecret(null)}
-        title={t("created.title")}
-        description={t("created.text")}
-        footer={
-          <Button variant="primary" onClick={() => setSecret(null)}>
-            {t("created.done")}
-          </Button>
-        }
-      >
-        <div className="flex items-center gap-2 rounded-md border border-border bg-muted p-3">
-          <code data-testid="new-key-secret" className="min-w-0 flex-1 break-all font-mono text-[13px]">
-            {secret}
-          </code>
-          {secret && <CopyButton value={secret} label={tc("copy")} />}
-        </div>
+      <Dialog open={secret !== null} onOpenChange={(o) => !o && setSecret(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("created.title")}</DialogTitle>
+            <DialogDescription>{t("created.text")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2 rounded-lg border bg-muted p-3">
+            <code data-testid="new-key-secret" className="min-w-0 flex-1 font-mono text-[13px] break-all">
+              {secret}
+            </code>
+            {secret && <CopyButton value={secret} label={tc("copy")} />}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSecret(null)}>{t("created.done")}</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       <ConfirmDialog
         open={revoking !== null}
@@ -178,52 +182,53 @@ export function MyApiKeysCard() {
 /** Users page (admins): every key of every user. */
 export function AllApiKeysCard() {
   const { t } = useTranslation("apiKeys");
-  const { data } = useQuery(allKeys);
+  const keys = useQuery(allKeys);
   const [revoking, setRevoking] = useState<AdminKey | null>(null);
   const revoke = useRevoke(() => setRevoking(null));
   return (
-    <Card data-testid="all-api-keys" className="mt-8">
-      <CardHeader title={t("adminTitle")} description={t("adminDescription")} />
-      {data && data.keys.length === 0 ? (
-        <p className="px-5 py-6 text-center text-[13px] text-muted-foreground">{t("adminEmpty")}</p>
-      ) : (
-        data && (
+    <Card data-testid="all-api-keys" className="mt-8 gap-0 pb-0">
+      <CardHeader className="border-b">
+        <CardTitle>{t("adminTitle")}</CardTitle>
+        <CardDescription>{t("adminDescription")}</CardDescription>
+      </CardHeader>
+      <div>
+        {keys.isPending ? (
+          <ListSkeleton rows={2} />
+        ) : keys.isError ? (
+          <ErrorState onRetry={() => keys.refetch()} retrying={keys.isFetching} />
+        ) : keys.data.keys.length === 0 ? (
+          <EmptyState icon={<KeyRoundIcon />} title={t("adminEmpty")} className="py-8" />
+        ) : (
           <Table stack>
-            <THead>
-              <tr>
-                <Th>{t("columns.user")}</Th>
-                <Th>{t("columns.name")}</Th>
-                <Th>{t("columns.key")}</Th>
-                <Th>{t("columns.lastUsed")}</Th>
-                <Th>{t("columns.status")}</Th>
-                <Th>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.user")}</TableHead>
+                <TableHead>{t("columns.name")}</TableHead>
+                <TableHead>{t("columns.key")}</TableHead>
+                <TableHead>{t("columns.lastUsed")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead>
                   <span className="sr-only">{t("revoke")}</span>
-                </Th>
-              </tr>
-            </THead>
-            <TBody>
-              {data.keys.map((k) => (
-                <Tr key={k.id}>
-                  <Td>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {keys.data.keys.map((k) => (
+                <TableRow key={k.id}>
+                  <TableCell>
                     {k.userName}
                     <span className="block text-xs text-muted-foreground">{k.userEmail}</span>
-                  </Td>
-                  <Td className="font-medium">{k.name}</Td>
-                  <Td className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</Td>
+                  </TableCell>
+                  <TableCell className="font-medium">{k.name}</TableCell>
+                  <TableCell className="font-mono text-[13px] text-muted-foreground">{k.prefix}…</TableCell>
                   <Status k={k} />
-                  <Td className="text-right max-md:-ml-2.5 max-md:text-left">
-                    {!k.revokedAt && (
-                      <Button size="sm" variant="ghost" onClick={() => setRevoking(k)}>
-                        {t("revoke")}
-                      </Button>
-                    )}
-                  </Td>
-                </Tr>
+                  <RevokeCell k={k} onRevoke={() => setRevoking(k)} />
+                </TableRow>
               ))}
-            </TBody>
+            </TableBody>
           </Table>
-        )
-      )}
+        )}
+      </div>
       <ConfirmDialog
         open={revoking !== null}
         onClose={() => setRevoking(null)}

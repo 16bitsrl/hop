@@ -52,7 +52,7 @@ test("a member creates a key in the profile, sees the secret once, and uses it a
 
   // Revoking stops it at once.
   await page.getByTestId("api-keys").getByRole("button", { name: "Revoke" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Revoke" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Revoke" }).click();
   await expect(page.getByTestId("api-keys").getByRole("row", { name: /CI deploy/ })).toContainText("Revoked");
   expect((await key.get("/api/me")).status()).toBe(200);
   expect((await (await key.get("/api/me")).json()).user).toBeNull();
@@ -101,7 +101,7 @@ test("admins see every key on the users page and can revoke them", async ({ page
   const row = section.getByRole("row", { name: /Zapier/ });
   await expect(row).toContainText("Someone Else");
   await row.getByRole("button", { name: "Revoke" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Revoke" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Revoke" }).click();
   await expect(section.getByRole("row", { name: /Zapier/ })).toContainText("Revoked");
   expect((await key.get("/api/links")).status()).toBe(401);
   await Promise.all([key.dispose(), memberApi.dispose()]);
