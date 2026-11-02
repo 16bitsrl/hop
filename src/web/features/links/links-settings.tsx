@@ -1,3 +1,4 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -153,9 +154,7 @@ function BlockedCard() {
                   <p className="truncate font-mono text-sm">{b.host}</p>
                   {b.reason && <p className="truncate text-[13px] text-muted-foreground">{b.reason}</p>}
                 </div>
-                <Button size="sm" variant="ghost" aria-label={t("settings.unblock", { host: b.host })} onClick={() => remove.mutate(b.id)}>
-                  {t("settings.unblockButton")}
-                </Button>
+                <RowAction label={t("settings.unblock", { host: b.host })} icon={<Trash2Icon />} danger onClick={() => remove.mutate(b.id)} />
               </li>
             ))}
           </ul>
@@ -215,10 +214,7 @@ function TagsCard() {
               />
               <TagNameInput tag={tag} onRename={(name) => update.mutate({ id: tag.id, name })} />
               <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">{t("settings.tagLinks", { count: tag.linkCount })}</span>
-              <Button size="sm" variant="destructive-ghost" aria-label={t("settings.tagDelete", { name: tag.name })} onClick={() => setRemoving(tag)}>
-                <Trash2Icon data-icon="inline-start" />
-                {t("delete")}
-              </Button>
+              <RowAction label={t("settings.tagDelete", { name: tag.name })} icon={<Trash2Icon />} danger onClick={() => setRemoving(tag)} />
             </li>
           ))}
         </ul>

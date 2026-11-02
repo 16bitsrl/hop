@@ -1,6 +1,7 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { KeyRoundIcon, PlusIcon } from "lucide-react";
+import { BanIcon, KeyRoundIcon, PlusIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -56,9 +57,7 @@ function RevokeCell({ k, onRevoke }: { k: Key; onRevoke: () => void }) {
   return (
     <TableCell className="text-right max-md:-ml-2.5 max-md:text-left">
       {!k.revokedAt && (
-        <Button size="sm" variant="destructive-ghost" onClick={onRevoke}>
-          {t("revoke")}
-        </Button>
+        <RowAction label={t("revoke")} icon={<BanIcon />} danger onClick={onRevoke} />
       )}
     </TableCell>
   );

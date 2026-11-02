@@ -1,3 +1,4 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FolderIcon, FolderPlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useState, type FormEvent } from "react";
@@ -112,27 +113,21 @@ function FoldersBody() {
                     <span className="text-muted-foreground tabular-nums">({f.linkCount})</span>
                   </span>
                   <span className="flex shrink-0 gap-0.5">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
+                    <RowAction
+                      label={t("folders.rename", { name: f.name })}
+                      icon={<PencilIcon />}
                       disabled={!f.canModify}
-                      title={f.canModify ? t("folders.rename", { name: f.name }) : t("folders.notYours")}
-                      aria-label={t("folders.rename", { name: f.name })}
+                      disabledReason={t("folders.notYours")}
                       onClick={() => setEditing({ id: f.id, name: f.name })}
-                    >
-                      <PencilIcon />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      className="hover:bg-destructive-soft hover:text-destructive"
+                    />
+                    <RowAction
+                      label={t("folders.delete", { name: f.name })}
+                      icon={<Trash2Icon />}
+                      danger
                       disabled={!f.canModify}
-                      title={f.canModify ? t("folders.delete", { name: f.name }) : t("folders.notYours")}
-                      aria-label={t("folders.delete", { name: f.name })}
+                      disabledReason={t("folders.notYours")}
                       onClick={() => setRemoving(f)}
-                    >
-                      <Trash2Icon />
-                    </Button>
+                    />
                   </span>
                 </>
               )}

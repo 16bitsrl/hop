@@ -1,3 +1,4 @@
+import { RowAction } from "@/components/row-action";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownIcon, ArrowUpIcon, PlusIcon, SaveIcon, Trash2Icon } from "lucide-react";
@@ -94,28 +95,9 @@ export function SmartTab({ link }: { link: Link }) {
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium">{t("smart.ruleN", { n })}</p>
                   <div className="flex gap-0.5">
-                    <Button size="icon-sm" variant="ghost" disabled={i === 0} aria-label={t("smart.moveUp", { n })} title={t("smart.moveUp", { n })} onClick={() => move(i, -1)}>
-                      <ArrowUpIcon />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      disabled={i === rules.length - 1}
-                      aria-label={t("smart.moveDown", { n })}
-                      title={t("smart.moveDown", { n })}
-                      onClick={() => move(i, 1)}
-                    >
-                      <ArrowDownIcon />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="destructive-ghost"
-                      aria-label={t("smart.removeRule", { n })}
-                      title={t("smart.removeRule", { n })}
-                      onClick={() => setRules((cur) => cur.filter((_, j) => j !== i))}
-                    >
-                      <Trash2Icon />
-                    </Button>
+                    <RowAction label={t("smart.moveUp", { n })} icon={<ArrowUpIcon />} disabled={i === 0} onClick={() => move(i, -1)} />
+                    <RowAction label={t("smart.moveDown", { n })} icon={<ArrowDownIcon />} disabled={i === rules.length - 1} onClick={() => move(i, 1)} />
+                    <RowAction label={t("smart.removeRule", { n })} icon={<Trash2Icon />} danger onClick={() => setRules((cur) => cur.filter((_, j) => j !== i))} />
                   </div>
                 </div>
                 <div>
@@ -199,15 +181,9 @@ export function SmartTab({ link }: { link: Link }) {
                 )}
               </FormField>
               <p className="pb-2 text-sm font-medium tabular-nums">{percent(i)}%</p>
-              <Button
-                size="icon"
-                variant="destructive-ghost"
-                aria-label={t("smart.removeVariant", { n: i + 1 })}
-                title={t("smart.removeVariant", { n: i + 1 })}
-                onClick={() => setVariants((cur) => cur.filter((_, j) => j !== i))}
-              >
-                <Trash2Icon />
-              </Button>
+              <div className="pb-1">
+                <RowAction label={t("smart.removeVariant", { n: i + 1 })} icon={<Trash2Icon />} danger onClick={() => setVariants((cur) => cur.filter((_, j) => j !== i))} />
+              </div>
             </fieldset>
           ))}
       </SectionCard>

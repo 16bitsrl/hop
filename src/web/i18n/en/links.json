@@ -357,7 +357,6 @@
     "blockedAdd": "Block domain",
     "blockedEmpty": "No blocked domains.",
     "unblock": "Unblock {{host}}",
-    "unblockButton": "Unblock",
     "tagsTitle": "Tags",
     "tagsDescription": "Rename tags, change their color or remove them. Anyone can create a tag by typing it on a link.",
     "tagsEmpty": "No tags yet.",

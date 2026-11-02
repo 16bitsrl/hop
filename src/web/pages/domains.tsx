@@ -1,7 +1,8 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { GlobeIcon, PencilIcon, PlusIcon } from "lucide-react";
+import { GlobeIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { FormField } from "@/components/form-field";
 import { PageHeader } from "@/components/page";
@@ -103,13 +104,8 @@ export function DomainsPage() {
                   {admin && (
                     <TableCell>
                       <div className="flex justify-end gap-1 max-md:-ml-2.5 max-md:justify-start">
-                        <Button size="sm" variant="ghost" onClick={() => setEditing(d)}>
-                          <PencilIcon data-icon="inline-start" />
-                          {t("edit")}
-                        </Button>
-                        <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(d)}>
-                          {t("delete")}
-                        </Button>
+                        <RowAction label={t("edit")} icon={<PencilIcon />} onClick={() => setEditing(d)} />
+                        <RowAction label={t("delete")} icon={<Trash2Icon />} danger onClick={() => setRemoving(d)} />
                       </div>
                     </TableCell>
                   )}

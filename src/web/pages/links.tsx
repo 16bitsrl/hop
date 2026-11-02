@@ -1,22 +1,7 @@
+import { RowAction } from "@/components/row-action";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink, useNavigate, useSearch } from "@tanstack/react-router";
-import {
-  ArrowDownWideNarrowIcon,
-  ArrowUpNarrowWideIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  FolderIcon,
-  FolderInputIcon,
-  LinkIcon,
-  PlusIcon,
-  PowerIcon,
-  PowerOffIcon,
-  SearchIcon,
-  TagIcon,
-  Trash2Icon,
-  UploadIcon,
-  XIcon,
-} from "lucide-react";
+import { ArrowDownWideNarrowIcon, ArrowUpNarrowWideIcon, ChevronLeftIcon, ChevronRightIcon, FolderIcon, FolderInputIcon, LinkIcon, PlusIcon, PowerIcon, PowerOffIcon, SearchIcon, TagIcon, Trash2Icon, UploadIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -369,18 +354,7 @@ export function LinksPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span title={l.canModify ? undefined : t("readOnly")}>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        className="hover:bg-destructive-soft hover:text-destructive"
-                        aria-label={t("delete")}
-                        disabled={!l.canModify}
-                        onClick={() => setRemoving(l)}
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </span>
+                    <RowAction label={t("delete")} icon={<Trash2Icon />} danger disabled={!l.canModify} disabledReason={t("readOnly")} onClick={() => setRemoving(l)} />
                   </TableCell>
                 </TableRow>
               ))}

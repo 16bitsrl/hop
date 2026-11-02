@@ -357,7 +357,6 @@
     "blockedAdd": "Blocca il dominio",
     "blockedEmpty": "Nessun dominio bloccato.",
     "unblock": "Sblocca {{host}}",
-    "unblockButton": "Sblocca",
     "tagsTitle": "Tag",
     "tagsDescription": "Rinomina i tag, cambia il colore o rimuovili. Chiunque può creare un tag scrivendolo su un link.",
     "tagsEmpty": "Ancora nessun tag.",

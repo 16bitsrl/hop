@@ -1,8 +1,9 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/page";
-import { KeyRoundIcon, PlusIcon } from "lucide-react";
+import { KeyRoundIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { FormField } from "@/components/form-field";
 import { OptionSelect } from "@/components/option-select";
@@ -250,9 +251,7 @@ function PasskeysCard() {
                     {p.createdAt && <p className="text-xs text-muted-foreground tabular-nums">{t("passkeys.addedOn", { date: formatDate(p.createdAt, i18n.language) })}</p>}
                   </div>
                 </div>
-                <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(p)}>
-                  {t("passkeys.remove")}
-                </Button>
+                <RowAction label={t("passkeys.remove")} icon={<Trash2Icon />} danger onClick={() => setRemoving(p)} />
               </li>
             ))}
           </ul>

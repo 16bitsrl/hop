@@ -1,5 +1,6 @@
+import { RowAction } from "@/components/row-action";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BanIcon, CircleCheckIcon, KeyRoundIcon, MailIcon, UserPlusIcon } from "lucide-react";
+import { BanIcon, CircleCheckIcon, KeyRoundIcon, MailIcon, UserCheckIcon, UserPlusIcon, UserXIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -99,7 +100,9 @@ function UsersContent() {
                 <TableHead>{t("columns.user")}</TableHead>
                 <TableHead>{t("columns.role")}</TableHead>
                 <TableHead>{t("columns.status")}</TableHead>
-                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t("columns.actions")}</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -144,19 +147,12 @@ function UsersContent() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1 max-md:-ml-2.5 max-md:justify-start">
-                        <Button size="sm" variant="ghost" onClick={() => setResetFor(u)}>
-                          <KeyRoundIcon data-icon="inline-start" />
-                          {t("resetPassword")}
-                        </Button>
+                        <RowAction label={t("resetPassword")} icon={<KeyRoundIcon />} onClick={() => setResetFor(u)} />
                         {!self &&
                           (u.disabled ? (
-                            <Button size="sm" variant="ghost" onClick={() => patch.mutate({ id: u.id, disabled: false })}>
-                              {t("enable")}
-                            </Button>
+                            <RowAction label={t("enable")} icon={<UserCheckIcon />} onClick={() => patch.mutate({ id: u.id, disabled: false })} />
                           ) : (
-                            <Button size="sm" variant="destructive-ghost" onClick={() => setDisableFor(u)}>
-                              {t("disable")}
-                            </Button>
+                            <RowAction label={t("disable")} icon={<UserXIcon />} danger onClick={() => setDisableFor(u)} />
                           ))}
                       </div>
                     </TableCell>
@@ -182,7 +178,9 @@ function UsersContent() {
                 <TableHead>{t("columns.user")}</TableHead>
                 <TableHead>{t("columns.role")}</TableHead>
                 <TableHead>{t("columns.expires")}</TableHead>
-                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t("columns.actions")}</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,9 +192,7 @@ function UsersContent() {
                     {formatDate(i.expiresAt, i18n.language)}
                   </TableCell>
                   <TableCell className="text-right max-md:-ml-2.5 max-md:text-left">
-                    <Button size="sm" variant="destructive-ghost" onClick={() => setRevokeFor(i)}>
-                      {t("revoke")}
-                    </Button>
+                    <RowAction label={t("revoke")} icon={<BanIcon />} danger onClick={() => setRevokeFor(i)} />
                   </TableCell>
                 </TableRow>
               ))}
