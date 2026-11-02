@@ -117,8 +117,10 @@ export function Shell() {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[232px_1fr]">
-      <aside className="sticky top-0 hidden h-dvh border-r bg-card lg:block">
-        <SidebarContent onSignOut={signOut} />
+      <aside className="hidden border-r bg-card lg:block">
+        <div className="sticky top-0 h-dvh">
+          <SidebarContent onSignOut={signOut} />
+        </div>
       </aside>
 
       <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b bg-card/90 px-2 backdrop-blur lg:hidden">
