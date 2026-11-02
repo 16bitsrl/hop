@@ -1,14 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useState, type FormEvent } from "react";
+import { SendIcon } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { CardSkeleton } from "../components/card-skeleton";
+import { CopyButton } from "../components/copy-button";
+import { FormField } from "../components/form-field";
+import { OptionSelect } from "../components/option-select";
 import { PageHeader, RequireAdmin } from "../components/page";
-import { Button, Card, CardBody, CardHeader, CopyButton, ErrorState, Field, Input, PageSpinner, Select, Switch, TabPanel, Tabs, useToast } from "../components/legacy";
+import { ErrorState } from "../components/states";
+import { SwitchField } from "../components/toggle-field";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { DataTab } from "../features/data/data-tab";
 import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
 import { RetentionCard } from "../features/stats/retention-card";
 import { api } from "../lib/api";
 import { errorMessage } from "../lib/errors";
+import { toast } from "../lib/toast";
 import { appConfigQuery, type Role } from "../lib/session";
 
 type Settings = {
@@ -38,47 +49,49 @@ export function SettingsPage() {
   );
 }
 
+type Tab = "signin" | "email" | "links" | "stats" | "data";
+const TABS: Tab[] = ["signin", "email", "links", "stats", "data"];
+
 function SettingsContent() {
   const { t } = useTranslation("settings");
-  const [tab, setTab] = useState<"signin" | "email" | "links" | "stats" | "data">("signin");
+  const [tab, setTab] = useState<Tab>("signin");
   const { data, isError, isFetching, refetch } = useQuery(settingsQuery);
-  const tabsId = useId();
+  const needsSettings = tab === "signin" || tab === "email";
 
   return (
     <>
       <PageHeader title={t("title")} description={t("description")} />
-      <Tabs
-        id={tabsId}
-        tabs={[
-          { id: "signin", label: t("tabs.signin") },
-          { id: "email", label: t("tabs.email") },
-          { id: "links", label: t("tabs.links") },
-          { id: "stats", label: t("tabs.stats") },
-          { id: "data", label: t("tabs.data") },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
-      <TabPanel id={tabsId} value={tab} className="mt-6 flex flex-col gap-6">
-        {tab === "links" ? (
-          <>
-            <LinksSettings />
-            <HealthSettingsCard />
-          </>
-        ) : tab === "stats" ? (
-          <RetentionCard />
-        ) : tab === "data" ? (
-          <DataTab />
-        ) : data ? (
-          tab === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />
-        ) : isError ? (
-          <Card>
-            <ErrorState onRetry={() => refetch()} retrying={isFetching} />
-          </Card>
-        ) : (
-          <PageSpinner />
-        )}
-      </TabPanel>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="gap-6">
+        <TabsList variant="line">
+          {TABS.map((id) => (
+            <TabsTrigger key={id} value={id}>
+              {t(`tabs.${id}`)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {TABS.map((id) => (
+          <TabsContent key={id} value={id} className="flex flex-col gap-5">
+            {id === "links" ? (
+              <>
+                <LinksSettings />
+                <HealthSettingsCard />
+              </>
+            ) : id === "stats" ? (
+              <RetentionCard />
+            ) : id === "data" ? (
+              <DataTab />
+            ) : !needsSettings ? null : data ? (
+              id === "signin" ? <SignInTab s={data} /> : <EmailTab s={data} />
+            ) : isError ? (
+              <Card>
+                <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+              </Card>
+            ) : (
+              <CardSkeleton />
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </>
   );
 }
@@ -86,7 +99,6 @@ function SettingsContent() {
 /** Saves one settings section, then refreshes what depends on it. */
 function useSave<T>(section: string, after?: () => void) {
   const { t } = useTranslation();
-  const toast = useToast();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: T) => api(`/api/settings/${section}`, { method: "PUT", body }),
@@ -106,16 +118,18 @@ function SignInTab({ s }: { s: Settings }) {
   return (
     <>
       <Card>
-        <CardHeader title={t("password.title")} />
-        <CardBody>
-          <Switch
+        <CardHeader>
+          <CardTitle>{t("password.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SwitchField
             checked={s.auth.passwordLogin}
-            onChange={(passwordLogin) => savePassword.mutate({ passwordLogin })}
+            onCheckedChange={(passwordLogin) => savePassword.mutate({ passwordLogin })}
             disabled={savePassword.isPending}
             label={t("password.allow")}
             description={t("password.allowHint")}
           />
-        </CardBody>
+        </CardContent>
       </Card>
       <OidcCard s={s} />
     </>
@@ -151,18 +165,21 @@ function OidcCard({ s }: { s: Settings }) {
 
   return (
     <Card>
-      <CardHeader title={t("sso.title")} description={t("sso.description")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("sso.title")}</CardTitle>
+        <CardDescription>{t("sso.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Switch checked={enabled} onChange={setEnabled} label={t("sso.enable")} />
-          <Field label={t("sso.discoveryUrl")} hint={t("sso.discoveryHint")}>
+          <SwitchField checked={enabled} onCheckedChange={setEnabled} label={t("sso.enable")} />
+          <FormField label={t("sso.discoveryUrl")} hint={t("sso.discoveryHint")}>
             {(id) => (
               <Input id={id} type="url" placeholder="https://" value={discoveryUrl} onChange={(e) => setDiscoveryUrl(e.target.value)} />
             )}
-          </Field>
+          </FormField>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t("sso.clientId")}>{(id) => <Input id={id} value={clientId} onChange={(e) => setClientId(e.target.value)} autoComplete="off" />}</Field>
-            <Field label={t("sso.clientSecret")} hint={o.hasClientSecret ? t("sso.clientSecretSet") : undefined}>
+            <FormField label={t("sso.clientId")}>{(id) => <Input id={id} value={clientId} onChange={(e) => setClientId(e.target.value)} autoComplete="off" />}</FormField>
+            <FormField label={t("sso.clientSecret")} hint={o.hasClientSecret ? t("sso.clientSecretSet") : undefined}>
               {(id) => (
                 <Input
                   id={id}
@@ -173,28 +190,27 @@ function OidcCard({ s }: { s: Settings }) {
                   onChange={(e) => setClientSecret(e.target.value)}
                 />
               )}
-            </Field>
+            </FormField>
           </div>
-          <Field label={t("sso.label")} hint={t("sso.labelHint")} className="sm:max-w-xs">
+          <FormField label={t("sso.label")} hint={t("sso.labelHint")} className="sm:max-w-xs">
             {(id) => <Input id={id} value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />}
-          </Field>
-          <Switch checked={autoCreate} onChange={setAutoCreate} label={t("sso.autoCreate")} description={t("sso.autoCreateHint")} />
+          </FormField>
+          <SwitchField checked={autoCreate} onCheckedChange={setAutoCreate} label={t("sso.autoCreate")} description={t("sso.autoCreateHint")} />
           {autoCreate && (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t("sso.domains")} hint={t("sso.domainsHint")}>
+              <FormField label={t("sso.domains")} hint={t("sso.domainsHint")}>
                 {(id) => <Input id={id} placeholder="acme.com" value={domains} onChange={(e) => setDomains(e.target.value)} />}
-              </Field>
-              <Field label={t("sso.defaultRole")}>
+              </FormField>
+              <FormField label={t("sso.defaultRole")}>
                 {(id) => (
-                  <Select id={id} value={defaultRole} onChange={(e) => setDefaultRole(e.target.value as Role)}>
-                    {(["admin", "member", "viewer"] as Role[]).map((r) => (
-                      <option key={r} value={r}>
-                        {t(`common:roles.${r}`)}
-                      </option>
-                    ))}
-                  </Select>
+                  <OptionSelect
+                    id={id}
+                    value={defaultRole}
+                    onValueChange={setDefaultRole}
+                    options={(["admin", "member", "viewer"] as Role[]).map((r) => ({ value: r, label: t(`common:roles.${r}`) }))}
+                  />
                 )}
-              </Field>
+              </FormField>
             </div>
           )}
           <div className="rounded-lg border border-border bg-muted px-3.5 py-3">
@@ -206,19 +222,18 @@ function OidcCard({ s }: { s: Settings }) {
             <p className="mt-1.5 text-[13px] text-muted-foreground">{t("sso.redirectHint")}</p>
           </div>
           <div>
-            <Button type="submit" variant="primary" loading={save.isPending}>
+            <Button type="submit" loading={save.isPending}>
               {t("sso.save")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
 
 function EmailTab({ s }: { s: Settings }) {
   const { t } = useTranslation("settings");
-  const toast = useToast();
   const m = s.smtp;
   const [host, setHost] = useState(m.host);
   const [port, setPort] = useState(String(m.port));
@@ -243,21 +258,24 @@ function EmailTab({ s }: { s: Settings }) {
   return (
     <>
       <Card>
-        <CardHeader title={t("email.title")} description={t("email.description")} />
-        <CardBody>
-          {s.smtpFromEnvironment && <p className="mb-4 rounded-md bg-info-soft px-3 py-2 text-[13px] text-info">{t("email.fromEnvironment")}</p>}
+        <CardHeader>
+          <CardTitle>{t("email.title")}</CardTitle>
+          <CardDescription>{t("email.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {s.smtpFromEnvironment && <p className="mb-4 rounded-lg bg-info-soft px-3 py-2 text-[13px] text-info">{t("email.fromEnvironment")}</p>}
           <form onSubmit={submit} className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-              <Field label={t("email.host")}>
+              <FormField label={t("email.host")}>
                 {(id) => <Input id={id} placeholder="smtp.example.com" value={host} onChange={(e) => setHost(e.target.value)} />}
-              </Field>
-              <Field label={t("email.port")}>
+              </FormField>
+              <FormField label={t("email.port")}>
                 {(id) => <Input id={id} inputMode="numeric" value={port} onChange={(e) => setPort(e.target.value)} />}
-              </Field>
+              </FormField>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t("email.user")}>{(id) => <Input id={id} autoComplete="off" value={user} onChange={(e) => setUser(e.target.value)} />}</Field>
-              <Field label={t("email.pass")} hint={m.hasPass ? t("email.passSet") : undefined}>
+              <FormField label={t("email.user")}>{(id) => <Input id={id} autoComplete="off" value={user} onChange={(e) => setUser(e.target.value)} />}</FormField>
+              <FormField label={t("email.pass")} hint={m.hasPass ? t("email.passSet") : undefined}>
                 {(id) => (
                   <Input
                     id={id}
@@ -268,36 +286,37 @@ function EmailTab({ s }: { s: Settings }) {
                     onChange={(e) => setPass(e.target.value)}
                   />
                 )}
-              </Field>
+              </FormField>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t("email.from")} hint={t("email.fromHint")}>
+              <FormField label={t("email.from")} hint={t("email.fromHint")}>
                 {(id) => <Input id={id} type="email" value={from} onChange={(e) => setFrom(e.target.value)} />}
-              </Field>
-              <Field label={t("email.security")}>
+              </FormField>
+              <FormField label={t("email.security")}>
                 {(id) => (
-                  <Select id={id} value={tls} onChange={(e) => setTls(e.target.value as typeof tls)}>
-                    {(["starttls", "ssl", "none"] as const).map((v) => (
-                      <option key={v} value={v}>
-                        {t(`email.tls.${v}`)}
-                      </option>
-                    ))}
-                  </Select>
+                  <OptionSelect
+                    id={id}
+                    value={tls}
+                    onValueChange={setTls}
+                    options={(["starttls", "ssl", "none"] as const).map((v) => ({ value: v, label: t(`email.tls.${v}`) }))}
+                  />
                 )}
-              </Field>
+              </FormField>
             </div>
             <div>
-              <Button type="submit" variant="primary" loading={save.isPending}>
+              <Button type="submit" loading={save.isPending}>
                 {t("email.save")}
               </Button>
             </div>
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
 
       <Card>
-        <CardHeader title={t("email.testTitle")} />
-        <CardBody>
+        <CardHeader>
+          <CardTitle>{t("email.testTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form
             className="flex flex-wrap items-end gap-3"
             onSubmit={(e) => {
@@ -305,14 +324,15 @@ function EmailTab({ s }: { s: Settings }) {
               test.mutate();
             }}
           >
-            <Field label={t("email.testTo")} className="min-w-64 flex-1">
+            <FormField label={t("email.testTo")} className="min-w-64 flex-1">
               {(id) => <Input id={id} type="email" required value={testTo} onChange={(e) => setTestTo(e.target.value)} />}
-            </Field>
-            <Button type="submit" loading={test.isPending}>
+            </FormField>
+            <Button type="submit" variant="outline" loading={test.isPending}>
+              {!test.isPending && <SendIcon data-icon="inline-start" />}
               {t("email.testSend")}
             </Button>
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
     </>
   );

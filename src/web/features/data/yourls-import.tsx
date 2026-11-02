@@ -2,7 +2,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, Field, Input, Select, Spinner } from "../../components/legacy";
+import { ArrowLeftIcon, ArrowRightIcon, RotateCcwIcon, UploadIcon } from "lucide-react";
+import { FormField } from "../../components/form-field";
+import { OptionSelect } from "../../components/option-select";
+import { SearchSelect } from "../../components/search-select";
+import { Button, buttonVariants } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Spinner } from "../../components/ui/spinner";
 import { api } from "../../lib/api";
 import { formatDate } from "../../lib/cn";
 import { errorMessage } from "../../lib/errors";
@@ -95,11 +102,17 @@ export function YourlsImport() {
 
   return (
     <Card data-testid="yourls-import">
-      <CardHeader title={t("yourls.title")} description={t("yourls.description")} />
-      <CardBody className="flex flex-col gap-5">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <UploadIcon className="size-4 text-muted-foreground" aria-hidden />
+          {t("yourls.title")}
+        </CardTitle>
+        <CardDescription>{t("yourls.description")}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
         {step.kind === "choose" && (
           <>
-            <Field label={t("yourls.file")} hint={t("yourls.fileHint")} error={step.error}>
+            <FormField label={t("yourls.file")} hint={t("yourls.fileHint")} error={step.error}>
               {(id, aria) => (
                 <input
                   id={id}
@@ -110,10 +123,10 @@ export function YourlsImport() {
                     const f = e.target.files?.[0];
                     if (f) void choose(f);
                   }}
-                  className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground"
+                  className="block w-full rounded-lg border border-dashed border-input p-2 text-sm text-muted-foreground transition-colors hover:border-ring file:mr-3 file:h-8 file:cursor-pointer file:rounded-md file:border file:border-input file:bg-card file:px-3 file:text-sm file:font-medium file:text-foreground file:shadow-(--shadow-raised) hover:file:bg-muted"
                 />
               )}
-            </Field>
+            </FormField>
           </>
         )}
 
@@ -143,9 +156,13 @@ export function YourlsImport() {
               <Stat label={t("yourls.summary.prefix")} value={summary.prefix || t("yourls.summary.none")} />
             </dl>
             <div className="flex gap-2">
-              <Button onClick={reset}>{t("yourls.back")}</Button>
-              <Button variant="primary" onClick={() => setStep({ kind: "options" })}>
+              <Button variant="outline" onClick={reset}>
+                <ArrowLeftIcon data-icon="inline-start" />
+                {t("yourls.back")}
+              </Button>
+              <Button onClick={() => setStep({ kind: "options" })}>
                 {t("yourls.continue")}
+                <ArrowRightIcon data-icon="inline-end" />
               </Button>
             </div>
           </>
@@ -158,40 +175,38 @@ export function YourlsImport() {
               <p className="text-sm text-muted-foreground">{t("yourls.options.noDomains")}</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t("yourls.options.domain")} hint={t("yourls.options.domainHint")}>
+                <FormField label={t("yourls.options.domain")} hint={t("yourls.options.domainHint")}>
                   {(id) => (
-                    <Select id={id} value={domainId} onChange={(e) => setOpts({ ...opts, domainId: e.target.value })}>
-                      {domains.data?.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.host}
-                        </option>
-                      ))}
-                    </Select>
+                    <OptionSelect
+                      id={id}
+                      value={domainId}
+                      onValueChange={(v) => setOpts({ ...opts, domainId: v })}
+                      options={(domains.data ?? []).map((d) => ({ value: d.id, label: d.host }))}
+                    />
                   )}
-                </Field>
-                <Field label={t("yourls.options.owner")}>
+                </FormField>
+                <FormField label={t("yourls.options.owner")}>
                   {(id) => (
-                    <Select id={id} value={opts.ownerId} onChange={(e) => setOpts({ ...opts, ownerId: e.target.value })}>
-                      {directory.data?.users.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </Select>
+                    <SearchSelect
+                      id={id}
+                      value={opts.ownerId}
+                      onValueChange={(v) => setOpts({ ...opts, ownerId: v })}
+                      options={(directory.data?.users ?? []).map((u) => ({ value: u.id, label: u.name }))}
+                      empty={t("yourls.options.noOwnerMatch")}
+                    />
                   )}
-                </Field>
-                <Field label={t("yourls.options.redirectType")} hint={t("yourls.options.redirectHint")}>
+                </FormField>
+                <FormField label={t("yourls.options.redirectType")} hint={t("yourls.options.redirectHint")}>
                   {(id) => (
-                    <Select id={id} value={opts.redirectType} onChange={(e) => setOpts({ ...opts, redirectType: Number(e.target.value) as ImportOptions["redirectType"] })}>
-                      {REDIRECT_TYPES.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </Select>
+                    <OptionSelect
+                      id={id}
+                      value={String(opts.redirectType)}
+                      onValueChange={(v) => setOpts({ ...opts, redirectType: Number(v) as ImportOptions["redirectType"] })}
+                      options={REDIRECT_TYPES.map((r) => ({ value: String(r), label: String(r) }))}
+                    />
                   )}
-                </Field>
-                <Field label={t("yourls.options.timeZone")} hint={t("yourls.options.timeZoneHint")} error={tzValid ? undefined : t("yourls.options.timeZoneInvalid")}>
+                </FormField>
+                <FormField label={t("yourls.options.timeZone")} hint={t("yourls.options.timeZoneHint")} error={tzValid ? undefined : t("yourls.options.timeZoneInvalid")}>
                   {(id) => (
                     <>
                       <Input id={id} list="yourls-time-zones" value={opts.timeZone} onChange={(e) => setOpts({ ...opts, timeZone: e.target.value.trim() })} />
@@ -203,7 +218,7 @@ export function YourlsImport() {
                       </datalist>
                     </>
                   )}
-                </Field>
+                </FormField>
               </div>
             )}
 
@@ -216,12 +231,12 @@ export function YourlsImport() {
                 <>
                   <p className="text-sm font-medium">{t("yourls.options.conflicts", { count: conflicts.data!.length })}</p>
                   <label className="flex items-center gap-2 text-sm">
-                    <input type="radio" name="conflict" checked={opts.onConflict === "skip"} onChange={() => setOpts({ ...opts, onConflict: "skip" })} />
+                    <input type="radio" name="conflict" className="size-4 accent-primary" checked={opts.onConflict === "skip"} onChange={() => setOpts({ ...opts, onConflict: "skip" })} />
                     <span>{t("yourls.options.skip")}</span>
                   </label>
                   <p className="-mt-1 pl-6 text-[13px] text-muted-foreground">{t("yourls.options.skipHint")}</p>
                   <label className="flex items-center gap-2 text-sm">
-                    <input type="radio" name="conflict" checked={opts.onConflict === "overwrite"} onChange={() => setOpts({ ...opts, onConflict: "overwrite" })} />
+                    <input type="radio" name="conflict" className="size-4 accent-primary" checked={opts.onConflict === "overwrite"} onChange={() => setOpts({ ...opts, onConflict: "overwrite" })} />
                     <span>{t("yourls.options.overwrite")}</span>
                   </label>
                   <p className="-mt-1 pl-6 text-[13px] text-muted-foreground">{t("yourls.options.overwriteHint")}</p>
@@ -230,8 +245,11 @@ export function YourlsImport() {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={() => setStep({ kind: "summary" })}>{t("yourls.back")}</Button>
-              <Button variant="primary" disabled={!domainId || !tzValid || conflicts.isPending} onClick={() => void start()}>
+              <Button variant="outline" onClick={() => setStep({ kind: "summary" })}>
+                <ArrowLeftIcon data-icon="inline-start" />
+                {t("yourls.back")}
+              </Button>
+              <Button disabled={!domainId || !tzValid || conflicts.isPending} onClick={() => void start()}>
                 {t("yourls.options.start")}
               </Button>
             </div>
@@ -241,7 +259,19 @@ export function YourlsImport() {
         {step.kind === "running" && (
           <div className="flex flex-col gap-3" role="status">
             <h3 className="text-sm font-semibold">{t("yourls.progress.title")}</h3>
-            <progress className="h-2 w-full" max={step.progress.total || 1} value={step.progress.done} />
+            <div
+              role="progressbar"
+              aria-label={t("yourls.progress.title")}
+              aria-valuemin={0}
+              aria-valuemax={step.progress.total || 1}
+              aria-valuenow={step.progress.done}
+              className="h-2 w-full overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-200"
+                style={{ width: `${(step.progress.done / (step.progress.total || 1)) * 100}%` }}
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
               {t(step.progress.phase === "links" ? "yourls.progress.links" : "yourls.progress.clicks", {
                 done: num(step.progress.done, i18n.language),
@@ -255,14 +285,14 @@ export function YourlsImport() {
         {step.kind === "done" && (
           <Report report={step.report} host={domains.data?.find((d) => d.id === domainId)?.host ?? ""} onAgain={reset} />
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
 
 function Stat({ label, value, id, hint }: { label: string; value: string; id?: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-border px-3 py-2.5" title={hint}>
+    <div className="rounded-lg border border-border bg-muted/40 px-3 py-2.5" title={hint}>
       <dt className="text-[13px] text-muted-foreground">{label}</dt>
       <dd data-testid={id} className="mt-0.5 text-lg font-semibold tabular-nums">
         {value}
@@ -304,10 +334,14 @@ function Report({ report, host, onAgain }: { report: ImportReport; host: string;
         </div>
       )}
       <div className="flex gap-2">
-        <Link to="/links">
-          <Button variant="primary">{t("yourls.report.viewLinks")}</Button>
+        <Link to="/links" className={buttonVariants()}>
+          {t("yourls.report.viewLinks")}
+          <ArrowRightIcon data-icon="inline-end" />
         </Link>
-        <Button onClick={onAgain}>{t("yourls.report.again")}</Button>
+        <Button variant="outline" onClick={onAgain}>
+          <RotateCcwIcon data-icon="inline-start" />
+          {t("yourls.report.again")}
+        </Button>
       </div>
     </>
   );

@@ -1,9 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, CardBody, CardHeader, ConfirmDialog, Field, Input, PageSpinner, useToast } from "../../components/legacy";
+import { BanIcon, PlusIcon, TagIcon, Trash2Icon } from "lucide-react";
+import { CardSkeleton } from "../../components/card-skeleton";
+import { ConfirmDialog } from "../../components/confirm-dialog";
+import { FormField } from "../../components/form-field";
+import { EmptyState, ErrorState } from "../../components/states";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Skeleton } from "../../components/ui/skeleton";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
+import { toast } from "../../lib/toast";
 import { tagsQuery, type Tag } from "./api";
 
 /** Settings of the links area (admins): slug generator, blocked destinations, tags. */
@@ -18,19 +27,24 @@ export function LinksSettings() {
 }
 
 function SlugCard() {
-  const { data } = useQuery({
+  const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["settings", "slugs"],
     queryFn: () => api<{ length: number; alphabet: string }>("/api/settings/slugs"),
     staleTime: 0,
   });
-  if (!data) return <PageSpinner />;
-  return <SlugForm initial={data} />;
+  if (data) return <SlugForm initial={data} />;
+  if (isError)
+    return (
+      <Card>
+        <ErrorState onRetry={() => refetch()} retrying={isFetching} />
+      </Card>
+    );
+  return <CardSkeleton />;
 }
 
 function SlugForm({ initial }: { initial: { length: number; alphabet: string } }) {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [length, setLength] = useState(String(initial.length));
   const [alphabet, setAlphabet] = useState(initial.alphabet);
@@ -44,8 +58,11 @@ function SlugForm({ initial }: { initial: { length: number; alphabet: string } }
   });
   return (
     <Card>
-      <CardHeader title={t("settings.slugTitle")} description={t("settings.slugDescription")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("settings.slugTitle")}</CardTitle>
+        <CardDescription>{t("settings.slugDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form
           className="flex flex-col gap-4"
           onSubmit={(e: FormEvent) => {
@@ -54,20 +71,20 @@ function SlugForm({ initial }: { initial: { length: number; alphabet: string } }
           }}
         >
           <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-            <Field label={t("settings.slugLength")} hint={t("settings.slugLengthHint")}>
+            <FormField label={t("settings.slugLength")} hint={t("settings.slugLengthHint")}>
               {(id) => <Input id={id} type="number" min={3} max={32} required value={length} onChange={(e) => setLength(e.target.value)} />}
-            </Field>
-            <Field label={t("settings.slugAlphabet")} hint={t("settings.slugAlphabetHint")}>
+            </FormField>
+            <FormField label={t("settings.slugAlphabet")} hint={t("settings.slugAlphabetHint")}>
               {(id) => <Input id={id} required className="font-mono" value={alphabet} onChange={(e) => setAlphabet(e.target.value)} />}
-            </Field>
+            </FormField>
           </div>
           <div>
-            <Button type="submit" variant="primary" loading={save.isPending}>
+            <Button type="submit" loading={save.isPending}>
               {t("settings.slugSave")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -77,7 +94,6 @@ type Blocked = { id: string; host: string; reason: string | null };
 function BlockedCard() {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [host, setHost] = useState("");
   const [reason, setReason] = useState("");
@@ -101,8 +117,11 @@ function BlockedCard() {
 
   return (
     <Card>
-      <CardHeader title={t("settings.blockedTitle")} description={t("settings.blockedDescription")} />
-      <CardBody className="flex flex-col gap-4">
+      <CardHeader>
+        <CardTitle>{t("settings.blockedTitle")}</CardTitle>
+        <CardDescription>{t("settings.blockedDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
         <form
           className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
           onSubmit={(e: FormEvent) => {
@@ -110,17 +129,22 @@ function BlockedCard() {
             add.mutate();
           }}
         >
-          <Field label={t("settings.blockedHost")}>
+          <FormField label={t("settings.blockedHost")}>
             {(id) => <Input id={id} required placeholder="bad-site.example" value={host} onChange={(e) => setHost(e.target.value)} />}
-          </Field>
-          <Field label={t("settings.blockedReason")}>
+          </FormField>
+          <FormField label={t("settings.blockedReason")}>
             {(id) => <Input id={id} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />}
-          </Field>
-          <Button type="submit" variant="primary" loading={add.isPending}>
+          </FormField>
+          <Button type="submit" loading={add.isPending}>
+            {!add.isPending && <PlusIcon data-icon="inline-start" />}
             {t("settings.blockedAdd")}
           </Button>
         </form>
-        {list.data && list.data.blocked.length === 0 && <p className="text-[13px] text-muted-foreground">{t("settings.blockedEmpty")}</p>}
+        {list.isError && !list.data && <ErrorState onRetry={() => list.refetch()} retrying={list.isFetching} className="py-6" />}
+        {list.isPending && <RowsSkeleton />}
+        {list.data && list.data.blocked.length === 0 && (
+          <EmptyState icon={<BanIcon />} title={t("settings.blockedEmpty")} className="rounded-lg border border-dashed py-6" />
+        )}
         {list.data && list.data.blocked.length > 0 && (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {list.data.blocked.map((b) => (
@@ -136,7 +160,7 @@ function BlockedCard() {
             ))}
           </ul>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -146,7 +170,6 @@ const COLOR_FALLBACK = "#888888";
 function TagsCard() {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   const tags = useQuery(tagsQuery);
   const [removing, setRemoving] = useState<Tag | null>(null);
@@ -170,9 +193,16 @@ function TagsCard() {
 
   return (
     <Card>
-      <CardHeader title={t("settings.tagsTitle")} description={t("settings.tagsDescription")} />
-      <CardBody>
-        {tags.data && tags.data.length === 0 && <p className="text-[13px] text-muted-foreground">{t("settings.tagsEmpty")}</p>}
+      <CardHeader>
+        <CardTitle>{t("settings.tagsTitle")}</CardTitle>
+        <CardDescription>{t("settings.tagsDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {tags.isError && !tags.data && <ErrorState onRetry={() => tags.refetch()} retrying={tags.isFetching} className="py-6" />}
+        {tags.isPending && <RowsSkeleton />}
+        {tags.data && tags.data.length === 0 && (
+          <EmptyState icon={<TagIcon />} title={t("settings.tagsEmpty")} className="rounded-lg border border-dashed py-6" />
+        )}
         <ul className="divide-y divide-border">
           {tags.data?.map((tag) => (
             <li key={tag.id} className="flex items-center gap-3 py-2">
@@ -184,14 +214,15 @@ function TagsCard() {
                 className="size-7 shrink-0 cursor-pointer rounded border border-border bg-transparent p-0.5"
               />
               <TagNameInput tag={tag} onRename={(name) => update.mutate({ id: tag.id, name })} />
-              <span className="shrink-0 text-[13px] text-muted-foreground">{t("settings.tagLinks", { count: tag.linkCount })}</span>
-              <Button size="sm" variant="ghost" aria-label={t("settings.tagDelete", { name: tag.name })} onClick={() => setRemoving(tag)}>
+              <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">{t("settings.tagLinks", { count: tag.linkCount })}</span>
+              <Button size="sm" variant="destructive-ghost" aria-label={t("settings.tagDelete", { name: tag.name })} onClick={() => setRemoving(tag)}>
+                <Trash2Icon data-icon="inline-start" />
                 {t("delete")}
               </Button>
             </li>
           ))}
         </ul>
-      </CardBody>
+      </CardContent>
       <ConfirmDialog
         open={!!removing}
         onClose={() => setRemoving(null)}
@@ -203,6 +234,16 @@ function TagsCard() {
         confirmLabel={t("settings.tagConfirmButton")}
       />
     </Card>
+  );
+}
+
+function RowsSkeleton() {
+  const { t } = useTranslation();
+  return (
+    <div role="status" aria-label={t("loading")} className="flex flex-col gap-3 py-1">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+    </div>
   );
 }
 

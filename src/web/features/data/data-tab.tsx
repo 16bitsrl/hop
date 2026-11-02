@@ -1,9 +1,10 @@
+import { DownloadIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card, CardBody, CardHeader } from "../../components/legacy";
+import { buttonVariants } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { YourlsImport } from "./yourls-import";
 
-const buttonClass =
-  "inline-flex h-8 max-md:h-10 items-center justify-center whitespace-nowrap rounded-md border border-input bg-card px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted";
+const linkClass = buttonVariants({ variant: "outline" });
 
 /** Settings > Data: import from YOURLS, backup and export, restore instructions. */
 export function DataTab() {
@@ -12,19 +13,27 @@ export function DataTab() {
     <>
       <YourlsImport />
       <Card>
-        <CardHeader title={t("backup.title")} description={t("backup.description")} />
-        <CardBody className="flex flex-wrap items-center gap-3">
-          <a href="/api/data/backup?gzip=1" download className={buttonClass}>
+        <CardHeader>
+          <CardTitle>{t("backup.title")}</CardTitle>
+          <CardDescription>{t("backup.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3">
+          <a href="/api/data/backup?gzip=1" download className={linkClass}>
+            <DownloadIcon data-icon="inline-start" />
             {t("backup.download")}
           </a>
-          <a href="/api/data/links.csv" download className={buttonClass}>
+          <a href="/api/data/links.csv" download className={linkClass}>
+            <DownloadIcon data-icon="inline-start" />
             {t("backup.csv")}
           </a>
           <span className="text-[13px] text-muted-foreground">{t("backup.csvHint")}</span>
-        </CardBody>
+        </CardContent>
       </Card>
       <Card>
-        <CardHeader title={t("restore.title")} description={t("restore.description")} />
+        <CardHeader>
+          <CardTitle>{t("restore.title")}</CardTitle>
+          <CardDescription>{t("restore.description")}</CardDescription>
+        </CardHeader>
       </Card>
     </>
   );

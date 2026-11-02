@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { apiAs, createUser, loginAs } from "./helpers";
+import { apiAs, choose, createUser, loginAs } from "./helpers";
 import { createLink, ensureDomain, SHORT_HOST, uniq } from "./links-helpers";
 import { APP } from "../playwright.config";
 
@@ -99,7 +99,7 @@ test("admins set the check options and see broken links on the dashboard and the
   await page.getByRole("tab", { name: "Links" }).click();
   const card = page.getByTestId("health-settings");
   await expect(card.getByRole("switch", { name: "Check destinations" })).toBeChecked();
-  await card.getByLabel("Check each link every").selectOption("3");
+  await choose(page, card.getByLabel("Check each link every"), "3 days");
   await card.getByRole("button", { name: "Apply" }).click();
   await expect(page.getByText("Saved").first()).toBeVisible();
   expect(await (await api.get("/api/links-health/settings")).json()).toEqual({ enabled: true, recheckDays: 3 });
