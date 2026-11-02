@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page, type PlaywrightWorkerArgs } from "@playwright/test";
+import { expect, type APIRequestContext, type Locator, type Page, type PlaywrightWorkerArgs } from "@playwright/test";
 import { APP } from "../playwright.config";
 
 /**
@@ -86,4 +86,15 @@ export async function enableTestSmtp(api: APIRequestContext) {
     data: { host: "outbox.test", port: 587, user: "", from: "hop@example.test", tls: "none" },
   });
   expect(res.ok(), await res.text()).toBeTruthy();
+}
+
+/**
+ * Picks an option in a select (a button that opens a list of options), like a person would:
+ *   await choose(page, page.getByLabel("Role"), "Viewer");
+ */
+export async function choose(page: Page, select: Locator, option: string | RegExp) {
+  await select.click();
+  const listbox = page.getByRole("listbox");
+  await listbox.getByRole("option", { name: option, exact: typeof option === "string" }).click();
+  await expect(listbox).toBeHidden();
 }

@@ -35,6 +35,17 @@ test.describe("failed loads", () => {
     await expect(page.getByRole("switch", { name: "Allow signing in with a password" })).toBeVisible();
   });
 
+  test("users list shows an error with retry instead of spinning", async ({ page, request }) => {
+    const admin = await createUser(request, { role: "admin" });
+    const release = await failRequests(page, /\/api\/users$/);
+    await loginAs(page, admin, "/users");
+    await expect(page.getByText("This couldn't be loaded.")).toBeVisible();
+    release();
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByText("This couldn't be loaded.")).toHaveCount(0);
+    await expect(page.getByRole("row").filter({ hasText: admin.email })).toBeVisible();
+  });
+
   test("activity log shows an error with retry", async ({ page, request }) => {
     const admin = await createUser(request, { role: "admin" });
     const release = await failRequests(page, /\/api\/audit/);
@@ -153,4 +164,22 @@ test("form hints and errors are tied to their field", async ({ page, request }) 
   await dialog.getByRole("button", { name: "Add domain" }).click();
   await expect(host).toHaveAttribute("aria-invalid", "true");
   await expect(host).toHaveAccessibleDescription("Enter only the domain name, like go.example.com.");
+});
+
+test("the copy button turns into a check for a moment, then back", async ({ page, request, playwright, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  await ensureDomain(api);
+  const link = await createLink(api, { url: "https://example.com/copy", slug: uniq("cp") });
+  await loginAs(page, admin, `/links/${link.id}`);
+  const button = page.getByRole("button", { name: "Copy short link" });
+  await expect(button).not.toHaveAttribute("data-copied");
+  await button.click();
+  await expect(button).toHaveAttribute("data-copied", "true");
+  await expect(button).toContainText("Copied");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(link.shortUrl);
+  // About a second and a half later it is a copy button again.
+  await expect(button).not.toHaveAttribute("data-copied", { timeout: 3000 });
+  await expect(button).toContainText("Copy short link");
 });

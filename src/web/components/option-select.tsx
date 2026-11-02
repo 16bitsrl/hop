@@ -3,6 +3,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export type Option<T extends string = string> = { value: T; label: ReactNode; disabled?: boolean }
 
+// "" (often "any" in filters) would read as "nothing selected": it travels as a sentinel inside.
+const EMPTY = "__empty__"
+const enc = (v: string) => (v === "" ? EMPTY : v)
+const dec = <T extends string>(v: string) => (v === EMPTY ? "" : v) as T
+
 /**
  * A select for a plain list of options (the common case), built on the shadcn Select.
  *   <OptionSelect id={id} value={role} onValueChange={setRole} options={[{ value: "admin", label: "Admin" }]} />
@@ -30,12 +35,12 @@ export function OptionSelect<T extends string>({
   "aria-label"?: string
 }) {
   return (
-    <Select<T>
-      items={options}
-      value={value}
+    <Select<string>
+      items={options.map((o) => ({ value: enc(o.value), label: o.label }))}
+      value={enc(value)}
       disabled={disabled}
       onValueChange={(v) => {
-        if (v !== null) onValueChange(v)
+        if (v !== null) onValueChange(dec<T>(v))
       }}
     >
       <SelectTrigger id={id} aria-label={ariaLabel} className={className} size={size}>
@@ -43,7 +48,7 @@ export function OptionSelect<T extends string>({
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
-          <SelectItem key={o.value} value={o.value} disabled={o.disabled}>
+          <SelectItem key={o.value} value={enc(o.value)} disabled={o.disabled}>
             {o.label}
           </SelectItem>
         ))}
