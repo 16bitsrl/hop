@@ -8,14 +8,14 @@ function Tabs({ className, orientation = "horizontal", ...props }: TabsPrimitive
       data-slot="tabs"
       data-orientation={orientation}
       orientation={orientation}
-      className={cn("group/tabs flex gap-4 data-horizontal:flex-col", className)}
+      className={cn("group/tabs flex gap-4 data-[orientation=horizontal]:flex-col", className)}
       {...props}
     />
   )
 }
 
 const tabsListVariants = cva(
-  "group/tabs-list relative inline-flex w-fit items-center text-muted-foreground group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col",
+  "group/tabs-list relative inline-flex w-fit items-center text-muted-foreground group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
   {
     variants: {
       variant: {
