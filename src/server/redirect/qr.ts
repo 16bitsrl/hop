@@ -6,8 +6,8 @@ import { create } from "qrcode/lib/core/qrcode.js";
  */
 
 const MARGIN = 2;
-/** About the 400 px YOURLS asked for. */
-const TARGET_PX = 400;
+/** Smallest edge of the PNG, in pixels (the SVG is drawn at this size too). */
+const MIN_PX = 512;
 
 function matrix(text: string) {
   const { size, data } = create(text, { errorCorrectionLevel: "M" }).modules;
@@ -20,7 +20,7 @@ export function qrSvg(text: string): string {
   let d = "";
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (dark(x, y)) d += `M${x + MARGIN} ${y + MARGIN}h1v1h-1z`;
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${full} ${full}" width="${TARGET_PX}" height="${TARGET_PX}" shape-rendering="crispEdges">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${full} ${full}" width="${MIN_PX}" height="${MIN_PX}" shape-rendering="crispEdges">` +
     `<rect width="${full}" height="${full}" fill="#fff"/><path fill="#000" d="${d}"/></svg>`
   );
 }
@@ -61,7 +61,7 @@ async function zlib(data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuff
 export async function qrPng(text: string): Promise<Uint8Array<ArrayBuffer>> {
   const { size, dark } = matrix(text);
   const full = size + MARGIN * 2;
-  const scale = Math.max(4, Math.round(TARGET_PX / full));
+  const scale = Math.ceil(MIN_PX / full); // whole pixels per module keep the edges sharp
   const px = full * scale;
   const raw = new Uint8Array(px * (px + 1)).fill(255);
   for (let y = 0; y < px; y++) {

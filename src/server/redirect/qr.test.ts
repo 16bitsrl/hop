@@ -30,7 +30,7 @@ function readPng(png: Uint8Array) {
 test("the PNG is a square code with a quiet zone and a dark finder pattern in the corner", async () => {
   const png = readPng(await qrPng("https://go.example/menu"));
   expect(png.width).toBe(png.height);
-  expect(png.width).toBeGreaterThanOrEqual(300);
+  expect(png.width).toBeGreaterThanOrEqual(512);
   expect(png.pixel(0, 0)).toBe(255); // quiet zone
   const module = png.width / (21 + 4); // smallest version for a short address is 25 modules wide or more
   expect(png.pixel(Math.floor(module * 2.5), Math.floor(module * 2.5))).toBe(0); // top-left finder
