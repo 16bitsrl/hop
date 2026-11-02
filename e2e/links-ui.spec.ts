@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { APP, SHORT } from "../playwright.config";
-import { apiAs, createUser, loginAs } from "./helpers";
+import { apiAs, choose, createUser, loginAs } from "./helpers";
 import { createLink, DESKTOP_UA, ensureDomain, IPHONE_UA, uniq } from "./links-helpers";
 
 const PNG = Buffer.from(
@@ -474,12 +474,12 @@ test.describe("links UI", () => {
     const l = await createLink(admin, { domainId: dom.id, url: "https://example.com/in-domain" });
     await page.reload();
     await page.getByRole("row").filter({ hasText: host }).getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Delete domain" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete domain" }).click();
     await expect(page.getByText("still has links")).toBeVisible();
-    await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
     await admin.delete(`/api/links/${l.id}`);
     await page.getByRole("row").filter({ hasText: host }).getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Delete domain" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete domain" }).click();
     await expect(page.getByRole("row").filter({ hasText: host })).toHaveCount(0);
 
     const member = await createUser(request, { role: "member" });
@@ -493,7 +493,7 @@ test.describe("links UI", () => {
     const host = `${uniq("pd")}.localhost`;
     const other = await ensureDomain(admin, host);
     await loginAs(page, user, "/profile");
-    await page.getByLabel("Default domain for new links").selectOption({ label: host });
+    await choose(page, page.getByLabel("Default domain for new links"), host);
     await expect(page.getByText("Saved", { exact: true })).toBeVisible();
     const l = await createLink(api, { url: "https://example.com/pd" });
     expect(l.domainId).toBe(other.id);

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { APP } from "../playwright.config";
-import { apiAs, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
+import { apiAs, choose, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
 
 test.beforeEach(async ({ request }) => {
   await resetSettings(request);
@@ -36,7 +36,7 @@ test("admin invites someone without email: copy the link, they set a password", 
   await page.getByRole("button", { name: "Invite user" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Email").fill("new.person@example.test");
-  await dialog.getByLabel("Role").selectOption("viewer");
+  await choose(page, dialog.getByLabel("Role"), "Viewer");
   await dialog.getByRole("button", { name: "Create invitation" }).click();
   await expect(dialog.getByText("Email is not set up, so send this link yourself.")).toBeVisible();
   const link = await dialog.getByLabel("Invitation link").inputValue();
@@ -78,7 +78,7 @@ test("invitation by email arrives in the inbox and can be revoked", async ({ pag
 
   const row = page.getByRole("row", { name: /mailed@example.test/ });
   await row.getByRole("button", { name: "Revoke" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Revoke" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Revoke" }).click();
   await expect(page.getByRole("row", { name: /mailed@example.test/ })).toHaveCount(0);
 
   await page.context().clearCookies();
@@ -91,7 +91,7 @@ test("admin changes a role", async ({ page, request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const member = await createUser(request, { role: "member" });
   await loginAs(page, admin, "/users");
-  await page.getByLabel(`Role for ${member.email}`).selectOption("viewer");
+  await choose(page, page.getByLabel(`Role for ${member.email}`), "Viewer");
   await expect(page.getByText("Role updated")).toBeVisible();
   const api = await apiAs(playwright, admin);
   const { users } = await (await api.get("/api/users")).json();
@@ -111,7 +111,7 @@ test("a disabled user cannot sign in and loses the session", async ({ page, brow
 
   await loginAs(page, admin, "/users");
   await page.getByRole("row", { name: new RegExp(victim.email) }).getByRole("button", { name: "Disable" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Disable" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Disable" }).click();
   await expect(page.getByRole("row", { name: new RegExp(victim.email) }).getByText("Disabled")).toBeVisible();
 
   await victimPage.reload();

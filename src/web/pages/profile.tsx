@@ -1,22 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { PageHeader } from "../components/page";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  ConfirmDialog,
-  Dialog,
-  EmptyState,
-  Field,
-  Input,
-  KeyIcon,
-  PlusIcon,
-  Select,
-  useToast,
-} from "../components/legacy";
+import { PageHeader } from "@/components/page";
+import { KeyRoundIcon, PlusIcon } from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormField } from "@/components/form-field";
+import { OptionSelect } from "@/components/option-select";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/states";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/lib/toast";
 import { setLanguage, type Language } from "../i18n";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
@@ -33,7 +28,7 @@ export function ProfilePage() {
   return (
     <>
       <PageHeader title={t("title")} />
-      <div className="flex max-w-2xl flex-col gap-6">
+      <div className="flex max-w-2xl flex-col gap-5">
         <AccountCard />
         <PreferencesCard />
         {config?.passwordLogin !== false && <PasswordCard />}
@@ -47,7 +42,6 @@ export function ProfilePage() {
 function useUpdateMe() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const toast = useToast();
   return useMutation({
     mutationFn: (body: Partial<Pick<Me, "name" | "locale" | "defaultDomainId">>) => api<{ user: Me }>("/api/me", { method: "PATCH", body }),
     onSuccess: ({ user }) => {
@@ -65,8 +59,10 @@ function AccountCard() {
   const update = useUpdateMe();
   return (
     <Card>
-      <CardHeader title={t("account.title")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("account.title")}</CardTitle>
+      </CardHeader>
+      <CardContent>
         <form
           className="flex flex-col gap-4"
           onSubmit={(e) => {
@@ -74,15 +70,15 @@ function AccountCard() {
             update.mutate({ name });
           }}
         >
-          <Field label={t("account.name")}>{(id) => <Input id={id} required value={name} onChange={(e) => setName(e.target.value)} />}</Field>
-          <Field label={t("account.email")}>{(id) => <Input id={id} value={me.email} readOnly disabled />}</Field>
+          <FormField label={t("account.name")}>{(id) => <Input id={id} required value={name} onChange={(e) => setName(e.target.value)} />}</FormField>
+          <FormField label={t("account.email")}>{(id) => <Input id={id} value={me.email} readOnly disabled />}</FormField>
           <div>
-            <Button type="submit" variant="primary" loading={update.isPending} disabled={!name.trim() || name === me.name}>
+            <Button type="submit" loading={update.isPending} disabled={!name.trim() || name === me.name}>
               {t("common:save")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -95,57 +91,58 @@ function PreferencesCard() {
   const domains = useQuery(domainsQuery);
   return (
     <Card>
-      <CardHeader title={t("preferences.title")} />
-      <CardBody className="grid gap-4 sm:grid-cols-2">
-        <Field label={t("preferences.language")}>
+      <CardHeader>
+        <CardTitle>{t("preferences.title")}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4 sm:grid-cols-2">
+        <FormField label={t("preferences.language")}>
           {(id) => (
-            <Select
+            <OptionSelect<Language>
               id={id}
+              className="w-full"
               value={i18n.language.startsWith("it") ? "it" : "en"}
-              onChange={(e) => {
-                const lang = e.target.value as Language;
+              options={[
+                { value: "en", label: t("common:locale.en") },
+                { value: "it", label: t("common:locale.it") },
+              ]}
+              onValueChange={(lang) => {
                 setLanguage(lang);
                 update.mutate({ locale: lang });
               }}
-            >
-              <option value="en">{t("common:locale.en")}</option>
-              <option value="it">{t("common:locale.it")}</option>
-            </Select>
+            />
           )}
-        </Field>
-        <Field label={t("preferences.theme")}>
+        </FormField>
+        <FormField label={t("preferences.theme")}>
           {(id) => (
-            <Select id={id} value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
-              {(["system", "light", "dark"] as Theme[]).map((v) => (
-                <option key={v} value={v}>
-                  {t(`preferences.themes.${v}`)}
-                </option>
-              ))}
-            </Select>
+            <OptionSelect<Theme>
+              id={id}
+              className="w-full"
+              value={theme}
+              options={(["system", "light", "dark"] as Theme[]).map((v) => ({ value: v, label: t(`preferences.themes.${v}`) }))}
+              onValueChange={setTheme}
+            />
           )}
-        </Field>
+        </FormField>
         {me.role !== "viewer" && (domains.data?.length ?? 0) > 0 && (
-          <Field label={t("preferences.defaultDomain")} hint={t("preferences.defaultDomainHint")} className="sm:col-span-2">
+          <FormField label={t("preferences.defaultDomain")} hint={t("preferences.defaultDomainHint")} className="sm:col-span-2">
             {(id) => (
-              <Select id={id} value={me.defaultDomainId ?? ""} onChange={(e) => update.mutate({ defaultDomainId: e.target.value || null })}>
-                <option value="">{t("preferences.sharedDefault")}</option>
-                {domains.data?.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.host}
-                  </option>
-                ))}
-              </Select>
+              <OptionSelect
+                id={id}
+                className="w-full"
+                value={me.defaultDomainId ?? ""}
+                options={[{ value: "", label: t("preferences.sharedDefault") }, ...(domains.data ?? []).map((d) => ({ value: d.id, label: d.host }))]}
+                onValueChange={(v) => update.mutate({ defaultDomainId: v || null })}
+              />
             )}
-          </Field>
+          </FormField>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
 
 function PasswordCard() {
   const { t } = useTranslation("profile");
-  const toast = useToast();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -168,24 +165,26 @@ function PasswordCard() {
 
   return (
     <Card>
-      <CardHeader title={t("password.title")} />
-      <CardBody>
+      <CardHeader>
+        <CardTitle>{t("password.title")}</CardTitle>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Field label={t("password.current")}>
+          <FormField label={t("password.current")}>
             {(id) => <Input id={id} type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} />}
-          </Field>
-          <Field label={t("password.new")} hint={t("password.hint")} error={error}>
+          </FormField>
+          <FormField label={t("password.new")} hint={t("password.hint")} error={error}>
             {(id) => (
               <Input id={id} type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={next} onChange={(e) => setNext(e.target.value)} />
             )}
-          </Field>
+          </FormField>
           <div>
-            <Button type="submit" loading={busy}>
+            <Button type="submit" variant="outline" loading={busy}>
               {t("password.submit")}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -194,7 +193,6 @@ type PasskeyRow = { id: string; name?: string | null; createdAt?: string | Date 
 
 function PasskeysCard() {
   const { t, i18n } = useTranslation("profile");
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<PasskeyRow | null>(null);
@@ -223,39 +221,45 @@ function PasskeysCard() {
   });
 
   return (
-    <Card>
-      <CardHeader
-        title={t("passkeys.title")}
-        description={t("passkeys.description")}
-        action={
-          <Button onClick={() => setAdding(true)}>
-            <PlusIcon />
+    <Card className="pb-0">
+      <CardHeader>
+        <CardTitle>{t("passkeys.title")}</CardTitle>
+        <CardDescription>{t("passkeys.description")}</CardDescription>
+        <CardAction>
+          <Button variant="outline" onClick={() => setAdding(true)}>
+            <PlusIcon data-icon="inline-start" />
             {t("passkeys.add")}
           </Button>
-        }
-      />
-      {list.data && list.data.length > 0 ? (
-        <ul className="divide-y divide-border">
-          {list.data.map((p) => (
-            <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="text-muted-foreground">
-                  <KeyIcon />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{p.name || t("passkeys.unnamed")}</p>
-                  {p.createdAt && <p className="text-xs text-muted-foreground">{t("passkeys.addedOn", { date: formatDate(p.createdAt, i18n.language) })}</p>}
+        </CardAction>
+      </CardHeader>
+      <div className="border-t">
+        {list.isPending ? (
+          <ListSkeleton rows={1} />
+        ) : list.isError ? (
+          <ErrorState onRetry={() => list.refetch()} retrying={list.isFetching} />
+        ) : list.data.length > 0 ? (
+          <ul className="divide-y">
+            {list.data.map((p) => (
+              <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <KeyRoundIcon className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{p.name || t("passkeys.unnamed")}</p>
+                    {p.createdAt && <p className="text-xs text-muted-foreground tabular-nums">{t("passkeys.addedOn", { date: formatDate(p.createdAt, i18n.language) })}</p>}
+                  </div>
                 </div>
-              </div>
-              <Button size="sm" variant="ghost" onClick={() => setRemoving(p)}>
-                {t("passkeys.remove")}
-              </Button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        list.data && <EmptyState icon={<KeyIcon />} title={t("passkeys.empty")} />
-      )}
+                <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(p)}>
+                  {t("passkeys.remove")}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState icon={<KeyRoundIcon />} title={t("passkeys.empty")} className="py-8" />
+        )}
+      </div>
 
       <AddPasskeyDialog
         open={adding}
@@ -283,8 +287,14 @@ function PasskeysCard() {
 function AddPasskeyDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
   const { t } = useTranslation("profile");
   return (
-    <Dialog open={open} onClose={onClose} title={t("passkeys.addTitle")} description={t("passkeys.addText")}>
-      <AddPasskeyForm onClose={onClose} onAdded={onAdded} />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("passkeys.addTitle")}</DialogTitle>
+          <DialogDescription>{t("passkeys.addText")}</DialogDescription>
+        </DialogHeader>
+        <AddPasskeyForm onClose={onClose} onAdded={onAdded} />
+      </DialogContent>
     </Dialog>
   );
 }
@@ -310,15 +320,17 @@ function AddPasskeyForm({ onClose, onAdded }: { onClose: () => void; onAdded: ()
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <Field label={t("passkeys.name")} error={error}>
+      <FormField label={t("passkeys.name")} error={error}>
         {(id) => <Input id={id} autoFocus placeholder={t("passkeys.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />}
-      </Field>
-      <div className="flex justify-end gap-2">
-        <Button onClick={onClose}>{t("common:cancel")}</Button>
-        <Button type="submit" variant="primary" loading={busy}>
+      </FormField>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          {t("common:cancel")}
+        </Button>
+        <Button type="submit" loading={busy}>
           {t("passkeys.submit")}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }

@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { createUser, loginAs } from "./helpers";
+import { choose, createUser, loginAs } from "./helpers";
 
 test("language switch to Italian is saved and applied", async ({ page, request }) => {
   const user = await createUser(request, { role: "admin" });
   await loginAs(page, user, "/profile");
-  await page.getByLabel("Language").selectOption("it");
+  await choose(page, page.getByLabel("Language"), "Italiano");
   await expect(page.getByRole("link", { name: "Domini" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Registro attività" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Impostazioni" })).toBeVisible();
@@ -27,11 +27,11 @@ test("name and theme can be changed", async ({ page, request }) => {
   await page.reload();
   await expect(page.getByLabel("Name")).toHaveValue("Renamed Person");
 
-  await page.getByLabel("Theme").selectOption("dark");
+  await choose(page, page.getByLabel("Theme"), "Dark");
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);
-  await page.getByLabel("Theme").selectOption("light");
+  await choose(page, page.getByLabel("Theme"), "Light");
   await expect(page.locator("html")).not.toHaveClass(/dark/);
 });
 

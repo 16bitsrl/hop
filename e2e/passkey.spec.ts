@@ -37,6 +37,6 @@ test("a user registers a passkey, signs out, and signs in with it", async ({ pag
   // Remove it again.
   await page.goto("/profile");
   await page.getByRole("listitem").filter({ hasText: "Test laptop" }).getByRole("button", { name: "Remove" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Remove" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Remove" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Test laptop" })).toHaveCount(0);
 });
