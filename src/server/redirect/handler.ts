@@ -85,7 +85,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     // YOURLS conventions: "<slug>+" opens the link's statistics, "<slug>.qr" / "<slug>.qrv" its QR code.
     const stats = slug.length > 1 && slug.endsWith("+") ? await publicStatsUrl(platform, domain.id, slug.slice(0, -1)) : null;
     if (stats) return redirect(stats, 302);
-    const qr = /^(.+)\.(?:qr)?(v?)$/.exec(slug);
+    const qr = /^(.+)\.qr(v?)$/.exec(slug);
     if (qr && (await linkExists(platform.db, domain.id, qr[1]!))) {
       const target = `${url.protocol}//${url.host}/${qr[1]}`;
       const headers = { "cache-control": "public, max-age=3600", "x-content-type-options": "nosniff" };

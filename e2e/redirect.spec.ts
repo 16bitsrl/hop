@@ -261,13 +261,13 @@ test("on links without a limit, bots are logged but only people count", async ({
 test("a slug followed by .qr or .qrv shows its QR code, like YOURLS", async ({ request }) => {
   const slug = uniq("qr");
   const l = await seed(request, { slug, url: "https://example.com/qr" });
-  for (const suffix of [".qr", "."]) {
+  for (const suffix of [".qr"]) {
     const png = await get(request, slug + suffix);
     expect(png.status(), suffix).toBe(200);
     expect(png.headers()["content-type"]).toBe("image/png");
     expect((await png.body()).subarray(1, 4).toString()).toBe("PNG");
   }
-  for (const suffix of [".qrv", ".v"]) {
+  for (const suffix of [".qrv"]) {
     const svg = await get(request, slug + suffix);
     expect(svg.status(), suffix).toBe(200);
     expect(svg.headers()["content-type"]).toContain("image/svg+xml");
@@ -277,4 +277,6 @@ test("a slug followed by .qr or .qrv shows its QR code, like YOURLS", async ({ r
   const rows = (await (await request.get(`/api/_test/clicks?linkId=${l.id}`)).json()) as unknown[];
   expect(rows).toHaveLength(0);
   expect((await get(request, `${uniq("missing")}.qr`)).status()).toBe(404);
+  // Only the full .qr and .qrv, not the bare dot or .v.
+  for (const suffix of [".", ".v"]) expect((await get(request, slug + suffix)).status(), suffix).toBe(404);
 });
