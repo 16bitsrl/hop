@@ -2,12 +2,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Dialog, Field, Input, Select } from "../../components/legacy";
+import { CircleAlertIcon, PlusIcon } from "lucide-react";
+import { FormField } from "@/components/form-field";
+import { OptionSelect } from "@/components/option-select";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { api, qs } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { useMe } from "../../lib/session";
-import { domainsQuery, foldersQuery, folderTree, tagsQuery, type Link } from "./api";
-import { TagInput } from "./parts";
+import { domainsQuery, foldersQuery, tagsQuery, type Link } from "./api";
+import { folderOptions, TagInput } from "./parts";
 
 type PageMeta = { title: string | null; description: string | null; image: string | null };
 
@@ -19,8 +25,14 @@ export function fetchMeta(url: string) {
 export function CreateLinkDialog({ open, onClose, initialUrl = "" }: { open: boolean; onClose: () => void; initialUrl?: string }) {
   const { t } = useTranslation("links");
   return (
-    <Dialog open={open} onClose={onClose} title={t("create.title")} description={t("create.description")}>
-      <CreateForm onClose={onClose} initialUrl={initialUrl} />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("create.title")}</DialogTitle>
+          <DialogDescription>{t("create.description")}</DialogDescription>
+        </DialogHeader>
+        <CreateForm onClose={onClose} initialUrl={initialUrl} />
+      </DialogContent>
     </Dialog>
   );
 }
@@ -98,39 +110,33 @@ function CreateForm({ onClose, initialUrl }: { onClose: () => void; initialUrl: 
     create.mutate();
   }
 
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <Field label={t("fields.url")}>
+      <FormField label={t("fields.url")}>
         {(id) => (
-          <Input
-            id={id}
-            type="url"
-            required
-            autoFocus
-            placeholder="https://"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onBlur={() => void lookUp()}
-          />
+          <Input id={id} type="url" required autoFocus placeholder="https://" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={() => void lookUp()} />
         )}
-      </Field>
-      <Field label={t("fields.slug")} hint={t("fields.slugHint")}>
+      </FormField>
+      <FormField label={t("fields.slug")} hint={t("fields.slugHint")}>
         {(id) => <Input id={id} value={slug} maxLength={64} autoComplete="off" onChange={(e) => setSlug(e.target.value)} />}
-      </Field>
+      </FormField>
       {domainList.length > 1 && (
-        <Field label={t("fields.domain")}>
-          {(id) => (
-            <Select id={id} value={chosenDomain} onChange={(e) => setDomainId(e.target.value)}>
-              {domainList.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.host}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
+        <FormField label={t("fields.domain")}>
+          {(id) => <OptionSelect id={id} value={chosenDomain} onValueChange={setDomainId} options={domainList.map((d) => ({ value: d.id, label: d.host }))} />}
+        </FormField>
       )}
-      <Field label={t("fields.title")} hint={lookingUp ? t("create.lookingUp") : undefined}>
+      <FormField
+        label={t("fields.title")}
+        hint={
+          lookingUp ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Spinner className="size-3" />
+              {t("create.lookingUp")}
+            </span>
+          ) : undefined
+        }
+      >
         {(id) => (
           <Input
             id={id}
@@ -142,34 +148,30 @@ function CreateForm({ onClose, initialUrl }: { onClose: () => void; initialUrl: 
             }}
           />
         )}
-      </Field>
-      <Field label={t("fields.tags")}>
+      </FormField>
+      <FormField label={t("fields.tags")}>
         {(id) => <TagInput id={id} value={tagNames} onChange={setTagNames} suggestions={(tags.data ?? []).map((x) => x.name)} />}
-      </Field>
-      <Field label={t("fields.folder")}>
+      </FormField>
+      <FormField label={t("fields.folder")}>
         {(id) => (
-          <Select id={id} value={folderId} onChange={(e) => setFolderId(e.target.value)}>
-            <option value="">{t("folders.none")}</option>
-            {folderTree(folders.data ?? []).map((f) => (
-              <option key={f.id} value={f.id}>
-                {"  ".repeat(f.depth)}
-                {f.name}
-              </option>
-            ))}
-          </Select>
+          <OptionSelect id={id} value={folderId} onValueChange={setFolderId} options={folderOptions(folders.data ?? [], [{ value: "", label: t("folders.none") }])} />
         )}
-      </Field>
+      </FormField>
       {create.error && (
-        <p role="alert" className="text-[13px] text-destructive">
+        <p role="alert" className="flex items-start gap-1.5 text-[13px] text-destructive">
+          <CircleAlertIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           {errorMessage(tc, create.error)}
         </p>
       )}
-      <div className="flex justify-end gap-2 pt-1">
-        <Button onClick={onClose}>{tc("cancel")}</Button>
-        <Button type="submit" variant="primary" loading={create.isPending}>
+      <DialogFooter className="mt-1">
+        <Button variant="outline" onClick={onClose}>
+          {tc("cancel")}
+        </Button>
+        <Button type="submit" loading={create.isPending}>
+          {!create.isPending && <PlusIcon data-icon="inline-start" />}
           {t("create.submit")}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }

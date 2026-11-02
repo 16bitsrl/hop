@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { APP, SHORT } from "../playwright.config";
-import { apiAs, createUser, loginAs } from "./helpers";
+import { apiAs, choose, createUser, loginAs } from "./helpers";
 import { createLink, DESKTOP_UA, ensureDomain, IPHONE_UA, uniq } from "./links-helpers";
 
 const PNG = Buffer.from(
@@ -93,7 +93,7 @@ test.describe("links UI", () => {
     await dialog.getByLabel("Tags").fill(`red-${key}`);
     await dialog.getByLabel("Tags").press("Enter");
     await expect(dialog.getByText(`red-${key}`)).toBeVisible();
-    await dialog.getByLabel("Folder").selectOption({ label: `Folder ${key}` });
+    await choose(page, dialog.getByLabel("Folder"), `Folder ${key}`);
     await dialog.getByRole("button", { name: "Create link" }).click();
     await expect(page).toHaveURL(/\/links\/[^/]+$/);
     await expect(page.getByText(`red-${key}`)).toBeVisible();
@@ -128,7 +128,7 @@ test.describe("links UI", () => {
     const adminUser = await createUser(request, { role: "admin" });
     await loginAs(page, adminUser, `/links/${mine.id}`);
     await page.getByRole("button", { name: "Delete" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Delete link" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete link" }).click();
     await expect(page).toHaveURL(/\/links$/);
     expect((await admin.get(`/api/links/${mine.id}`)).status()).toBe(404);
   });
@@ -158,19 +158,19 @@ test.describe("links UI", () => {
     await page.getByLabel("Search links").fill(key);
     for (const l of [a, b, c]) await expect(page.getByRole("row").filter({ hasText: l.slug })).toBeVisible();
 
-    await page.getByLabel("Status").selectOption("disabled");
+    await choose(page, page.getByLabel("Status"), "Disabled");
     await expect(page.getByRole("row").filter({ hasText: c.slug })).toBeVisible();
     await expect(page.getByRole("row").filter({ hasText: a.slug })).toHaveCount(0);
-    await page.getByLabel("Status").selectOption("");
-    await page.getByLabel("Tag", { exact: true }).selectOption({ label: `tag${key}` });
+    await choose(page, page.getByLabel("Status"), "Any status");
+    await choose(page, page.getByLabel("Tag", { exact: true }), `tag${key}`);
     await expect(page.getByRole("row").filter({ hasText: a.slug })).toBeVisible();
     await expect(page.getByRole("row").filter({ hasText: b.slug })).toHaveCount(0);
-    await page.getByLabel("Tag", { exact: true }).selectOption("");
+    await choose(page, page.getByLabel("Tag", { exact: true }), "All tags");
 
     await page.getByRole("row").filter({ hasText: a.slug }).getByRole("button", { name: "Copy short link" }).click();
     await expect(page.getByText("Copied")).toBeVisible();
 
-    await page.getByLabel("Sort by").selectOption("slug");
+    await choose(page, page.getByLabel("Sort by"), "Short link ending");
     const rows = page.getByRole("row").filter({ hasText: key });
     await expect(rows.first()).toContainText(`${key}-c`);
     await page.getByRole("button", { name: "Reverse order" }).click();
@@ -199,7 +199,7 @@ test.describe("links UI", () => {
     const item = dialog.getByRole("listitem").filter({ hasText: name });
     await expect(item).toBeVisible();
     await dialog.getByRole("button", { name: `Delete ${name}` }).click();
-    await page.getByRole("dialog").filter({ hasText: "Delete folder" }).getByRole("button", { name: "Delete folder", exact: true }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete folder", exact: true }).click();
     await expect(item).toHaveCount(0);
   });
 

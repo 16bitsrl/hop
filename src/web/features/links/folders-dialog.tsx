@@ -1,17 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FolderIcon, FolderPlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, ConfirmDialog, Dialog, Field, Input, Select, useToast } from "../../components/legacy";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FormField } from "@/components/form-field";
+import { OptionSelect } from "@/components/option-select";
+import { ListSkeleton } from "@/components/states";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/lib/toast";
 import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 import { canCreate, useMe } from "../../lib/session";
 import { foldersQuery, folderTree, type Folder } from "./api";
+import { folderOptions } from "./parts";
 
 export function FoldersDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation("links");
   return (
-    <Dialog open={open} onClose={onClose} title={t("folders.title")} description={t("folders.description")}>
-      <FoldersBody />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("folders.title")}</DialogTitle>
+          <DialogDescription>{t("folders.description")}</DialogDescription>
+        </DialogHeader>
+        <FoldersBody />
+      </DialogContent>
     </Dialog>
   );
 }
@@ -20,9 +35,8 @@ function FoldersBody() {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
   const me = useMe();
-  const toast = useToast();
   const queryClient = useQueryClient();
-  const { data } = useQuery(foldersQuery);
+  const { data, isPending } = useQuery(foldersQuery);
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
@@ -63,39 +77,60 @@ function FoldersBody() {
 
   return (
     <div className="flex flex-col gap-4">
-      {tree.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground">{t("folders.empty")}</p>
+      {isPending ? (
+        <ListSkeleton rows={3} className="rounded-lg border" />
+      ) : tree.length === 0 ? (
+        <p className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-4 text-[13px] text-muted-foreground">
+          <FolderIcon className="size-4 shrink-0" aria-hidden="true" />
+          {t("folders.empty")}
+        </p>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-lg border border-border">
           {tree.map((f) => (
-            <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2" style={{ paddingLeft: `${0.75 + f.depth * 1.25}rem` }}>
+            <li key={f.id} className="flex min-h-11 items-center justify-between gap-3 py-1.5 pr-1.5" style={{ paddingLeft: `${0.75 + f.depth * 1.25}rem` }}>
               {editing?.id === f.id ? (
                 <form
-                  className="flex flex-1 gap-2"
+                  className="flex flex-1 items-center gap-2"
                   onSubmit={(e) => {
                     e.preventDefault();
                     rename.mutate(editing);
                   }}
                 >
                   <Input aria-label={t("folders.renameField")} autoFocus value={editing.name} onChange={(e) => setEditing({ id: f.id, name: e.target.value })} />
-                  <Button type="submit" size="sm" variant="primary" loading={rename.isPending}>
+                  <Button type="submit" size="sm" loading={rename.isPending}>
                     {tc("save")}
                   </Button>
-                  <Button size="sm" onClick={() => setEditing(null)}>
+                  <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
                     {tc("cancel")}
                   </Button>
                 </form>
               ) : (
                 <>
-                  <span className="min-w-0 truncate text-sm">
-                    {f.name} <span className="text-muted-foreground">({f.linkCount})</span>
+                  <span className="flex min-w-0 items-center gap-2 text-sm">
+                    <FolderIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <span className="truncate">{f.name}</span>
+                    <span className="text-muted-foreground tabular-nums">({f.linkCount})</span>
                   </span>
-                  <span className="flex shrink-0 gap-1">
-                    <Button size="sm" variant="ghost" disabled={!f.canModify} title={f.canModify ? undefined : t("folders.notYours")} aria-label={t("folders.rename", { name: f.name })} onClick={() => setEditing({ id: f.id, name: f.name })}>
-                      {t("folders.renameButton")}
+                  <span className="flex shrink-0 gap-0.5">
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      disabled={!f.canModify}
+                      title={f.canModify ? t("folders.rename", { name: f.name }) : t("folders.notYours")}
+                      aria-label={t("folders.rename", { name: f.name })}
+                      onClick={() => setEditing({ id: f.id, name: f.name })}
+                    >
+                      <PencilIcon />
                     </Button>
-                    <Button size="sm" variant="ghost" disabled={!f.canModify} title={f.canModify ? undefined : t("folders.notYours")} aria-label={t("folders.delete", { name: f.name })} onClick={() => setRemoving(f)}>
-                      {t("delete")}
+                    <Button
+                      size="icon-sm"
+                      variant="destructive-ghost"
+                      disabled={!f.canModify}
+                      title={f.canModify ? t("folders.delete", { name: f.name }) : t("folders.notYours")}
+                      aria-label={t("folders.delete", { name: f.name })}
+                      onClick={() => setRemoving(f)}
+                    >
+                      <Trash2Icon />
                     </Button>
                   </span>
                 </>
@@ -107,33 +142,22 @@ function FoldersBody() {
 
       {canCreate(me) && (
         <form
-          className="grid gap-3 sm:grid-cols-[1fr_auto]"
+          className="grid gap-3 border-t pt-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
             if (name.trim()) add.mutate();
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label={t("folders.newName")}>{(id) => <Input id={id} value={name} maxLength={50} onChange={(e) => setName(e.target.value)} />}</Field>
-            <Field label={t("folders.parent")}>
-              {(id) => (
-                <Select id={id} value={parentId} onChange={(e) => setParentId(e.target.value)}>
-                  <option value="">{t("folders.topLevel")}</option>
-                  {tree.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {"  ".repeat(f.depth)}
-                      {f.name}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </Field>
-          </div>
-          <div className="flex items-end">
-            <Button type="submit" variant="primary" disabled={!name.trim()} loading={add.isPending}>
-              {t("folders.add")}
-            </Button>
-          </div>
+          <FormField label={t("folders.newName")}>{(id) => <Input id={id} value={name} maxLength={50} onChange={(e) => setName(e.target.value)} />}</FormField>
+          <FormField label={t("folders.parent")}>
+            {(id) => (
+              <OptionSelect id={id} value={parentId} onValueChange={setParentId} options={folderOptions(data ?? [], [{ value: "", label: t("folders.topLevel") }])} />
+            )}
+          </FormField>
+          <Button type="submit" disabled={!name.trim()} loading={add.isPending}>
+            {!add.isPending && <FolderPlusIcon data-icon="inline-start" />}
+            {t("folders.add")}
+          </Button>
         </form>
       )}
 

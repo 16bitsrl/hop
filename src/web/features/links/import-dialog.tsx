@@ -1,7 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Dialog, Field, Input, Table, TBody, Td, Th, THead, Tr, useToast } from "../../components/legacy";
+import { CircleAlertIcon, CircleCheckIcon, DownloadIcon, UploadIcon } from "lucide-react";
+import { FormField } from "@/components/form-field";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/lib/toast";
 import { splitCsv } from "../../../shared/csv";
 import { api } from "../../lib/api";
 import { BATCH_SIZE } from "../../lib/batches";
@@ -15,8 +22,14 @@ type Result = { created: number; failed: { line: number; errors: string[] }[] };
 export function ImportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation("links");
   return (
-    <Dialog open={open} onClose={onClose} title={t("import.title")} description={t("import.description")} className="max-w-3xl">
-      <ImportFlow onClose={onClose} />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{t("import.title")}</DialogTitle>
+          <DialogDescription>{t("import.description")}</DialogDescription>
+        </DialogHeader>
+        <ImportFlow onClose={onClose} />
+      </DialogContent>
     </Dialog>
   );
 }
@@ -24,7 +37,6 @@ export function ImportDialog({ open, onClose }: { open: boolean; onClose: () => 
 function ImportFlow({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
-  const toast = useToast();
   const queryClient = useQueryClient();
   const [csv, setCsv] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -82,22 +94,26 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
   if (result) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-medium">{t("import.created", { count: result.created })}</p>
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <CircleCheckIcon className="size-4 text-success" aria-hidden="true" />
+          {t("import.created", { count: result.created })}
+        </p>
         {result.failed.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">{t("import.skipped", { count: result.failed.length })}</p>
-            <ul className="flex flex-col gap-1 text-[13px] text-muted-foreground">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <CircleAlertIcon className="size-4 text-warning" aria-hidden="true" />
+              {t("import.skipped", { count: result.failed.length })}
+            </p>
+            <ul className="flex max-h-60 flex-col gap-1 overflow-y-auto pl-6 text-[13px] text-muted-foreground">
               {result.failed.map((f) => (
                 <li key={f.line}>{t("import.lineProblem", { line: f.line, problems: f.errors.map((c) => t(`import.errors.${c}`, { defaultValue: c })).join(", ") })}</li>
               ))}
             </ul>
           </div>
         )}
-        <div className="flex justify-end">
-          <Button variant="primary" onClick={onClose}>
-            {tc("done")}
-          </Button>
-        </div>
+        <DialogFooter className="mt-1">
+          <Button onClick={onClose}>{tc("done")}</Button>
+        </DialogFooter>
       </div>
     );
   }
@@ -105,62 +121,76 @@ function ImportFlow({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end gap-3">
-        <Field label={t("import.file")} className="min-w-64 flex-1" hint={t("import.columns")}>
+        <FormField label={t("import.file")} className="min-w-64 flex-1" hint={t("import.columns")}>
           {(id) => <Input id={id} type="file" accept=".csv,text/csv" onChange={(e) => void onFile(e)} />}
-        </Field>
-        <Button onClick={() => void template()}>{t("import.template")}</Button>
+        </FormField>
+        <Button variant="outline" className="sm:mb-6" onClick={() => void template()}>
+          <DownloadIcon data-icon="inline-start" />
+          {t("import.template")}
+        </Button>
       </div>
 
       {preview && (
         <>
           <div className="flex flex-wrap gap-2">
-            <Badge tone="green">{t("import.ready", { count: preview.validCount })}</Badge>
-            {problems > 0 && <Badge tone="red">{t("import.problems", { count: problems })}</Badge>}
+            <Badge variant="success">
+              <CircleCheckIcon data-icon="inline-start" aria-hidden="true" />
+              {t("import.ready", { count: preview.validCount })}
+            </Badge>
+            {problems > 0 && (
+              <Badge variant="destructive">
+                <CircleAlertIcon data-icon="inline-start" aria-hidden="true" />
+                {t("import.problems", { count: problems })}
+              </Badge>
+            )}
           </div>
           <div className="max-h-72 overflow-y-auto rounded-lg border border-border">
             <Table>
-              <THead>
-                <tr>
-                  <Th>{t("import.line")}</Th>
-                  <Th>{t("fields.url")}</Th>
-                  <Th>{t("import.slugColumn")}</Th>
-                  <Th>{t("import.statusColumn")}</Th>
-                </tr>
-              </THead>
-              <TBody>
+              <TableHeader className="sticky top-0 bg-card">
+                <TableRow>
+                  <TableHead>{t("import.line")}</TableHead>
+                  <TableHead>{t("fields.url")}</TableHead>
+                  <TableHead>{t("import.slugColumn")}</TableHead>
+                  <TableHead>{t("import.statusColumn")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {preview.rows.map((r) => (
-                  <Tr key={r.line}>
-                    <Td className="tabular-nums text-muted-foreground">{r.line}</Td>
-                    <Td className="max-w-64 truncate" title={r.url}>
+                  <TableRow key={r.line}>
+                    <TableCell className="text-muted-foreground tabular-nums">{r.line}</TableCell>
+                    <TableCell className="max-w-64 truncate" title={r.url}>
                       {r.url}
-                    </Td>
-                    <Td className="font-mono text-xs">{r.slug || t("import.generated")}</Td>
-                    <Td>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{r.slug || t("import.generated")}</TableCell>
+                    <TableCell>
                       {r.errors.length === 0 ? (
                         <span className="text-success">{t("import.ok")}</span>
                       ) : (
                         <span className="text-destructive">{r.errors.map((c) => t(`import.errors.${c}`, { defaultValue: c })).join(" ")}</span>
                       )}
-                    </Td>
-                  </Tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </TBody>
+              </TableBody>
             </Table>
           </div>
         </>
       )}
 
-      <div className="flex items-center justify-end gap-2">
+      <DialogFooter className="mt-1 sm:items-center">
         {progress && progress.total > 0 && (
-          <p role="status" className="mr-auto text-[13px] text-muted-foreground">
+          <p role="status" className="text-[13px] text-muted-foreground tabular-nums sm:mr-auto">
             {t("import.progress", { done: progress.done, total: progress.total })}
           </p>
         )}
-        <Button onClick={onClose}>{tc("cancel")}</Button>
-        <Button variant="primary" disabled={!preview || preview.validCount === 0} loading={run.isPending} onClick={() => run.mutate()}>
+        <Button variant="outline" onClick={onClose}>
+          {tc("cancel")}
+        </Button>
+        <Button disabled={!preview || preview.validCount === 0} loading={run.isPending} onClick={() => run.mutate()}>
+          {!run.isPending && <UploadIcon data-icon="inline-start" />}
           {t("import.run", { count: preview?.validCount ?? 0 })}
         </Button>
-      </div>
+      </DialogFooter>
     </div>
   );
 }
