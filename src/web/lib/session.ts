@@ -8,7 +8,7 @@ export type AppConfig = {
   setupRequired: boolean;
   setupTokenRequired?: boolean;
   passwordLogin: boolean;
-  oidc: { label: string } | null;
+  oidc: { label: string; provider: "google" | "microsoft" | "other" } | null;
   mailConfigured: boolean;
 };
 

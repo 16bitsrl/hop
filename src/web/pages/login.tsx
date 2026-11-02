@@ -1,3 +1,4 @@
+import { SsoIcon } from "@/components/sso-icon";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
@@ -98,6 +99,7 @@ export function LoginPage() {
         <div className="flex flex-col gap-2">
           {config.oidc && (
             <Button variant="outline" onClick={sso} className="w-full">
+              <SsoIcon provider={config.oidc.provider} />
               {config.oidc.label}
             </Button>
           )}

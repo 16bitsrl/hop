@@ -1,0 +1,11 @@
+import { expect, test } from "vitest";
+import { oidcProvider } from "./oidc-provider";
+
+test("recognises the provider from its configuration address", () => {
+  expect(oidcProvider("https://accounts.google.com/.well-known/openid-configuration")).toBe("google");
+  expect(oidcProvider("https://login.microsoftonline.com/abc-123/v2.0/.well-known/openid-configuration")).toBe("microsoft");
+  expect(oidcProvider("https://sso.example.com/realms/acme/.well-known/openid-configuration")).toBe("other");
+  // Look-alike hosts are not trusted as a brand.
+  expect(oidcProvider("https://accounts.google.com.evil.example/.well-known/openid-configuration")).toBe("other");
+  expect(oidcProvider("not a url")).toBe("other");
+});
