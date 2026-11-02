@@ -118,7 +118,7 @@ function UsersContent() {
                       </div>
                       <div className="text-[13px] text-muted-foreground">{u.email}</div>
                     </TableCell>
-                    <TableCell label={t("columns.role")} className="max-md:flex max-md:items-center">
+                    <TableCell label={t("columns.role")}>
                       <OptionSelect
                         size="sm"
                         className="w-36"

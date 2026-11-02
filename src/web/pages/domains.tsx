@@ -101,14 +101,16 @@ export function DomainsPage() {
                     {d.notFoundUrl ?? t("builtIn")}
                   </TableCell>
                   {admin && (
-                    <TableCell className="whitespace-nowrap text-right max-md:-ml-2.5 max-md:text-left">
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(d)}>
-                        <PencilIcon data-icon="inline-start" />
-                        {t("edit")}
-                      </Button>
-                      <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(d)}>
-                        {t("delete")}
-                      </Button>
+                    <TableCell>
+                      <div className="flex justify-end gap-1 max-md:-ml-2.5 max-md:justify-start">
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(d)}>
+                          <PencilIcon data-icon="inline-start" />
+                          {t("edit")}
+                        </Button>
+                        <Button size="sm" variant="destructive-ghost" onClick={() => setRemoving(d)}>
+                          {t("delete")}
+                        </Button>
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>
