@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { CaptureOpener, useReturnFocus } from "@/components/ui/use-return-focus"
 import { XIcon } from "lucide-react"
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -48,6 +49,7 @@ function DialogContent({
   showCloseButton?: boolean
 }) {
   const { t } = useTranslation()
+  const { opener, finalFocus } = useReturnFocus(props.finalFocus)
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -58,7 +60,9 @@ function DialogContent({
           className
         )}
         {...props}
+        finalFocus={finalFocus as never}
       >
+        <CaptureOpener opener={opener} />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

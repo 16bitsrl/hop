@@ -2,6 +2,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
 
@@ -60,13 +61,17 @@ export function CopyButton({
   );
 }
 
-/** Icon-only copy button, for tight rows. `label` names it for screen readers and the tooltip. */
+/** Icon-only copy button, for tight rows. `label` names it for screen readers and the tooltip; pass `onCopied` to confirm with a toast. */
 export function CopyIconButton({ value, label, onCopied, className }: { value: string; label: string; onCopied?: () => void; className?: string }) {
-  const { t } = useTranslation();
   const { copied, copy } = useCopy(value, onCopied);
   return (
-    <Button size="icon-sm" variant="ghost" onClick={copy} aria-label={label} title={copied ? t("copied") : label} data-copied={copied || undefined} className={className}>
-      <SwapIcon copied={copied} />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={<Button size="icon-sm" variant="ghost" onClick={copy} aria-label={label} data-copied={copied || undefined} className={className} />}
+      >
+        <SwapIcon copied={copied} />
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }

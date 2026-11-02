@@ -3,6 +3,7 @@ import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
+import { CaptureOpener, useReturnFocus } from "@/components/ui/use-return-focus"
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
@@ -39,10 +40,12 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = "default",
+  children,
   ...props
 }: AlertDialogPrimitive.Popup.Props & {
   size?: "default" | "sm"
 }) {
+  const { opener, finalFocus } = useReturnFocus(props.finalFocus)
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -54,7 +57,11 @@ function AlertDialogContent({
           className
         )}
         {...props}
-      />
+        finalFocus={finalFocus as never}
+      >
+        <CaptureOpener opener={opener} />
+        {children}
+      </AlertDialogPrimitive.Popup>
     </AlertDialogPortal>
   )
 }

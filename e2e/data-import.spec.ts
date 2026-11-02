@@ -51,7 +51,7 @@ test("imports a YOURLS dump with the wizard, keeps conflicts safe and never dupl
   // Options
   await choose(page, page.getByLabel("Short domain"), domain.host);
   await choose(page, page.getByLabel("Owner of imported links"), owner.name);
-  await expect(page.getByLabel("Redirect type")).toContainText("302");
+  await expect(page.getByLabel("Redirect type")).toHaveText("302");
   await expect(page.getByLabel("Time zone of the dates")).toHaveValue("UTC");
   await expect(page.getByTestId("import-conflicts")).toContainText("1");
   await expect(page.getByLabel("Skip existing links")).toBeChecked();
