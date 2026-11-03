@@ -82,7 +82,10 @@
   "public": {
     "title": "Public statistics",
     "off": "These statistics are not public",
-    "offHint": "The owner of this link hasn't shared its statistics."
+    "offHint": "The owner of this link hasn't shared its statistics.",
+    "toggle": "Public statistics",
+    "toggleHint": "Anyone with the address below can see clicks, countries, devices and where visitors came from. Notes, the owner and cities stay private.",
+    "copy": "Copy the address of the public statistics"
   },
   "retention": {
     "title": "Statistics",

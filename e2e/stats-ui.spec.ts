@@ -182,3 +182,33 @@ test("a real click through the short domain shows up in the statistics", async (
   await expect(page.getByTestId("breakdown-cities")).toContainText("Turin");
   await expect(page.getByTestId("breakdown-browsers")).toContainText("Chrome");
 });
+
+test("the owner publishes a link's statistics from its statistics, a viewer cannot", async ({ page, request, browser }) => {
+  const owner = await createUser(request, { role: "member" });
+  const link = await seedLink(request, { title: "To publish", ownerId: owner.id });
+  await loginAs(page, owner, `/links/${link.id}`);
+  await page.getByRole("tab", { name: "Statistics" }).click();
+  const toggle = page.getByRole("switch", { name: "Public statistics" });
+  await expect(toggle).not.toBeChecked();
+  await toggle.click();
+  await expect(toggle).toBeChecked();
+  const address = page.getByRole("link", { name: /\/s\// });
+  await expect(address).toHaveAttribute("href", new RegExp(`/s/${link.id}$`));
+
+  // Anyone can open it without signing in.
+  const visitor = await browser.newContext();
+  const pub = await visitor.newPage();
+  await pub.goto(`/s/${link.id}`);
+  await expect(pub.getByText("To publish")).toBeVisible();
+  await visitor.close();
+
+  // The same switch is on the statistics page that "<slug>+" opens.
+  await page.goto(`/stats/${link.id}`);
+  await expect(page.getByRole("switch", { name: "Public statistics" })).toBeChecked();
+
+  const viewer = await createUser(request, { role: "viewer" });
+  await page.context().clearCookies();
+  await loginAs(page, viewer, `/stats/${link.id}`);
+  await expect(page.getByRole("heading", { name: "To publish" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Public statistics" })).toBeDisabled();
+});

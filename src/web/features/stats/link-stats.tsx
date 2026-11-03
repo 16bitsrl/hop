@@ -3,6 +3,7 @@ import { ErrorState } from "../../components/states";
 import { SwitchField } from "../../components/toggle-field";
 import { Card } from "../../components/ui/card";
 import { Breakdowns, ExportLinks, KpiRow, RangePicker, SeriesChart, TargetsCard, useStatsControls } from "./components";
+import { PublishStatsCard } from "./publish-card";
 import { exportUrl, useSummary } from "./queries";
 
 /**
@@ -26,6 +27,7 @@ export function LinkStats({ linkId }: { linkId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <PublishStatsCard linkId={linkId} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <RangePicker value={range} onChange={setRange} />
         <div className="flex flex-wrap items-center gap-4">
