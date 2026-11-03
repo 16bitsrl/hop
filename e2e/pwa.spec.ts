@@ -44,6 +44,25 @@ test.describe("service worker", () => {
     expect(cached.length).toBeGreaterThan(0);
     expect(cached.filter((p) => /^\/(api|media|healthz|metrics)(\/|$)/.test(p))).toEqual([]);
   });
+
+  test("pages come from the network when online, so a new release shows on a normal reload", async ({ page, request, context }) => {
+    // The Workers suite runs the dev server, whose worker always serves its own page: only a production build tells.
+    test.skip(process.env.HOP_RUNTIME !== "node", "needs the production build (pnpm e2e:node)");
+    const user = await createUser(request, { role: "admin" });
+    await loginAs(page, user, "/links");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    // The worker is in control: a reload must still ask the server for the page.
+    const fromNetwork: string[] = [];
+    context.on("request", (r) => {
+      // Requests the worker itself sends to the server.
+      if (r.serviceWorker()) fromNetwork.push(new URL(r.url()).pathname);
+    });
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Links" })).toBeVisible();
+    expect(fromNetwork).toContain("/links");
+  });
 });
 
 test.describe("share target and bookmarklet", () => {

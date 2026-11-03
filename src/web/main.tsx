@@ -33,4 +33,15 @@ createRoot(document.getElementById("root")!).render(
 );
 
 // The worker only precaches the app shell; it never touches /api, /media, /healthz or /metrics.
-if ("serviceWorker" in navigator) registerSW({ immediate: true });
+// A tab left open looks for a new release whenever it comes back into view; when one is found the
+// page reloads by itself (registerType "autoUpdate").
+if ("serviceWorker" in navigator) {
+  registerSW({
+    immediate: true,
+    onRegisteredSW(_url, registration) {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") void registration?.update();
+      });
+    },
+  });
+}

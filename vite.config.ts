@@ -63,10 +63,19 @@ export default defineConfig(({ command }) => ({
       } as never,
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api(\/|$)/, /^\/media(\/|$)/, /^\/healthz$/, /^\/metrics$/],
         cleanupOutdatedCaches: true,
-        // No runtime caching rules: everything that is not precached goes straight to the network.
+        // The plugin serves a saved index.html for every page unless told not to.
+        navigateFallback: null,
+        // Pages always come from the server, so a new release shows on the next normal load; the saved copy
+        // is only used when the network does not answer. Scripts and styles have hashed names: precached.
+        // Nothing else is cached: /api, /media, /healthz and /metrics always go to the network.
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) => request.mode === "navigate" && !/^\/(api|media|healthz|metrics)(\/|$)/.test(url.pathname),
+            handler: "NetworkFirst",
+            options: { cacheName: "pages", networkTimeoutSeconds: 4, expiration: { maxEntries: 20 } },
+          },
+        ],
       },
       devOptions: { enabled: true, type: "module", navigateFallbackAllowlist: [/^\/(?!api\/|media\/|healthz|metrics)/] },
     }),
