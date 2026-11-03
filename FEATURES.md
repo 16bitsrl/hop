@@ -72,7 +72,7 @@ Use as many short domains as you like on the same installation: one for your bra
 
 For each domain you choose where visitors go when they open the bare domain (`go.example.com/`) and when they open an ending that does not exist.
 
-On a second-level domain such as `example.com` or `example.co.uk`, `www.example.com/sale` is sent to `example.com/sale` when that request reaches hop (point `www` at hop too, or redirect it at your DNS provider). Deeper names like `www.go.example.com` are left alone.
+If `www` in front of a short domain also reaches hop, `www.go.example.com/sale` is sent to `go.example.com/sale` (or redirect `www` at your DNS provider instead).
 
 ## Statistics
 

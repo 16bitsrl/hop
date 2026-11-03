@@ -1,4 +1,3 @@
-import { getDomain } from "tldts";
 import { and, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { domains, links } from "../db/schema";
@@ -79,9 +78,9 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     .limit(1);
 
   if (!row) {
-    // "www." in front of a second-level short domain (www.example.com, www.example.co.uk): send it to the domain.
+    // "www." in front of one of the short domains: send it to the domain (it only gets here if someone points it at hop).
     const bare = hostname.startsWith("www.") ? hostname.slice(4) : null;
-    if (bare && getDomain(bare) === bare && (await domainExists(platform.db, bare))) {
+    if (bare && (await domainExists(platform.db, bare))) {
       return redirect(`${url.protocol}//${bare}${url.port ? `:${url.port}` : ""}${url.pathname}${url.search}`, 301);
     }
     return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
