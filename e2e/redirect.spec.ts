@@ -280,3 +280,15 @@ test("a slug followed by .qr or .qrv shows its QR code, like YOURLS", async ({ r
   // Only the full .qr and .qrv, not the bare dot or .v.
   for (const suffix of [".", ".v"]) expect((await get(request, slug + suffix)).status(), suffix).toBe(404);
 });
+
+test("www in front of a short domain goes to the domain itself, only for second-level domains", async ({ request }) => {
+  const slug = uniq("www");
+  await seed(request, { slug, url: "https://example.com/www" });
+  const www = (host: string, path: string) => request.get(`${SHORT.replace("//s.localhost", `//${host}`)}${path}`, { maxRedirects: 0 });
+  const res = await www("www.s.localhost", `/${slug}?utm_source=x`);
+  expect(res.status()).toBe(301);
+  expect(res.headers().location).toBe(`${SHORT}/${slug}?utm_source=x`);
+  // A deeper domain is not second-level: its www is left alone.
+  await seed(request, { slug: uniq("deep"), url: "https://example.com/deep" }, { host: "go.s.localhost" });
+  expect((await www("www.go.s.localhost", `/${slug}`)).status()).toBe(404);
+});

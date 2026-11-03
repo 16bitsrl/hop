@@ -1,3 +1,4 @@
+import { getDomain } from "tldts";
 import { and, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { domains, links } from "../db/schema";
@@ -26,6 +27,11 @@ import {
 } from "./pages";
 import { qrPng, qrSvg } from "./qr";
 import { createUnlockCookie, hasValidUnlock } from "./unlock";
+
+async function domainExists(db: AppEnv["Variables"]["platform"]["db"], host: string): Promise<boolean> {
+  const [row] = await db.select({ id: domains.id }).from(domains).where(eq(domains.host, host)).limit(1);
+  return !!row;
+}
 
 async function linkExists(db: AppEnv["Variables"]["platform"]["db"], domainId: string, slug: string): Promise<boolean> {
   const [row] = await db.select({ id: links.id }).from(links).where(and(eq(links.domainId, domainId), eq(links.slug, slug))).limit(1);
@@ -72,7 +78,14 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     .where(eq(domains.host, hostname))
     .limit(1);
 
-  if (!row) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
+  if (!row) {
+    // "www." in front of a second-level short domain (www.example.com, www.example.co.uk): send it to the domain.
+    const bare = hostname.startsWith("www.") ? hostname.slice(4) : null;
+    if (bare && getDomain(bare) === bare && (await domainExists(platform.db, bare))) {
+      return redirect(`${url.protocol}//${bare}${url.port ? `:${url.port}` : ""}${url.pathname}${url.search}`, 301);
+    }
+    return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
+  }
   const { domain, link } = row;
 
   const notFound = () =>
