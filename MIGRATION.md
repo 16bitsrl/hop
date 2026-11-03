@@ -19,6 +19,8 @@ Log rows whose short link is not in the dump are counted in the report and not i
 keyword uses characters hop does not allow in an ending (anything other than letters, digits, `-` and `_`,
 up to 64 characters) are listed in the report as not imported.
 
+Short link habits keep working after the switch: `<keyword>+` opens the link's statistics (the public page if you turn it on for that link, otherwise the statistics in hop after signing in), and `<keyword>.qr` / `<keyword>.qrv` give its QR code as PNG / SVG, like the YOURLS QR Code plugin. YOURLS showed statistics to anyone by default; in hop they are private until you publish them per link.
+
 ## 1. Take the dump on the YOURLS server
 
 ```sh

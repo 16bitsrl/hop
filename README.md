@@ -31,9 +31,9 @@
 | **Links** | Custom or generated endings, tags, nested folders, notes, editable destination, change history, bulk actions, CSV import and export |
 | **Control** | Password protection, expiry by date or number of clicks with a fallback page, on/off switch, 301/302/307/308, query string forwarding |
 | **Smart redirects** | By device (iOS, Android, desktop, mobile, tablet), country and language; A/B tests with weights; app deep links |
-| **Sharing** | UTM builder, QR codes with colours and a logo, custom preview (title, description, image) for social networks and chats |
+| **Sharing** | UTM builder, QR codes with colours and a logo (or straight from the short link with `.qr` and `.qrv`), custom preview (title, description, image) for social networks and chats |
 | **Domains** | As many short domains as you like, a default one, custom root and "not found" pages for each |
-| **Statistics** | Clicks over time, unique visitors, traffic sources, countries, cities, devices, systems, browsers, languages, per rule and per A/B variant; bots kept apart; team dashboard; CSV export; optional public page per link; configurable retention |
+| **Statistics** | Clicks over time, unique visitors, traffic sources, countries, cities, devices, systems, browsers, languages, per rule and per A/B variant; bots kept apart; team dashboard; CSV export; optional public page per link; `+` after a short link opens its statistics; configurable retention |
 | **Team** | Admin, member and viewer roles; invitations; activity log |
 | **Sign-in** | Email and password, passkeys, single sign-on (OpenID Connect: Google Workspace, Microsoft, Okta, Keycloak and others), password reset by email; password sign-in can be turned off |
 | **Operations** | REST API with personal keys, full backup and restore, broken link checks, blocking of unsafe destinations (Google Safe Browsing), health check, Prometheus metrics |

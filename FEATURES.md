@@ -61,7 +61,7 @@ One short link can send each visitor to the right place.
 ![UTM builder and QR code](.github/screenshots/link-share.png)
 
 - **UTM builder**: add campaign parameters (source, medium, campaign, term, content) to the destination and see the result before applying it.
-- **QR codes**: download as PNG or SVG, pick the colours and size, add a logo in the middle.
+- **QR codes**: download as PNG or SVG, pick the colours and size, add a logo in the middle. Anyone can also get a plain one from the short link itself, as in YOURLS: add `.qr` for a PNG (`go.example.com/sale.qr`) or `.qrv` for an SVG. Looking at a QR code is not counted as a visit.
 - **Share preview**: set the title, description and image that social networks and chat apps show when someone posts the link. Upload the image or point to one.
 
 ## Domains
@@ -92,7 +92,9 @@ The **dashboard** shows the whole team at once: top links, countries, sources, d
 
 ![Public statistics](.github/screenshots/public-stats.png)
 
-A link can have a **public statistics page**, off by default, to share results with a client or a partner without giving them an account.
+A link can have a **public statistics page**, off by default, to share results with a client or a partner without giving them an account. Turn it on at the top of the link's statistics and copy its address. It shows clicks, countries, devices and sources; notes, the owner and cities stay private.
+
+Add `+` to a short link (`go.example.com/sale+`) to open its statistics, as in YOURLS: the public page when it is on, otherwise the statistics in the app, after signing in.
 
 **Privacy.** hop never stores visitor IP addresses. A unique visitor is recognised by a hash of the address and the browser that changes every day, so nobody can be followed across days. **Retention** is up to you (Settings, Statistics): keep the click history forever or for a set time. Link totals are never deleted.
 
@@ -114,7 +116,9 @@ Ways to sign in:
 
 - **email and password**, with password reset by email when email is set up;
 - **passkeys** (fingerprint, face or a security key), added from each person's profile;
-- **single sign-on** with any OpenID Connect provider: Google Workspace, Microsoft Entra ID, Okta, Keycloak and others. Accounts can be created automatically for allowed email domains, or only for people who were invited.
+- **single sign-on** with any OpenID Connect provider: Google Workspace, Microsoft Entra ID, Okta, Keycloak and others. The sign-in button shows the Google or Microsoft logo when it recognises the provider. Accounts can be created automatically, with a chosen role, for allowed email domains, or only for people who were invited.
+
+After signing in you land on the page you asked for, for example a link's statistics opened from a `+` link.
 
 Once single sign-on works, password sign-in can be turned off.
 
@@ -175,5 +179,6 @@ See [DEPLOY.md](DEPLOY.md) for every setting.
 
 - **English and Italian**, picked from the browser or set in the profile.
 - **Light and dark theme**, following the device or chosen by hand.
-- Works on **phones**, and can be **installed as an app** on desktop and mobile.
+- Works on **phones**, and can be **installed as an app** on desktop and mobile. A new release shows on the next normal reload, and an open app updates itself when you come back to it.
+- Every tab of a link has its own address (`/links/<id>/stats`, `/links/<id>/edit`…), so you can bookmark or share it.
 - Usable with the keyboard and screen readers.
