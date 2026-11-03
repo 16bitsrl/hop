@@ -61,10 +61,6 @@
     "summary": "Esporta riepilogo (CSV)",
     "clicks": "Esporta clic (CSV)"
   },
-  "page": {
-    "title": "Statistiche del link",
-    "backToDashboard": "Torna alla dashboard"
-  },
   "dashboard": {
     "title": "Dashboard",
     "description": "Come stanno andando tutti i tuoi link.",

@@ -13,9 +13,8 @@ import { DashboardPage } from "./pages/dashboard";
 import { DomainsPage } from "./pages/domains";
 import { ForgotPasswordPage } from "./pages/forgot-password";
 import { InvitePage } from "./pages/invite";
-import { LinkDetailPage } from "./pages/link-detail";
+import { LINK_TABS, LinkDetailPage } from "./pages/link-detail";
 import { LinksPage } from "./pages/links";
-import { LinkStatsPage } from "./pages/link-stats";
 import { LoginPage } from "./pages/login";
 import { ApiHelpPage } from "./pages/api-help";
 import { ProfilePage } from "./pages/profile";
@@ -145,11 +144,18 @@ const linksRoute = createRoute({
   component: LinksPage,
 });
 const linkDetailRoute = createRoute({ getParentRoute: () => appRoute, path: "/links/$id", component: LinkDetailPage });
+const linkTabRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/links/$id/$tab",
+  beforeLoad: ({ params }) => {
+    if (params.tab === "overview" || !(LINK_TABS as readonly string[]).includes(params.tab)) throw redirect({ to: "/links/$id", params: { id: params.id } });
+  },
+  component: LinkDetailPage,
+});
 const dashboardRoute = createRoute({ getParentRoute: () => appRoute, path: "/dashboard", component: DashboardPage });
 const domainsRoute = createRoute({ getParentRoute: () => appRoute, path: "/domains", component: DomainsPage });
 const usersRoute = createRoute({ getParentRoute: () => appRoute, path: "/users", component: UsersPage });
 const auditRoute = createRoute({ getParentRoute: () => appRoute, path: "/audit", component: AuditPage });
-const linkStatsRoute = createRoute({ getParentRoute: () => appRoute, path: "/stats/$linkId", component: LinkStatsPage });
 const settingsRoute = createRoute({ getParentRoute: () => appRoute, path: "/settings", component: SettingsPage });
 const profileRoute = createRoute({ getParentRoute: () => appRoute, path: "/profile", component: ProfilePage });
 const apiHelpRoute = createRoute({ getParentRoute: () => appRoute, path: "/api-help", component: ApiHelpPage });
@@ -162,7 +168,7 @@ const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   publicStatsRoute,
-  appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, dashboardRoute, linkStatsRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute, apiHelpRoute]),
+  appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, linkTabRoute, dashboardRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute, apiHelpRoute]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {

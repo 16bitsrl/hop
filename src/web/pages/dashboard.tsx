@@ -80,7 +80,7 @@ function TopLinks({ data }: { data: Dashboard | undefined }) {
       items={(data?.topLinks ?? []).map((l) => ({
         id: l.id,
         label: (
-          <Link to="/stats/$linkId" params={{ linkId: l.id }} className="hover:underline">
+          <Link to="/links/$id/$tab" params={{ id: l.id, tab: "stats" }} className="hover:underline">
             {l.title || `${l.host}/${l.slug}`}
           </Link>
         ),
@@ -131,7 +131,7 @@ function RecentLinks({ data }: { data: Dashboard | undefined }) {
             {data.recentLinks.map((l) => (
               <TableRow key={l.id}>
                 <TableCell className="w-full max-w-0 truncate">
-                  <Link to="/stats/$linkId" params={{ linkId: l.id }} className="font-mono text-[13px] hover:underline">
+                  <Link to="/links/$id/$tab" params={{ id: l.id, tab: "stats" }} className="font-mono text-[13px] hover:underline">
                     {l.host}/{l.slug}
                   </Link>
                   {l.title && <span className="ml-1.5 text-xs text-muted-foreground">{l.title}</span>}

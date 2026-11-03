@@ -21,8 +21,9 @@ import { LinkStats } from "../features/stats/link-stats";
 import { api, ApiError } from "../lib/api";
 import { errorMessage } from "../lib/errors";
 
-const TABS = ["overview", "edit", "smart", "share", "history", "stats"] as const;
-type TabId = (typeof TABS)[number];
+/** Each tab has its own address: /links/<id> for the overview, /links/<id>/<tab> for the others. */
+export const LINK_TABS = ["overview", "edit", "smart", "share", "history", "stats"] as const;
+export type LinkTab = (typeof LINK_TABS)[number];
 
 function BackLink() {
   const tc = useTranslation().t;
@@ -49,12 +50,12 @@ function DetailSkeleton() {
 }
 
 export function LinkDetailPage() {
-  const { id } = useParams({ strict: false }) as { id: string };
+  const { id, tab: tabParam } = useParams({ strict: false }) as { id: string; tab?: string };
+  const tab: LinkTab = (LINK_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as LinkTab) : "overview";
   const { t } = useTranslation("links");
   const tc = useTranslation().t;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<TabId>("overview");
   const [confirming, setConfirming] = useState(false);
   const { data: link, error, isPending } = useQuery(linkQuery(id));
 
@@ -103,9 +104,15 @@ export function LinkDetailPage() {
         }
       />
       {/* flex-col here: the shared Tabs root never turns into a column on its own. */}
-      <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)} className="flex-col gap-6">
+      <Tabs
+        value={tab}
+        onValueChange={(v) =>
+          void navigate(v === "overview" ? { to: "/links/$id", params: { id } } : { to: "/links/$id/$tab", params: { id, tab: v as string } })
+        }
+        className="flex-col gap-6"
+      >
         <TabsList variant="line">
-          {TABS.map((id) => (
+          {LINK_TABS.map((id) => (
             <TabsTrigger key={id} value={id}>
               {t(`tabs.${id}`)}
             </TabsTrigger>

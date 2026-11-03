@@ -57,7 +57,7 @@ test("a slug followed by + opens the statistics: public ones, or the ones in the
   // Not public: the link's statistics in the app, which ask to sign in.
   const notPublic = await request.get(shortUrl(`${off.slug}+`), { maxRedirects: 0 });
   expect(notPublic.status()).toBe(302);
-  expect(notPublic.headers().location).toBe(`${APP}/stats/${off.id}`);
+  expect(notPublic.headers().location).toBe(`${APP}/links/${off.id}/stats`);
   expect((await request.get(shortUrl(`${uniq("missing")}+`), { maxRedirects: 0 })).status()).toBe(404);
   // The plain slug still redirects to the destination.
   expect((await request.get(shortUrl(on.slug), { maxRedirects: 0 })).status()).toBe(302);
@@ -74,10 +74,10 @@ test("a real slug that ends with + keeps working as a normal link", async ({ req
 test("after signing in you land on the page you asked for", async ({ page, request }) => {
   const admin = await createUser(request, { role: "admin" });
   const link = await seedLink(request, { publicStats: false, title: "Back here" });
-  await page.goto(`/stats/${link.id}`);
+  await page.goto(`/links/${link.id}/stats`);
   await expect(page).toHaveURL(/\/login/);
   await loginViaUi(page, admin);
-  await expect(page).toHaveURL(new RegExp(`/stats/${link.id}$`));
+  await expect(page).toHaveURL(new RegExp(`/links/${link.id}/stats$`));
   // Only paths inside the app are followed.
   await page.context().clearCookies();
   await page.goto("/login?next=//evil.example/x");

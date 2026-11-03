@@ -17,7 +17,7 @@ test("link statistics: KPIs, range switch, bots toggle, breakdowns", async ({ pa
     { ts: now - 60 * DAY, count: 2, visitorHash: "u4" },
     { ts: now - HOUR, count: 3, bot: true, visitorHash: "b1" },
   ]);
-  await loginAs(page, user, `/stats/${link.id}`);
+  await loginAs(page, user, `/links/${link.id}/stats`);
 
   await expect(page.getByRole("heading", { name: "Stats probe" })).toBeVisible();
   const range = page.getByRole("group", { name: "Date range" });
@@ -85,14 +85,14 @@ test("link statistics: A/B test and rules performance, empty state", async ({ pa
     { ts: now - HOUR, count: 4, target: "variant:0" },
     { ts: now - HOUR, count: 1, target: "variant:1" },
   ]);
-  await loginAs(page, user, `/stats/${link.id}`);
+  await loginAs(page, user, `/links/${link.id}/stats`);
   const targets = page.getByTestId("breakdown-targets");
   await expect(targets).toContainText("example.com/variant-a");
   await expect(targets).toContainText("Variant A");
   await expect(targets).toContainText("80%");
   await expect(targets).toContainText("Variant B");
 
-  await page.goto(`/stats/${quiet.id}`);
+  await page.goto(`/links/${quiet.id}/stats`);
   await expect(page.getByText("No clicks in this period")).toBeVisible();
   await expect(value(page, "clicks")).toHaveText("0");
 });
@@ -109,7 +109,7 @@ test("time zone: the page asks for statistics in the browser's time zone", async
     const u = new URL(r.url());
     if (u.pathname === "/api/stats/summary") seen.push(u.searchParams.get("tz") ?? "");
   });
-  await loginAs(page, user, `/stats/${link.id}`);
+  await loginAs(page, user, `/links/${link.id}/stats`);
   await expect(page.getByTestId("kpi-clicks-value")).toBeVisible();
   expect(seen[0]).toBe("Pacific/Kiritimati");
   await ctx.close();
@@ -157,7 +157,7 @@ test("dashboard: range picker changes every number", async ({ page, request }) =
 
   // A top link opens its statistics.
   await page.getByTestId("breakdown-top-links").getByRole("link", { name: "Dash probe" }).click();
-  await expect(page).toHaveURL(new RegExp(`/stats/${l.id}$`));
+  await expect(page).toHaveURL(new RegExp(`/links/${l.id}/stats$`));
 });
 
 test("a real click through the short domain shows up in the statistics", async ({ page, request }) => {
@@ -175,7 +175,7 @@ test("a real click through the short domain shows up in the statistics", async (
     },
   });
   expect(res.status()).toBe(302);
-  await loginAs(page, user, `/stats/${link.id}`);
+  await loginAs(page, user, `/links/${link.id}/stats`);
   await expect(value(page, "clicks")).toHaveText("1");
   await expect(page.getByTestId("breakdown-referrers")).toContainText("blog.example.net");
   await expect(page.getByTestId("breakdown-countries")).toContainText("Italy");
@@ -203,12 +203,26 @@ test("the owner publishes a link's statistics from its statistics, a viewer cann
   await visitor.close();
 
   // The same switch is on the statistics page that "<slug>+" opens.
-  await page.goto(`/stats/${link.id}`);
+  await page.goto(`/links/${link.id}/stats`);
   await expect(page.getByRole("switch", { name: "Public statistics" })).toBeChecked();
 
   const viewer = await createUser(request, { role: "viewer" });
   await page.context().clearCookies();
-  await loginAs(page, viewer, `/stats/${link.id}`);
+  await loginAs(page, viewer, `/links/${link.id}/stats`);
   await expect(page.getByRole("heading", { name: "To publish" })).toBeVisible();
   await expect(page.getByRole("switch", { name: "Public statistics" })).toBeDisabled();
+});
+
+test("each tab of a link has its own address", async ({ page, request }) => {
+  const user = await createUser(request, { role: "member" });
+  const link = await seedLink(request, { title: "Tabbed", ownerId: user.id });
+  await loginAs(page, user, `/links/${link.id}/stats`);
+  await expect(page.getByRole("tab", { name: "Statistics" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Edit" }).click();
+  await expect(page).toHaveURL(new RegExp(`/links/${link.id}/edit$`));
+  await page.getByRole("tab", { name: "Overview" }).click();
+  await expect(page).toHaveURL(new RegExp(`/links/${link.id}$`));
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`/links/${link.id}/edit$`));
+  await expect(page.getByRole("tab", { name: "Edit" })).toHaveAttribute("aria-selected", "true");
 });

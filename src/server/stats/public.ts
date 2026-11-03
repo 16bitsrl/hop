@@ -13,5 +13,5 @@ export async function publicStatsUrl(platform: Platform, domainId: string, slug:
     .where(and(eq(links.domainId, domainId), eq(links.slug, slug)))
     .limit(1);
   if (!row) return null;
-  return row.publicStats ? `${platform.config.appUrl}/s/${row.id}` : `${platform.config.appUrl}/stats/${row.id}`;
+  return row.publicStats ? `${platform.config.appUrl}/s/${row.id}` : `${platform.config.appUrl}/links/${row.id}/stats`;
 }

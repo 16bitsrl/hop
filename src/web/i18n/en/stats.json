@@ -61,10 +61,6 @@
     "summary": "Export summary (CSV)",
     "clicks": "Export clicks (CSV)"
   },
-  "page": {
-    "title": "Link statistics",
-    "backToDashboard": "Back to the dashboard"
-  },
   "dashboard": {
     "title": "Dashboard",
     "description": "How all your links are doing.",
