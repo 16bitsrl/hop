@@ -20,6 +20,16 @@ The first person to open the app host sees the setup page and becomes the admin.
 
 ## Cloudflare
 
+### With the Deploy to Cloudflare button
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/16bitsrl/hop)
+
+Cloudflare copies the repository into your GitHub account, creates the D1 database and the R2 bucket, and asks for `APP_HOST`, `APP_URL`, `AUTH_SECRET` and `SETUP_TOKEN` (see the table above; they are stored as secrets). The build runs `pnpm build`, the deploy runs `pnpm run deploy`, which applies the database migrations and then deploys. Every push to your copy deploys again.
+
+After the first deploy: open the app host and create the first account with the setup token, then do step 6 below (domains). To change a value later: Workers & Pages, `hop`, Settings, Variables and Secrets.
+
+### By hand
+
 Prerequisites: a Cloudflare account, `pnpm install`, and `pnpm exec wrangler login`.
 
 1. **Database and storage**
@@ -31,12 +41,18 @@ Prerequisites: a Cloudflare account, `pnpm install`, and `pnpm exec wrangler log
 
    Put the printed `database_id` in `wrangler.jsonc` (`d1_databases[0].database_id`). Keep `bucket_name` equal to the bucket you created.
 
-2. **Variables**: in `wrangler.jsonc` set `vars.APP_HOST` and `vars.APP_URL` to your real app host (not `app.localhost:5173`).
+2. **Hosts**: `APP_HOST` and `APP_URL` are secrets, so `wrangler.jsonc` stays free of your own values:
+
+   ```sh
+   pnpm exec wrangler secret put APP_HOST   # hop.example.com
+   pnpm exec wrangler secret put APP_URL    # https://hop.example.com
+   ```
 
 3. **Secrets**
 
    ```sh
    pnpm exec wrangler secret put AUTH_SECRET
+   pnpm exec wrangler secret put SETUP_TOKEN
    # optional: SMTP_PASS, SAFE_BROWSING_KEY, METRICS_TOKEN
    ```
 
@@ -52,11 +68,23 @@ Prerequisites: a Cloudflare account, `pnpm install`, and `pnpm exec wrangler log
    pnpm build && pnpm exec wrangler deploy
    ```
 
+   (`pnpm run deploy` does steps 4 and 5 together, after `pnpm build`.)
+
    The cron trigger (`17 * * * *`, hourly) is declared in `wrangler.jsonc` and is created by the deploy. It runs the periodic jobs (data retention, link checks).
 
 6. **Domains**: the zone of each domain must be on Cloudflare. In the dashboard, Workers & Pages, `hop`, Settings, Domains & Routes: add a **Custom Domain** for the app host and one for every short domain. Cloudflare creates DNS records and certificates. Then add the short domains in the app (Domains).
 
 Geolocation and client IP come from Cloudflare itself; nothing to configure.
+
+### Several deployments from one checkout
+
+To deploy the same checkout to more than one account or Worker, keep their settings out of git: copy `wrangler.jsonc` to `wrangler.deploy.jsonc` (ignored by git), add an `env` block for each deployment (`account_id`, `routes`, `d1_databases` with its real `database_id`, `r2_buckets`) and point the build at it:
+
+```sh
+HOP_WRANGLER_CONFIG=wrangler.deploy.jsonc CLOUDFLARE_ENV=production pnpm build
+pnpm exec wrangler d1 migrations apply DB --remote -c wrangler.deploy.jsonc --env production
+pnpm exec wrangler deploy
+```
 
 ## Container (Coolify / Openship / any Docker host)
 

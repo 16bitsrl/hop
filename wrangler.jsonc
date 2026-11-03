@@ -11,10 +11,8 @@
   },
   "observability": { "enabled": true },
   "triggers": { "crons": ["17 * * * *"] },
-  "vars": {
-    "APP_HOST": "app.localhost:5173",
-    "APP_URL": "http://app.localhost:5173"
-  },
+  // APP_HOST, APP_URL and AUTH_SECRET are set as secrets (see .dev.vars.example and DEPLOY.md).
+  // Local development gets APP_HOST and APP_URL from vite.config.ts.
   "d1_databases": [
     { "binding": "DB", "database_name": "hop", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
   ],

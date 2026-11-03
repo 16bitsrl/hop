@@ -1,13 +1,21 @@
 {
   "name": "hop",
+  "description": "Self-hosted URL shortener with click statistics, for Cloudflare Workers or Docker",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/16bitsrl/hop"
+  },
   "type": "module",
+  "packageManager": "pnpm@12.16.1",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "build:node": "vite build && node scripts/build-node.mjs",
     "start:node": "node dist/node/server.mjs",
     "preview": "vite preview",
+    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
@@ -15,6 +23,28 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "cf-typegen": "wrangler types"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": {
+        "description": "Links, users and click statistics."
+      },
+      "BLOBS": {
+        "description": "Images you upload for the share preview of a link."
+      },
+      "APP_HOST": {
+        "description": "Host of the admin app, without `https://`. Use your own domain (`hop.example.com`) or the `workers.dev` address of this Worker (`hop.<your-subdomain>.workers.dev`). Every other host pointed at the Worker serves short links."
+      },
+      "APP_URL": {
+        "description": "Public URL of the admin app, e.g. `https://hop.example.com`."
+      },
+      "AUTH_SECRET": {
+        "description": "At least 32 random characters (`openssl rand -base64 32`). Changing it signs everyone out."
+      },
+      "SETUP_TOKEN": {
+        "description": "Asked for when you create the first account, so nobody else can claim the new installation. Choose any secret value."
+      }
+    }
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

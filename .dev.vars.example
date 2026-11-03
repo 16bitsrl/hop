@@ -1,4 +1,16 @@
+# Secrets for Cloudflare. "Deploy to Cloudflare" asks for the uncommented ones.
+# For local development .dev.vars needs only AUTH_SECRET. Leave APP_HOST and APP_URL out of it:
+# the dev server uses app.localhost, and a value here would take its place.
+
+# Host of the admin app, without scheme (e.g. hop.example.com or hop.<your-subdomain>.workers.dev)
+APP_HOST=hop.example.com
+# Public URL of the admin app
+APP_URL=https://hop.example.com
+# At least 32 random characters: openssl rand -base64 32. Changing it signs everyone out
 AUTH_SECRET=change-me-to-a-long-random-string
+# Asked for when creating the first account, so nobody else can claim a fresh installation
+SETUP_TOKEN=change-me-too
+
 # SAFE_BROWSING_KEY=
 # METRICS_TOKEN=
 # SMTP_HOST=

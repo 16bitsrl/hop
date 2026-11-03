@@ -8,3 +8,7 @@ playwright-report
 *.local
 .test-state-node
 dev-dist
+
+# Real deployments and their secrets, kept local
+wrangler.deploy.jsonc
+.prod-*

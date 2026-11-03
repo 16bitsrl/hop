@@ -30,7 +30,7 @@ function appHostOnlyPwaFiles(appHost: string): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     appHostOnlyPwaFiles(isTest ? `app.localhost:${port}` : "app.localhost:5173"),
     react(),
@@ -71,12 +71,16 @@ export default defineConfig({
       devOptions: { enabled: true, type: "module", navigateFallbackAllowlist: [/^\/(?!api\/|media\/|healthz|metrics)/] },
     }),
     cloudflare({
+      // Your own deployments can live in a config file kept out of git, e.g. HOP_WRANGLER_CONFIG=wrangler.deploy.jsonc.
+      configPath: process.env.HOP_WRANGLER_CONFIG,
       persistState: isTest ? { path: ".test-state" } : true,
-      config: isTest
-        ? { vars: { APP_HOST: `app.localhost:${port}`, APP_URL: `http://app.localhost:${port}` } }
-        : undefined,
+      // Deployments set APP_HOST and APP_URL as secrets; the dev server and the tests use local hosts.
+      config:
+        command === "serve"
+          ? { vars: { APP_HOST: `app.localhost:${port}`, APP_URL: `http://app.localhost:${port}` } }
+          : undefined,
     }),
   ],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src/web") } },
   server: { port, strictPort: true, allowedHosts: [".localhost"] },
-});
+}));
