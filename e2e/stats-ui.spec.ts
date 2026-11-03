@@ -11,7 +11,8 @@ test("link statistics: KPIs, range switch, bots toggle, breakdowns", async ({ pa
   const link = await seedLink(request, { title: "Stats probe", ownerId: user.id });
   await seedClicks(request, link.id, [
     { ts: now - HOUR, visitorHash: "u1", country: "IT", city: "Rome", referrerHost: "news.example.org", device: "mobile", os: "iOS", browser: "Safari", language: "it" },
-    { ts: now - 2 * HOUR, visitorHash: "u1", country: "IT", city: "Rome", referrerHost: "news.example.org", device: "mobile", os: "iOS", browser: "Safari", language: "it" },
+    // A minute apart, so both visits fall on the same day whatever the time of the run (a visitor counts once a day).
+    { ts: now - HOUR - 60_000, visitorHash: "u1", country: "IT", city: "Rome", referrerHost: "news.example.org", device: "mobile", os: "iOS", browser: "Safari", language: "it" },
     { ts: now - 3 * DAY, visitorHash: "u2", country: "DE", device: "desktop", os: "Windows", browser: "Chrome", language: "de" },
     { ts: now - 20 * DAY, visitorHash: "u3", country: "FR" },
     { ts: now - 60 * DAY, count: 2, visitorHash: "u4" },
