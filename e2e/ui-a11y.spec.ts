@@ -86,15 +86,16 @@ test("mobile menu keeps keyboard focus inside and gives it back on close", async
   // Focus moves into the menu.
   expect(await page.evaluate(() => !!document.activeElement?.closest("[role=dialog]"))).toBe(true);
   // Tabbing never reaches the page behind it.
+  const insideMenu = () => page.evaluate(() => !!document.activeElement?.closest("[role=dialog]"));
   for (let i = 0; i < 20; i++) {
     await page.keyboard.press("Tab");
-    const outside = await page.evaluate(() => {
-      const el = document.activeElement;
-      // The invisible guard at the edge of the menu only sends focus back to its first item.
-      if (el?.hasAttribute("data-base-ui-focus-guard")) return false;
-      return !!el && el !== document.body && !el.closest("[role=dialog]");
-    });
-    expect(outside).toBe(false);
+    // The invisible guard at the edge of the menu sends focus back to its first item on the next frame,
+    // sooner than anyone presses Tab again.
+    if (await page.evaluate(() => !!document.activeElement?.hasAttribute("data-base-ui-focus-guard"))) {
+      await expect.poll(insideMenu).toBe(true);
+      continue;
+    }
+    expect(await insideMenu()).toBe(true);
   }
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
