@@ -43,7 +43,13 @@ export async function consumeVisit(db: DB, linkId: string, now = new Date()): Pr
  * but leave the counter alone. When `counted` is true the visit was already added by `consumeVisit`.
  * Never throws.
  */
-export async function recordClick(platform: Platform, req: Request, linkId: string, target: string, counted = false): Promise<void> {
+export async function recordClick(
+  platform: Platform,
+  req: Request,
+  linkId: string,
+  target: { target: string; url: string },
+  counted = false,
+): Promise<void> {
   try {
     const ua = req.headers.get("user-agent");
     const info = classifyUserAgent(ua);
@@ -73,7 +79,8 @@ export async function recordClick(platform: Platform, req: Request, linkId: stri
       language: parseLanguage(req.headers.get("accept-language")),
       bot,
       visitorHash: await visitorHash(platform.config.authSecret, platform.clientIp(req), ua, now),
-      target,
+      target: target.target,
+      targetUrl: target.url,
       source: "live",
     });
     if (!bot && !counted) {

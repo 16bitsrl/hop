@@ -55,7 +55,9 @@
     "title": "Destinations",
     "main": "Main destination",
     "rule": "Rule {{n}}",
-    "variant": "Variant {{name}}"
+    "variant": "Variant {{name}}",
+    "removed": "Removed destination",
+    "earlier": "{{name}}, earlier address"
   },
   "export": {
     "summary": "Export summary (CSV)",

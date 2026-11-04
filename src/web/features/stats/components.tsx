@@ -383,14 +383,13 @@ function shortUrl(url: string | null): string {
 export function TargetsCard({ targets }: { targets: TargetRow[] }) {
   const { t } = useTranslation("stats");
   const total = targets.reduce((n, x) => n + x.clicks, 0);
-  const name = (target: string) => {
-    const [kind, index] = target.split(":");
-    if (kind === "rule") return t("targets.rule", { n: Number(index) + 1 });
-    if (kind === "variant") {
-      const i = Number(index);
-      return t("targets.variant", { name: i < 26 ? String.fromCharCode(65 + i) : String(i + 1) });
-    }
-    return t("targets.main");
+  const name = ({ kind, position: i, current }: TargetRow) => {
+    let label: string;
+    if (kind !== "main" && i === null) label = t("targets.removed");
+    else if (kind === "rule") label = t("targets.rule", { n: i! + 1 });
+    else if (kind === "variant") label = t("targets.variant", { name: i! < 26 ? String.fromCharCode(65 + i!) : String(i! + 1) });
+    else label = t("targets.main");
+    return current || i === null ? label : t("targets.earlier", { name: label });
   };
   return (
     <BreakdownTable
@@ -399,8 +398,8 @@ export function TargetsCard({ targets }: { targets: TargetRow[] }) {
       total={total}
       className="lg:col-span-2"
       items={targets.map((x) => ({
-        id: x.target,
-        label: name(x.target),
+        id: `${x.target} ${x.url ?? ""}`,
+        label: name(x),
         sub: shortUrl(x.url),
         clicks: x.clicks,
       }))}

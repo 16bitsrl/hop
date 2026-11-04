@@ -152,6 +152,8 @@ export type RedirectType = 301 | 302 | 307 | 308;
 
 /** A conditional destination. All set conditions must match. */
 export type LinkRule = {
+  /** Stays the same when the rule is edited or moved, so clicks keep pointing to it. See links/targets.ts. */
+  id?: string;
   devices?: ("ios" | "android" | "desktop" | "mobile" | "tablet")[];
   countries?: string[]; // ISO 3166-1 alpha-2, uppercase
   languages?: string[]; // primary language subtag, lowercase ("it", "en")
@@ -161,7 +163,7 @@ export type LinkRule = {
 };
 
 /** A/B test variant. Weights are relative. */
-export type LinkVariant = { url: string; weight: number };
+export type LinkVariant = { id?: string; url: string; weight: number };
 
 export const links = sqliteTable(
   "links",
@@ -261,8 +263,10 @@ export const clicks = sqliteTable(
     bot: integer("bot", { mode: "boolean" }).notNull().default(false),
     /** sha256(daily salt + ip + ua), truncated. Never the raw IP. */
     visitorHash: text("visitor_hash"),
-    /** Which destination served: "main", "rule:<i>", "variant:<i>". */
+    /** Which destination served: "main", "rule:<id>", "variant:<id>". */
     target: text("target"),
+    /** The address it sent the visitor to, as it was then (empty for clicks recorded before it was kept). */
+    targetUrl: text("target_url"),
     source: text("source").$type<"live" | "import">().notNull().default("live"),
     /** Identity of an imported click ("yourls:<domain id>:<click id>"): importing twice never duplicates. */
     importKey: text("import_key"),

@@ -20,6 +20,7 @@ import {
 import { getStatsSettings } from "../stats/retention";
 import { findLink, parseFilter, type LinkInfo } from "../stats/service";
 import type { DB } from "../platform/types";
+import { withIds } from "../links/targets";
 
 /**
  * Statistics API.
@@ -35,24 +36,44 @@ import type { DB } from "../platform/types";
  */
 export const statsRoutes = new Hono<AppEnv>();
 
+type TargetRow = {
+  target: string;
+  kind: "main" | "rule" | "variant";
+  /** Place of the rule or variant in the link today; null once it has been removed. */
+  position: number | null;
+  url: string | null;
+  /** False for an address the destination had before, or a destination removed since. */
+  current: boolean;
+  clicks: number;
+  visitors: number;
+};
+
+/**
+ * Clicks per destination. Each click counts for the address it was sent to, so changing a rule's
+ * address or the main one starts a new row and leaves the old clicks on the old address.
+ * Clicks recorded before the address was kept count for the destination's current address.
+ */
 async function targetsFor(db: DB, link: LinkInfo, f: Filter) {
-  const declared = [
-    { target: "main", url: link.url },
-    ...link.rules.map((r, i) => ({ target: `rule:${i}`, url: r.url })),
-    ...link.variants.map((v, i) => ({ target: `variant:${i}`, url: v.url })),
+  const zero = { current: true, clicks: 0, visitors: 0 };
+  const rows: TargetRow[] = [
+    { target: "main", kind: "main", position: 0, url: link.url, ...zero },
+    ...withIds(link.rules).map((r, i): TargetRow => ({ target: `rule:${r.id}`, kind: "rule", position: i, url: r.url, ...zero })),
+    ...withIds(link.variants).map((v, i): TargetRow => ({ target: `variant:${v.id}`, kind: "variant", position: i, url: v.url, ...zero })),
   ];
-  const counts = new Map((await targetCounts(db, f)).map((t) => [t.target, t]));
-  const rows = declared.map((d) => ({
-    target: d.target,
-    url: d.url as string | null,
-    clicks: counts.get(d.target)?.clicks ?? 0,
-    visitors: counts.get(d.target)?.visitors ?? 0,
-  }));
-  // Clicks served by a rule or variant that has been removed since.
-  for (const [target, t] of counts) {
-    if (!declared.some((d) => d.target === target)) rows.push({ target, url: null, clicks: t.clicks, visitors: t.visitors });
+  const declared = new Map(rows.map((r) => [r.target, r]));
+  for (const c of await targetCounts(db, f)) {
+    const now = declared.get(c.target);
+    let row = now && (c.url === null || c.url === now.url) ? now : rows.find((r) => !r.current && r.target === c.target && r.url === c.url);
+    if (!row) {
+      const kind = c.target.startsWith("rule:") ? "rule" : c.target.startsWith("variant:") ? "variant" : "main";
+      row = { target: c.target, kind, position: now?.position ?? null, url: c.url, current: false, clicks: 0, visitors: 0 };
+      rows.push(row);
+    }
+    row.clicks += c.clicks;
+    // A visitor seen both before and after the address was kept counts twice: only for old data.
+    row.visitors += c.visitors;
   }
-  return rows.sort((a, b) => b.clicks - a.clicks); // stable: declared order breaks ties
+  return rows.sort((a, b) => b.clicks - a.clicks); // stable: current destinations in their order break ties
 }
 
 const linkSummary = (l: LinkInfo) => ({ id: l.id, slug: l.slug, host: l.host, title: l.title });
@@ -131,7 +152,7 @@ statsRoutes.get("/stats/export.csv", async (c) => {
       async pull(controller) {
         if (!started) {
           started = true;
-          controller.enqueue(encoder.encode(toCsv([["time", "link", "referrer_host", "country", "region", "city", "device", "os", "browser", "language", "bot", "target"]])));
+          controller.enqueue(encoder.encode(toCsv([["time", "link", "referrer_host", "country", "region", "city", "device", "os", "browser", "language", "bot", "target", "target_url"]])));
           return;
         }
         const next = await batches.next();
@@ -152,6 +173,7 @@ statsRoutes.get("/stats/export.csv", async (c) => {
           r.language,
           !!r.bot,
           r.target ?? "main",
+          r.targetUrl,
         ]))));
       },
     });
@@ -164,7 +186,7 @@ statsRoutes.get("/stats/export.csv", async (c) => {
     link ? Promise.resolve([]) : topLinks(db, f),
   ]);
   const extra: CsvCell[][] = [
-    ...targets.map((t): CsvCell[] => ["targets", t.target, t.clicks]),
+    ...targets.map((t): CsvCell[] => ["targets", t.current ? t.target : `${t.target} (${t.url ?? "removed"})`, t.clicks]),
     ...top.map((t): CsvCell[] => ["top_links", `${t.host}/${t.slug}`, t.clicks]),
   ];
   return new Response(toCsv(summaryRows(summary, extra)), { headers });

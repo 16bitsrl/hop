@@ -88,7 +88,7 @@ export interface RequestInfo {
 export interface Destination {
   url: string;
   appUrl: string | null;
-  /** "main" | "rule:<i>" | "variant:<i>" */
+  /** "main" | "rule:<id>" | "variant:<id>", see links/targets.ts */
   target: string;
 }
 
@@ -125,12 +125,12 @@ export function selectDestination(
   const rules = link.rules ?? [];
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i]!;
-    if (ruleMatches(rule, req)) return { url: rule.url, appUrl: rule.appUrl ?? null, target: `rule:${i}` };
+    if (ruleMatches(rule, req)) return { url: rule.url, appUrl: rule.appUrl ?? null, target: `rule:${rule.id ?? i}` };
   }
   const variants = link.variants ?? [];
   if (variants.length > 0) {
     const i = pickVariant(variants, random);
-    return { url: variants[i]!.url, appUrl: null, target: `variant:${i}` };
+    return { url: variants[i]!.url, appUrl: null, target: `variant:${variants[i]!.id ?? i}` };
   }
   return { url: link.url, appUrl: link.appUrl ?? null, target: "main" };
 }

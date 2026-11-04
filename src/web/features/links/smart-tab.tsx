@@ -15,10 +15,11 @@ const DEVICES = ["ios", "android", "desktop", "mobile", "tablet"] as const;
 type Device = (typeof DEVICES)[number];
 
 /** A rule as the form edits it: lists are comma-separated text. */
-type RuleDraft = { devices: Device[]; countries: string; languages: string; url: string; appUrl: string };
-type VariantDraft = { url: string; weight: string };
+type RuleDraft = { id?: string; devices: Device[]; countries: string; languages: string; url: string; appUrl: string };
+type VariantDraft = { id?: string; url: string; weight: string };
 
 const toDraft = (r: LinkRule): RuleDraft => ({
+  id: r.id,
   devices: (r.devices ?? []) as Device[],
   countries: (r.countries ?? []).join(", "),
   languages: (r.languages ?? []).join(", "),
@@ -27,6 +28,7 @@ const toDraft = (r: LinkRule): RuleDraft => ({
 });
 const list = (s: string) => s.split(/[\s,;]+/).filter(Boolean);
 const fromDraft = (r: RuleDraft) => ({
+  ...(r.id ? { id: r.id } : {}),
   ...(r.devices.length ? { devices: r.devices } : {}),
   ...(list(r.countries).length ? { countries: list(r.countries).map((c) => c.toUpperCase()) } : {}),
   ...(list(r.languages).length ? { languages: list(r.languages).map((l) => l.toLowerCase()) } : {}),
@@ -39,7 +41,8 @@ export function SmartTab({ link }: { link: Link }) {
   const readOnly = !link.canModify;
   const patch = usePatchLink(link.id);
   const [rules, setRules] = useState<RuleDraft[]>(link.rules.map(toDraft));
-  const [variants, setVariants] = useState<VariantDraft[]>(link.variants.map((v) => ({ url: v.url, weight: String(v.weight) })));
+  const toVariantDrafts = (l: Link): VariantDraft[] => l.variants.map((v) => ({ id: v.id, url: v.url, weight: String(v.weight) }));
+  const [variants, setVariants] = useState<VariantDraft[]>(toVariantDrafts(link));
   const [appUrl, setAppUrl] = useState(link.appUrl ?? "");
 
   const setRule = (i: number, part: Partial<RuleDraft>) => setRules((cur) => cur.map((r, j) => (j === i ? { ...r, ...part } : r)));
@@ -60,11 +63,20 @@ export function SmartTab({ link }: { link: Link }) {
       toast.error(t("smart.variantsMin"));
       return;
     }
-    patch.mutate({
-      rules: rules.map(fromDraft),
-      variants: variants.map((v) => ({ url: v.url.trim(), weight: Math.max(1, Math.round(Number(v.weight) || 1)) })),
-      appUrl,
-    });
+    patch.mutate(
+      {
+        rules: rules.map(fromDraft),
+        variants: variants.map((v) => ({ ...(v.id ? { id: v.id } : {}), url: v.url.trim(), weight: Math.max(1, Math.round(Number(v.weight) || 1)) })),
+        appUrl,
+      },
+      {
+        // New rules and variants get their identity on save: keep it for the next save.
+        onSuccess: ({ link: saved }) => {
+          setRules(saved.rules.map(toDraft));
+          setVariants(toVariantDrafts(saved));
+        },
+      },
+    );
   }
 
   return (

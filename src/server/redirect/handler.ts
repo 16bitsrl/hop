@@ -160,7 +160,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   }
 
   const log = () => {
-    if (req.method === "GET") platform.waitUntil(recordClick(platform, req, link.id, dest.target, counted));
+    if (req.method === "GET") platform.waitUntil(recordClick(platform, req, link.id, dest, counted));
   };
 
   if (isPreviewCrawler(ua) && (link.ogTitle || link.ogDescription || link.ogImage)) {

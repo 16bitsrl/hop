@@ -5,13 +5,15 @@ import { api } from "../../lib/api";
 import { errorMessage } from "../../lib/errors";
 
 export type LinkRule = {
+  /** Kept when the rule is edited or moved, so its statistics follow it. */
+  id?: string;
   devices?: ("ios" | "android" | "desktop" | "mobile" | "tablet")[];
   countries?: string[];
   languages?: string[];
   url: string;
   appUrl?: string;
 };
-export type LinkVariant = { url: string; weight: number };
+export type LinkVariant = { id?: string; url: string; weight: number };
 export type TagRef = { id: string; name: string; color: string | null };
 export type LinkState = "active" | "disabled" | "expired" | "broken" | "protected";
 

@@ -110,11 +110,11 @@ export async function cities(db: DB, f: Filter, limit = TOP): Promise<CityRow[]>
 }
 
 export async function targetCounts(db: DB, f: Filter) {
-  const rows = await db.all<{ t: string; clicks: number; visitors: number }>(sql`
-    SELECT COALESCE(NULLIF(target, ''), 'main') AS t, COUNT(*) AS clicks,
+  const rows = await db.all<{ t: string; u: string | null; clicks: number; visitors: number }>(sql`
+    SELECT COALESCE(NULLIF(target, ''), 'main') AS t, target_url AS u, COUNT(*) AS clicks,
            COUNT(DISTINCT CASE WHEN visitor_hash IS NULL THEN NULL ELSE (ts / ${DAY}) || ':' || visitor_hash END) AS visitors
-    FROM clicks WHERE ${where(f)} GROUP BY t`);
-  return rows.map((r) => ({ target: r.t, clicks: num(r.clicks), visitors: num(r.visitors) }));
+    FROM clicks WHERE ${where(f)} GROUP BY t, u`);
+  return rows.map((r) => ({ target: r.t, url: r.u, clicks: num(r.clicks), visitors: num(r.visitors) }));
 }
 
 export async function firstClickAt(db: DB, linkId: string | null): Promise<number | null> {
@@ -228,10 +228,11 @@ async function rawClickBatch(db: DB, f: Filter, after: { ts: number; id: number 
     language: string | null;
     bot: number;
     target: string | null;
+    targetUrl: string | null;
   }>(sql`
     SELECT c.id AS id, c.ts AS ts, d.host AS host, l.slug AS slug, c.referrer_host AS referrerHost, c.country AS country,
            c.region AS region, c.city AS city, c.device AS device, c.os AS os, c.browser AS browser,
-           c.language AS language, c.bot AS bot, c.target AS target
+           c.language AS language, c.bot AS bot, c.target AS target, c.target_url AS targetUrl
     FROM clicks c
     JOIN links l ON l.id = c.link_id
     JOIN domains d ON d.id = l.domain_id

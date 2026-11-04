@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { SHORT } from "../playwright.config";
 import { apiAs, createUser } from "./helpers";
+import { createLink, ensureDomain, uniq } from "./links-helpers";
 import { DAY, HOUR, seedClicks, seedLink, summary } from "./stats-helpers";
 
 const D1 = Date.UTC(2026, 2, 10, 12); // 2026-03-10 12:00Z
@@ -130,10 +132,10 @@ test("A/B variants and rules are measurable per target", async ({ request, playw
   ]);
   const s = await summary(api, { linkId: link.id, ...MARCH });
   expect(s.targets).toEqual([
-    { target: "variant:0", url: "https://example.com/a", clicks: 5, visitors: 1 },
-    { target: "variant:1", url: "https://example.com/b", clicks: 3, visitors: 1 },
-    { target: "rule:0", url: "https://example.com/it", clicks: 2, visitors: 1 },
-    { target: "main", url: "https://example.com/main", clicks: 1, visitors: 1 },
+    { target: "variant:0", kind: "variant", position: 0, url: "https://example.com/a", current: true, clicks: 5, visitors: 1 },
+    { target: "variant:1", kind: "variant", position: 1, url: "https://example.com/b", current: true, clicks: 3, visitors: 1 },
+    { target: "rule:0", kind: "rule", position: 0, url: "https://example.com/it", current: true, clicks: 2, visitors: 1 },
+    { target: "main", kind: "main", position: 0, url: "https://example.com/main", current: true, clicks: 1, visitors: 1 },
   ]);
 
   // A target that was never served still shows up, with zero clicks.
@@ -143,6 +145,46 @@ test("A/B variants and rules are measurable per target", async ({ request, playw
     ["rule:0", 0],
     ["variant:0", 0],
     ["variant:1", 0],
+  ]);
+  await api.dispose();
+});
+
+test("editing or reordering destinations keeps past clicks on the address they went to", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  const domain = await ensureDomain(api);
+  const slug = uniq("moved");
+  const link = await createLink(api, {
+    domainId: domain.id,
+    slug,
+    url: "https://example.com/main",
+    rules: [
+      { languages: ["it"], url: "https://example.com/it" },
+      { languages: ["de"], url: "https://example.com/de" },
+    ],
+  });
+  const visit = (lang: string) => request.get(`${SHORT}/${slug}`, { maxRedirects: 0, headers: { "accept-language": lang } });
+  for (const lang of ["it", "it", "de", "en"]) expect((await visit(lang)).status()).toBe(302);
+  const now = { from: Date.now() - 3_600_000, to: Date.now() + 3_600_000, tz: "UTC" };
+  await expect.poll(async () => (await summary(api, { linkId: link.id, ...now })).totals.clicks).toBe(4);
+
+  // Rules come back with their identity: reorder them, point the Italian rule and the main destination elsewhere.
+  const [it, de] = link.rules;
+  expect(it.id).toBeTruthy();
+  const res = await api.patch(`/api/links/${link.id}`, {
+    data: { url: "https://example.com/main-new", rules: [de, { ...it, url: "https://example.com/it-new" }] },
+  });
+  expect(res.ok(), await res.text()).toBeTruthy();
+
+  // Current destinations first in their order, then the addresses they had before; most clicks first.
+  const s = await summary(api, { linkId: link.id, ...now });
+  const rows = s.targets.map((t: { target: string; url: string | null; clicks: number; current: boolean }) => [t.target, t.url, t.clicks, t.current]);
+  expect(rows).toEqual([
+    [`rule:${it.id}`, "https://example.com/it", 2, false],
+    [`rule:${de.id}`, "https://example.com/de", 1, true],
+    ["main", "https://example.com/main", 1, false],
+    ["main", "https://example.com/main-new", 0, true],
+    [`rule:${it.id}`, "https://example.com/it-new", 0, true],
   ]);
   await api.dispose();
 });
@@ -216,7 +258,7 @@ test("CSV export: raw clicks without IP, and aggregated tables", async ({ reques
   expect(raw.headers()["content-disposition"]).toContain("attachment");
   const rawText = (await raw.text()).replace("﻿", "");
   const lines = rawText.trim().split("\r\n");
-  expect(lines[0]).toBe("time,link,referrer_host,country,region,city,device,os,browser,language,bot,target");
+  expect(lines[0]).toBe("time,link,referrer_host,country,region,city,device,os,browser,language,bot,target,target_url");
   expect(lines).toHaveLength(4);
   expect(lines[1]).toContain("2026-03-10T12:00:00.000Z");
   expect(lines[1]).toContain("news.example.org,IT");
@@ -229,6 +271,6 @@ test("CSV export: raw clicks without IP, and aggregated tables", async ({ reques
   expect(aggText).toContain("total,clicks,3");
   expect(aggText).toContain("countries,IT,2");
   expect(aggText).toContain("devices,mobile,2");
-  expect(aggText).toContain("targets,variant:0,1");
+  expect(aggText).toContain("targets,variant:0 (removed),1"); // the link has no variants (any more)
   await api.dispose();
 });

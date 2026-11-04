@@ -54,7 +54,7 @@ export type Summary = {
   os: Row[];
   browsers: Row[];
   languages: Row[];
-  targets: { target: string; url: string | null; clicks: number; visitors: number }[];
+  targets: { target: string; kind: "main" | "rule" | "variant"; position: number | null; url: string | null; current: boolean; clicks: number; visitors: number }[];
 };
 
 export async function summary(api: APIRequestContext, params: Record<string, string | number>) {

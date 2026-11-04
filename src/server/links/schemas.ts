@@ -25,15 +25,19 @@ const nullableUrl = z.preprocess(emptyToNull, httpUrl.nullable());
 const nullableAppUrl = z.preprocess(emptyToNull, appUrl.nullable());
 const nullableText = (max: number) => z.preprocess(emptyToNull, z.string().trim().max(max).nullable());
 
+const targetId = z.string().regex(/^[A-Za-z0-9_-]{1,36}$/).optional();
+
 const rule = z
   .object({
+    id: targetId,
     devices: z.array(z.enum(["ios", "android", "desktop", "mobile", "tablet"])).max(5).optional(),
     countries: z.array(z.string().trim().regex(/^[A-Za-z]{2}$/).transform((s) => s.toUpperCase())).max(60).optional(),
     languages: z.array(z.string().trim().regex(/^[A-Za-z]{2,3}$/).transform((s) => s.toLowerCase())).max(30).optional(),
     url: httpUrl,
     appUrl: z.preprocess(emptyToNull, appUrl.nullable().optional()),
   })
-  .transform(({ devices, countries, languages, url, appUrl }) => ({
+  .transform(({ id, devices, countries, languages, url, appUrl }) => ({
+    ...(id ? { id } : {}),
     ...(devices?.length ? { devices } : {}),
     ...(countries?.length ? { countries } : {}),
     ...(languages?.length ? { languages } : {}),
@@ -41,7 +45,7 @@ const rule = z
     ...(appUrl ? { appUrl } : {}),
   }));
 
-const variant = z.object({ url: httpUrl, weight: z.number().int().min(1).max(1000) });
+const variant = z.object({ id: targetId, url: httpUrl, weight: z.number().int().min(1).max(1000) });
 
 const timestamp = z
   .union([z.number(), z.string()])

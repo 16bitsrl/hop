@@ -55,7 +55,9 @@
     "title": "Destinazioni",
     "main": "Destinazione principale",
     "rule": "Regola {{n}}",
-    "variant": "Variante {{name}}"
+    "variant": "Variante {{name}}",
+    "removed": "Destinazione rimossa",
+    "earlier": "{{name}}, indirizzo precedente"
   },
   "export": {
     "summary": "Esporta riepilogo (CSV)",

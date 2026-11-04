@@ -1,7 +1,17 @@
 export type Bucket = "hour" | "day" | "month";
 export type Row = { key: string | null; clicks: number };
 export type CityRow = { key: string; country: string | null; clicks: number };
-export type TargetRow = { target: string; url: string | null; clicks: number; visitors: number };
+export type TargetRow = {
+  target: string;
+  kind: "main" | "rule" | "variant";
+  /** Place of the rule or variant today; null once removed. */
+  position: number | null;
+  url: string | null;
+  /** False for an address the destination had before. */
+  current: boolean;
+  clicks: number;
+  visitors: number;
+};
 
 export type Summary = {
   range: { from: number; to: number; tz: string; bucket: Bucket };

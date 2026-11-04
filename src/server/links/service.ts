@@ -12,6 +12,7 @@ import { fetchPageMeta, isPrivateHost, type PageMeta } from "./meta";
 import { destinationUrls, type CreateLinkInput, type UpdateLinkInput } from "./schemas";
 import { checkDestinations } from "./safety";
 import { DEFAULT_SLUG_SETTINGS, generateSlug, type SlugSettings } from "./slug";
+import { assignIds, withIds } from "./targets";
 
 export type LinkRow = typeof links.$inferSelect;
 export type TagRow = typeof tags.$inferSelect;
@@ -87,8 +88,8 @@ function toJson(
     expiresAt: r.expiresAt,
     maxClicks: r.maxClicks,
     fallbackUrl: r.fallbackUrl,
-    rules: r.rules ?? [],
-    variants: r.variants ?? [],
+    rules: withIds(r.rules ?? []),
+    variants: withIds(r.variants ?? []),
     appUrl: r.appUrl,
     ogTitle: r.ogTitle,
     ogDescription: r.ogDescription,
@@ -332,8 +333,8 @@ export async function createLinkRecord(
       expiresAt: input.expiresAt ?? null,
       maxClicks: input.maxClicks ?? null,
       fallbackUrl: input.fallbackUrl ?? null,
-      rules: (input.rules ?? []) as LinkRule[],
-      variants: (input.variants ?? []) as LinkVariant[],
+      rules: assignIds((input.rules ?? []) as LinkRule[]),
+      variants: assignIds((input.variants ?? []) as LinkVariant[]),
       appUrl: input.appUrl ?? null,
       ogTitle: input.ogTitle ?? null,
       ogDescription: input.ogDescription ?? null,
@@ -376,8 +377,8 @@ export async function updateLinkRecord(platform: Platform, current: LinkRow, inp
   if (input.expiresAt !== undefined) set.expiresAt = input.expiresAt;
   if (input.maxClicks !== undefined) set.maxClicks = input.maxClicks;
   if (input.fallbackUrl !== undefined) set.fallbackUrl = input.fallbackUrl;
-  if (input.rules !== undefined) set.rules = input.rules as LinkRule[];
-  if (input.variants !== undefined) set.variants = input.variants as LinkVariant[];
+  if (input.rules !== undefined) set.rules = assignIds(input.rules as LinkRule[], current.rules ?? []);
+  if (input.variants !== undefined) set.variants = assignIds(input.variants as LinkVariant[], current.variants ?? []);
   if (input.appUrl !== undefined) set.appUrl = input.appUrl;
   if (input.ogTitle !== undefined) set.ogTitle = input.ogTitle;
   if (input.ogDescription !== undefined) set.ogDescription = input.ogDescription;

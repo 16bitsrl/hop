@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { APP, SHORT } from "../playwright.config";
 import { apiAs, choose, createUser, loginAs } from "./helpers";
-import { createLink, DESKTOP_UA, ensureDomain, IPHONE_UA, uniq } from "./links-helpers";
+import { createLink, DESKTOP_UA, ensureDomain, IPHONE_UA, uniq, type LinkJson } from "./links-helpers";
 
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
@@ -297,6 +297,8 @@ test.describe("links UI", () => {
     expect(ios.status()).toBe(200);
     expect(await ios.text()).toContain("myapp://open");
     expect((await follow(request, l.slug)).headers().location).toBe("https://example.com/main");
+    const ruleId = async () => ((await (await api.get(`/api/links/${l.id}`)).json()) as LinkJson).link.rules[0].id as string;
+    const firstId = await ruleId();
 
     await page.getByRole("button", { name: "Add variant" }).click();
     await expect(page.getByLabel("Variant 1 URL")).toHaveValue("https://example.com/main");
@@ -311,6 +313,8 @@ test.describe("links UI", () => {
     for (let i = 0; i < 30; i++) seen.add((await follow(request, l.slug)).headers().location!);
     expect([...seen].every((u) => ["https://example.com/main", "https://example.com/second"].includes(u))).toBe(true);
     expect(seen.has("https://example.com/second")).toBe(true);
+    // Saving again keeps the rule's identity, so its statistics stay with it.
+    expect(await ruleId()).toBe(firstId);
 
     await page.reload();
     await tab(page, "Smart redirects");
