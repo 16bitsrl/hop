@@ -76,8 +76,9 @@ authRoutes.post("/setup", async (c) => {
   try {
     admin = await createUserWithPassword(c.var.platform, { name, email, password, role: "admin" }, { onlyIfFirst: true });
   } catch (e) {
-    // Another setup won the race.
+    // Another setup won the race, or a restore started loading data meanwhile.
     if ((await countUsers(c.var.platform)) > 0) return fail(c, 409, "setup_done");
+    if (await restoreRunning(db, [RESTORE_ACTIVE])) return fail(c, 409, "restore_in_progress");
     throw e;
   }
   await clearRestores(db);

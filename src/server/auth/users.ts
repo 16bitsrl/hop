@@ -3,6 +3,7 @@ import { runBatch } from "../db/batch";
 import { account, invites, user, type Role } from "../db/schema";
 import type { Platform } from "../platform/types";
 import { createAuth } from "./auth";
+import { RESTORE_ACTIVE } from "../data/restore-state";
 
 export function randomToken(bytes = 32): string {
   const buf = crypto.getRandomValues(new Uint8Array(bytes));
@@ -43,13 +44,14 @@ export async function createUserWithPassword(
   const now = new Date();
   const email = input.email.trim().toLowerCase();
   const values = { id, name: input.name, email, emailVerified: true, role: input.role, locale: input.locale ?? null, createdAt: now, updatedAt: now };
-  // First-run setup: the user is inserted only while the table is empty, in the same atomic batch,
-  // so concurrent setups cannot each create an admin. The account insert then fails its foreign key.
+  // First-run setup: the user is inserted only while the table is empty and no restore is loading data
+  // (see data/restore-state.ts), in the same atomic batch, so concurrent setups cannot each create an admin
+  // and a restore that claimed the installation keeps it. The account insert then fails its foreign key.
   const insertUser = opts.onlyIfFirst
     ? platform.db
         .insert(user)
         .select(
-          sql`select ${id}, ${input.name}, ${email}, 1, null, ${input.role}, 0, null, ${values.locale}, ${now.getTime()}, ${now.getTime()} where not exists (select 1 from "user")`,
+          sql`select ${id}, ${input.name}, ${email}, 1, null, ${input.role}, 0, null, ${values.locale}, ${now.getTime()}, ${now.getTime()} where not exists (select 1 from "user") and not exists (select 1 from verification where identifier = ${RESTORE_ACTIVE} and expires_at > ${now.getTime()})`,
         )
     : platform.db.insert(user).values(values);
   await runBatch(platform.db, [
