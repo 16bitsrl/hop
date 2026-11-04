@@ -1,10 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, createRoute, createRouter, Link, Outlet, redirect } from "@tanstack/react-router";
+import { createRootRouteWithContext, createRoute, createRouter, Link, Outlet, redirect, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Shell } from "./components/shell";
 import { CompassIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { EmptyState } from "@/components/states";
+import { EmptyState, ErrorState } from "@/components/states";
 import { rememberReturnTo } from "./lib/return-to";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
@@ -44,9 +44,20 @@ function NotFound() {
   );
 }
 
+/** A page that could not start, e.g. opened offline: the server could not be asked who you are. */
+function LoadFailed() {
+  const router = useRouter();
+  return (
+    <div className="flex min-h-dvh items-center justify-center px-4">
+      <ErrorState onRetry={() => router.invalidate()} />
+    </div>
+  );
+}
+
 const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: Outlet,
   notFoundComponent: NotFound,
+  errorComponent: LoadFailed,
 });
 
 /* ---------------- public pages (no shell) ---------------- */

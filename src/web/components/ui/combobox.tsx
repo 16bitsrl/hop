@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -35,9 +36,11 @@ function ComboboxTrigger({
 }
 
 function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
+  const { t } = useTranslation()
   return (
     <ComboboxPrimitive.Clear
       data-slot="combobox-clear"
+      aria-label={t("clearValue")}
       render={<InputGroupButton variant="ghost" size="icon-xs" />}
       className={cn(className)}
       {...props}
@@ -58,6 +61,7 @@ function ComboboxInput({
   showTrigger?: boolean
   showClear?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <InputGroup className={cn("w-auto", className)}>
       <ComboboxPrimitive.Input
@@ -71,6 +75,9 @@ function ComboboxInput({
             variant="ghost"
             render={<ComboboxTrigger />}
             data-slot="input-group-button"
+            // The field opens its list with the arrow keys: the button is for the mouse only.
+            aria-label={t("showOptions")}
+            tabIndex={-1}
             className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
             disabled={disabled}
           />

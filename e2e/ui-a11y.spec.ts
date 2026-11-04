@@ -169,6 +169,25 @@ test("form hints and errors are tied to their field", async ({ page, request }) 
   await expect(host).toHaveAccessibleDescription("Enter only the domain name, like go.example.com.");
 });
 
+test("searchable selects: the arrow and the clear button have a name", async ({ page, request }) => {
+  const admin = await createUser(request, { role: "admin" });
+  await loginAs(page, admin, "/audit");
+  const user = page.getByLabel("User", { exact: true });
+  await expect(user).toBeVisible();
+  const arrow = page.getByRole("button", { name: "Show options" }).first();
+  await expect(arrow).toBeVisible();
+  // The field opens its list from the keyboard, so the arrow is not an extra stop.
+  await user.focus();
+  await page.keyboard.press("Tab");
+  await expect(arrow).not.toBeFocused();
+
+  await page.goto("/links");
+  const owner = page.getByRole("combobox", { name: "Owner" });
+  await owner.click();
+  await page.getByRole("option").first().click();
+  await expect(page.getByRole("button", { name: "Clear", exact: true })).toBeVisible();
+});
+
 test("the copy button turns into a check for a moment, then back", async ({ page, request, playwright, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   const admin = await createUser(request, { role: "admin" });

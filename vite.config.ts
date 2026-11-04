@@ -64,16 +64,24 @@ export default defineConfig(({ command }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
         cleanupOutdatedCaches: true,
-        // The plugin serves a saved index.html for every page unless told not to.
+        // The plugin serves a saved index.html for every page unless told not to, "/" included.
         navigateFallback: null,
-        // Pages always come from the server, so a new release shows on the next normal load; the saved copy
-        // is only used when the network does not answer. Scripts and styles have hashed names: precached.
+        directoryIndex: null,
+        // Pages always come from the server, so a new release shows on the next normal load. When the network
+        // does not answer, the precached index.html of the installed release opens instead: it matches the
+        // precached scripts and styles, while a saved copy of a single page could point to deleted ones.
         // Nothing else is cached: /api, /media, /healthz and /metrics always go to the network.
         runtimeCaching: [
           {
             urlPattern: ({ request, url }) => request.mode === "navigate" && !/^\/(api|media|healthz|metrics)(\/|$)/.test(url.pathname),
-            handler: "NetworkFirst",
-            options: { cacheName: "pages", networkTimeoutSeconds: 4, expiration: { maxEntries: 20 } },
+            handler: "NetworkOnly",
+            options: {
+              plugins: [
+                {
+                  handlerDidError: async () => (await caches.match("/index.html", { ignoreSearch: true })) ?? Response.error(),
+                },
+              ],
+            },
           },
         ],
       },

@@ -41,7 +41,8 @@ test.describe("service worker", () => {
       for (const name of await caches.keys()) for (const r of await (await caches.open(name)).keys()) urls.push(new URL(r.url).pathname);
       return urls;
     });
-    expect(cached.length).toBeGreaterThan(0);
+    // The dev server's worker precaches nothing; the production build has the app shell.
+    if (process.env.HOP_RUNTIME === "node") expect(cached.length).toBeGreaterThan(0);
     expect(cached.filter((p) => /^\/(api|media|healthz|metrics)(\/|$)/.test(p))).toEqual([]);
   });
 
@@ -62,6 +63,36 @@ test.describe("service worker", () => {
     await page.reload();
     await expect(page.getByRole("heading", { name: "Links" })).toBeVisible();
     expect(fromNetwork).toContain("/links");
+    // The address of the app itself too, not only the inner pages.
+    fromNetwork.length = 0;
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Links" })).toBeVisible();
+    expect(fromNetwork).toContain("/");
+  });
+
+  test("offline, any page opens with the current release, even one never visited", async ({ page, request, context }) => {
+    test.skip(process.env.HOP_RUNTIME !== "node", "needs the production build (pnpm e2e:node)");
+    const user = await createUser(request, { role: "admin" });
+    await loginAs(page, user, "/links");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    // Saved copies of single pages would point to scripts of an older release after an update:
+    // offline, every page is answered with the app shell of the release that is installed.
+    const savedPages = await page.evaluate(async () => {
+      const names = (await caches.keys()).filter((n) => !n.includes("precache"));
+      let count = 0;
+      for (const name of names) count += (await (await caches.open(name)).keys()).length;
+      return count;
+    });
+    expect(savedPages).toBe(0);
+    await context.setOffline(true);
+    await page.goto("/settings");
+    await expect(page.getByText("This couldn't be loaded.")).toBeVisible();
+    // Back online, retrying opens the page.
+    await context.setOffline(false);
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   });
 });
 
