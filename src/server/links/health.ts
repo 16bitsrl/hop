@@ -98,9 +98,20 @@ export async function checkLink(platform: Platform, link: LinkRow, opts: { confi
 }
 
 const BATCH = 20;
-const PARALLEL = 5;
+const PARALLEL = 10;
+/**
+ * Limits of one scheduled run. It goes on until nothing is due or a limit is hit; what is left waits for
+ * the next run. 500 links an hour cover about 84,000 links on a weekly recheck. The limits keep a run
+ * well inside a Worker's: 1,000 database queries and 15 minutes for a Cron Trigger, and each link may
+ * take a few requests when it redirects.
+ */
+const MAX_PER_RUN = 500;
+const MAX_RUN_MS = 8 * 60_000;
 
-/** Links to look at next: never checked, then failures waiting for a second look, then the least recently checked. */
+/**
+ * Links to look at next: never checked, then failures waiting for a second look, then the least recently checked.
+ * Links checked at or after `now` are left out, so a run never looks at the same link twice.
+ */
 export async function dueLinks(db: DB, recheckDays: number, now: number, limit = BATCH): Promise<LinkRow[]> {
   const cutoff = now - recheckDays * 86_400_000;
   const failing = sql`(${links.healthCode} = 0 or ${links.healthCode} = 404 or ${links.healthCode} = 410 or ${links.healthCode} >= 500)`;
@@ -111,21 +122,28 @@ export async function dueLinks(db: DB, recheckDays: number, now: number, limit =
     .where(
       and(
         eq(links.enabled, true),
-        sql`(${links.healthCheckedAt} is null or ${links.healthCheckedAt} < ${cutoff} or ${retry})`,
+        sql`(${links.healthCheckedAt} is null or ${links.healthCheckedAt} < ${cutoff} or (${retry} and ${links.healthCheckedAt} < ${now}))`,
       ),
     )
     .orderBy(sql`case when ${retry} then 0 when ${links.healthCheckedAt} is null then 1 else 2 end`, links.healthCheckedAt, sql`${links.createdAt} desc`)
     .limit(limit);
 }
 
-/** The scheduled job: a small batch of due links per run. */
+/** The scheduled job: due links in batches, until none is left or the run's limits are reached. */
 export async function checkDueLinks(platform: Platform, now = Date.now()): Promise<number> {
   const { db } = platform;
   const settings = await getHealthSettings(db);
   if (!settings.enabled) return 0;
-  const due = await dueLinks(db, settings.recheckDays, now);
-  for (let i = 0; i < due.length; i += PARALLEL) {
-    await Promise.all(due.slice(i, i + PARALLEL).map((l) => checkLink(platform, l).catch((e) => console.error("link check failed", e))));
+  const seen = new Set<string>();
+  const started = Date.now();
+  while (seen.size < MAX_PER_RUN && Date.now() - started < MAX_RUN_MS) {
+    // A link whose result could not be saved (its address changed meanwhile) may come back: skip it.
+    const due = (await dueLinks(db, settings.recheckDays, now, BATCH)).filter((l) => !seen.has(l.id));
+    if (due.length === 0) break;
+    for (const l of due) seen.add(l.id);
+    for (let i = 0; i < due.length; i += PARALLEL) {
+      await Promise.all(due.slice(i, i + PARALLEL).map((l) => checkLink(platform, l).catch((e) => console.error("link check failed", e))));
+    }
   }
-  return due.length;
+  return seen.size;
 }

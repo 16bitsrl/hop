@@ -51,6 +51,19 @@ test("a link is marked broken only after two failed checks in a row, and recover
   await api.dispose();
 });
 
+test("one scheduled run checks every link that is due, not just a few", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  const domain = await ensureDomain(api);
+  const created = [];
+  for (let i = 0; i < 45; i++) created.push(await createLink(api, { url: status(200), slug: uniq("many"), domainId: domain.id }));
+  await runJobs(request);
+  const unchecked = [];
+  for (const l of created) if ((await getLink(api, l.id)).healthCode !== 200) unchecked.push(l.slug);
+  expect(unchecked).toEqual([]);
+  await api.dispose();
+});
+
 test("check now gives a final verdict and is open to members, not viewers", async ({ request, playwright }) => {
   const admin = await createUser(request, { role: "admin" });
   const member = await createUser(request, { role: "member" });
