@@ -468,6 +468,11 @@ test.describe("links API", () => {
     const bad = await admin.post("/api/links", { data: { url: "https://example.com/x", folderId: "does-not-exist" } });
     expect(bad.status()).toBe(400);
     expect((await bad.json()).error).toBe("unknown_folder");
+    // The database decides, so a folder deleted while the request runs gets the same answer.
+    const link = await createLink(admin, { url: "https://example.com/x" });
+    const moved = await admin.patch(`/api/links/${link.id}`, { data: { folderId: "does-not-exist" } });
+    expect(moved.status()).toBe(400);
+    expect((await moved.json()).error).toBe("unknown_folder");
     const page = await admin.get("/api/links?page=1.5&pageSize=1.5");
     expect(page.ok()).toBeTruthy();
     expect(await page.json()).toMatchObject({ page: 1, pageSize: 1 });

@@ -247,10 +247,14 @@ export async function setLinkTags(db: DB, linkId: string, tagNames: string[]): P
 /* Create / update                                                   */
 /* ---------------------------------------------------------------- */
 
-const isUniqueViolation = (e: unknown): boolean => {
-  const text = (x: unknown): string => (x instanceof Error ? `${x.message} ${text((x as { cause?: unknown }).cause)}` : "");
-  return /UNIQUE constraint failed/i.test(text(e));
-};
+const errorText = (x: unknown): string => (x instanceof Error ? `${x.message} ${errorText((x as { cause?: unknown }).cause)}` : "");
+const isUniqueViolation = (e: unknown): boolean => /UNIQUE constraint failed/i.test(errorText(e));
+/**
+ * The folder is the only reference a request chooses (the domain is checked, the owner is the caller), so a
+ * failed reference means the folder does not exist, or was deleted while the request ran.
+ */
+const isMissingFolder = (e: unknown, folderId: string | null | undefined): boolean =>
+  !!folderId && /FOREIGN KEY constraint failed/i.test(errorText(e));
 
 export async function resolveDomain(db: DB, me: SessionUser, domainId?: string | null) {
   if (domainId) {
@@ -295,7 +299,6 @@ export async function createLinkRecord(
   const { db, config } = platform;
   const domain = await resolveDomain(db, me, opts.domainId ?? input.domainId);
   if (!opts.skipSafety) await assertSafe(platform, destinationUrls(input));
-  await assertFolder(db, input.folderId);
 
   let slug = input.slug ?? null;
   if (slug) {
@@ -343,24 +346,19 @@ export async function createLinkRecord(
     });
   } catch (e) {
     if (isUniqueViolation(e)) throw new LinkError(409, "slug_taken");
+    if (isMissingFolder(e, input.folderId)) throw new LinkError(400, "unknown_folder");
     throw e;
   }
   if (input.tags?.length) await setLinkTags(db, id, input.tags);
   return getLinkRow(db, id);
 }
 
-async function assertFolder(db: DB, folderId: string | null | undefined) {
-  if (!folderId) return;
-  const f = await db.select({ id: folders.id }).from(folders).where(eq(folders.id, folderId)).get();
-  if (!f) throw new LinkError(400, "unknown_folder");
-}
 
 export async function updateLinkRecord(platform: Platform, current: LinkRow, input: UpdateLinkInput): Promise<LinkRow> {
   const { db } = platform;
   const touchesUrls =
     input.url !== undefined || input.fallbackUrl !== undefined || input.rules !== undefined || input.variants !== undefined;
   if (touchesUrls) await assertSafe(platform, destinationUrls(input));
-  await assertFolder(db, input.folderId);
 
   const set: Partial<typeof links.$inferInsert> = { updatedAt: new Date() };
   if (input.url !== undefined && input.url !== current.url) {
@@ -385,7 +383,12 @@ export async function updateLinkRecord(platform: Platform, current: LinkRow, inp
   if (input.ogImage !== undefined) set.ogImage = input.ogImage;
   if (input.publicStats !== undefined) set.publicStats = input.publicStats;
 
-  await db.update(links).set(set).where(eq(links.id, current.id));
+  try {
+    await db.update(links).set(set).where(eq(links.id, current.id));
+  } catch (e) {
+    if (isMissingFolder(e, input.folderId)) throw new LinkError(400, "unknown_folder");
+    throw e;
+  }
   if (input.tags !== undefined) await setLinkTags(db, current.id, input.tags);
   return getLinkRow(db, current.id);
 }
