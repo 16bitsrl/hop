@@ -101,7 +101,7 @@ export function LoginPage() {
           {config.oidc && (
             <Button variant="outline" onClick={sso} className="w-full">
               <SsoIcon provider={config.oidc.provider} />
-              {config.oidc.label}
+              {t("login.sso", { name: config.oidc.label })}
             </Button>
           )}
           <Button variant="outline" onClick={passkey} className="w-full">

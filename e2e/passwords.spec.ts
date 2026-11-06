@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { APP } from "../playwright.config";
-import { apiAs, createUser, enableTestSmtp, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
+import { apiAs, createUser, enableTestSmtp, getOutbox, linkIn, loginAs, loginViaUi, resetSettings, waitForMail } from "./helpers";
 
 test.beforeEach(async ({ request }) => {
   await resetSettings(request);
@@ -84,4 +84,58 @@ test("resetting a password signs out every other session of that person", async 
   // The session opened before the reset is gone.
   expect((await (await old.get("/api/me")).json()).user).toBeNull();
   await Promise.all([old.dispose(), adminApi.dispose(), ctx.close()]);
+});
+
+test("the forgot password page answers the same whether or not the account exists", async ({ page, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const user = await createUser(request, { role: "member" });
+  const api = await apiAs(playwright, admin);
+  await enableTestSmtp(api);
+  await api.dispose();
+
+  const answers: string[] = [];
+  for (const email of [user.email, `nobody-${Date.now()}@example.test`]) {
+    await page.goto("/forgot-password");
+    await page.getByLabel("Email").fill(email);
+    const res = page.waitForResponse((r) => r.url().includes("/api/auth/request-password-reset"));
+    await page.getByRole("button", { name: "Send reset link" }).click();
+    const r = await res;
+    answers.push(`${r.status()} ${await r.text()}`);
+    await expect(page.getByText("If an account exists for this email, we sent a link.")).toBeVisible();
+  }
+  expect(answers[0]).toBe(answers[1]);
+
+  // Only the real account gets a mail, and it looks like the app.
+  const mail = await waitForMail(request, user.email);
+  expect(mail.html).toContain("/icon-192.png");
+  expect((await getOutbox(request)).some((m) => m.to.startsWith("nobody-"))).toBe(false);
+});
+
+test("the reset email is written in the person's language", async ({ browser, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const chosen = await createUser(request, { role: "member" });
+  const fromBrowser = await createUser(request, { role: "member" });
+  const api = await apiAs(playwright, admin);
+  await enableTestSmtp(api);
+  await api.dispose();
+  const me = await apiAs(playwright, chosen);
+  expect((await me.patch("/api/me", { data: { locale: "it" } })).ok()).toBeTruthy();
+  await me.dispose();
+
+  const ask = async (email: string, locale: string) => {
+    const ctx = await browser.newContext({ locale });
+    const page = await ctx.newPage();
+    await page.goto("/forgot-password");
+    await page.locator("input[type=email]").fill(email);
+    await page.locator("button[type=submit]").click();
+    await waitForMail(request, email);
+    await ctx.close();
+  };
+
+  // The language saved in the profile wins over the browser's.
+  await ask(chosen.email, "en-US");
+  expect((await waitForMail(request, chosen.email)).subject).toBe("Reimposta la password");
+  // Without one, the browser's language is used.
+  await ask(fromBrowser.email, "it-IT");
+  expect((await waitForMail(request, fromBrowser.email)).subject).toBe("Reimposta la password");
 });

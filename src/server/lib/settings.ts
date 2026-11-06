@@ -36,7 +36,7 @@ export const defaultOidcSettings: OidcSettings = {
   discoveryUrl: "",
   clientId: "",
   clientSecret: "",
-  label: "Single sign-on",
+  label: "",
   autoCreate: false,
   allowedDomains: [],
   defaultRole: "member",
@@ -60,7 +60,11 @@ export const defaultSmtpSettings: SmtpSettings = {
 };
 
 export const getAuthSettings = (db: DB) => getSetting(db, "auth", defaultAuthSettings);
-export const getOidcSettings = (db: DB) => getSetting(db, "oidc", defaultOidcSettings);
+export async function getOidcSettings(db: DB): Promise<OidcSettings> {
+  const o = await getSetting(db, "oidc", defaultOidcSettings);
+  // The old default button text reads badly after "Sign in with": treat it as not set.
+  return o.label === "Single sign-on" ? { ...o, label: "" } : o;
+}
 export const getSmtpSettings = (db: DB) => getSetting(db, "smtp", defaultSmtpSettings);
 
 export function isOidcConfigured(o: OidcSettings): boolean {

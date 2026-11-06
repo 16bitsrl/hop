@@ -172,3 +172,16 @@ test("an invitation cannot set a password that the sign-in would refuse", async 
   expect(signIn.ok()).toBeTruthy();
   await api.dispose();
 });
+
+test("an invitation email is written in the inviting admin's language", async ({ request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  await enableTestSmtp(api);
+  expect((await api.patch("/api/me", { data: { locale: "it" } })).ok()).toBeTruthy();
+  const email = `invited-it-${Date.now()}@example.test`;
+  expect((await api.post("/api/invites", { data: { email, role: "member" } })).ok()).toBeTruthy();
+  await api.dispose();
+  const mail = await waitForMail(request, email);
+  expect(mail.subject).toBe("Ti hanno invitato su hop");
+  expect(mail.text).toContain("Accetta l'invito");
+});

@@ -94,7 +94,7 @@ export function InvitePage() {
             className="w-full"
             onClick={() => authClient.signIn.social({ provider: "oidc", callbackURL: "/links", errorCallbackURL: `/invite/${token}` })}
           >
-            {config.oidc.label}
+            {t("login.sso", { name: config.oidc.label })}
           </Button>
         </>
       )}

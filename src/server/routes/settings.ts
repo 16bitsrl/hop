@@ -11,7 +11,7 @@ import {
   setSetting,
 } from "../lib/settings";
 import { fail, parseJson } from "../lib/validate";
-import { getMailer, resolveSmtp } from "../mail";
+import { APP_NAME, getMailer, mailLanguage, mailMessages, noticeMail, resolveSmtp } from "../mail";
 
 export const settingsRoutes = new Hono<AppEnv>();
 
@@ -55,7 +55,7 @@ const oidcBody = z.object({
   discoveryUrl: z.string().trim().refine((v) => v === "" || URL.canParse(v)),
   clientId: z.string().trim(),
   clientSecret: z.string().optional(),
-  label: z.string().trim().min(1).max(40),
+  label: z.string().trim().max(40),
   autoCreate: z.boolean(),
   allowedDomains: z.array(z.string().trim().toLowerCase()).max(50),
   defaultRole: z.enum(["admin", "member", "viewer"]),
@@ -117,11 +117,9 @@ settingsRoutes.post("/settings/smtp/test", async (c) => {
   const mailer = await getMailer(c.var.platform);
   if (!mailer) return fail(c, 400, "mail_not_configured");
   try {
-    await mailer.send({
-      to,
-      subject: "hop test email",
-      text: "This is a test email from hop. Your email settings work.",
-    });
+    const lang = mailLanguage(c.var.user?.locale, c.req.header("accept-language"));
+    const m = mailMessages[lang].test;
+    await mailer.send(noticeMail({ lang, appUrl: c.var.platform.config.appUrl, to, subject: m.subject(APP_NAME), text: m.text(APP_NAME) }));
   } catch (e) {
     return c.json({ error: "send_failed", message: e instanceof Error ? e.message : String(e) }, 502);
   }

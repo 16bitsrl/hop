@@ -18,6 +18,7 @@ import { HealthSettingsCard } from "../features/data/health";
 import { LinksSettings } from "../features/links/links-settings";
 import { RetentionCard } from "../features/stats/retention-card";
 import { api } from "../lib/api";
+import { oidcButtonName } from "../../shared/oidc-provider";
 import { errorMessage } from "../lib/errors";
 import { toast } from "../lib/toast";
 import { appConfigQuery, type Role } from "../lib/session";
@@ -193,7 +194,7 @@ function OidcCard({ s }: { s: Settings }) {
             </FormField>
           </div>
           <FormField label={t("sso.label")} hint={t("sso.labelHint")} className="sm:max-w-xs">
-            {(id) => <Input id={id} value={label} maxLength={40} onChange={(e) => setLabel(e.target.value)} />}
+            {(id) => <Input id={id} value={label} maxLength={40} placeholder={oidcButtonName("", discoveryUrl)} onChange={(e) => setLabel(e.target.value)} />}
           </FormField>
           <SwitchField checked={autoCreate} onCheckedChange={setAutoCreate} label={t("sso.autoCreate")} description={t("sso.autoCreateHint")} />
           {autoCreate && (

@@ -7,7 +7,7 @@ import { invites, session, user } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { fail, parseJson } from "../lib/validate";
-import { actionMail, getMailer } from "../mail";
+import { actionMail, APP_NAME, getMailer, mailLanguage, mailMessages } from "../mail";
 
 export const userRoutes = new Hono<AppEnv>();
 
@@ -107,12 +107,17 @@ userRoutes.post("/invites", ...adminSession, async (c) => {
   const mailer = await getMailer(platform);
   if (mailer) {
     try {
+      const me = c.var.user!;
+      const lang = mailLanguage(me.locale, c.req.header("accept-language"));
+      const m = mailMessages[lang].invite;
       await mailer.send(
         actionMail({
+          lang,
+          appUrl: platform.config.appUrl,
           to: email,
-          subject: "You have been invited to hop",
-          intro: `${c.var.user!.name} invited you to join hop. The invitation works for ${INVITE_DAYS} days.`,
-          button: "Accept the invitation",
+          subject: m.subject(APP_NAME),
+          intro: m.intro(me.name, APP_NAME, INVITE_DAYS),
+          button: m.button,
           url,
         }),
       );

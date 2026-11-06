@@ -1,4 +1,4 @@
-import { oidcProvider } from "../auth/oidc-provider";
+import { oidcButtonName, oidcProvider } from "../../shared/oidc-provider";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -50,7 +50,7 @@ authRoutes.get("/app-config", async (c) => {
     setupRequired: users === 0,
     setupTokenRequired: users === 0 && !!c.var.platform.config.setupToken,
     passwordLogin: auth.passwordLogin,
-    oidc: isOidcConfigured(oidc) ? { label: oidc.label, provider: oidcProvider(oidc.discoveryUrl) } : null,
+    oidc: isOidcConfigured(oidc) ? { label: oidcButtonName(oidc.label, oidc.discoveryUrl), provider: oidcProvider(oidc.discoveryUrl) } : null,
     mailConfigured: !!mailer,
   });
 });

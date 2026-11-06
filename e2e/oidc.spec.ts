@@ -27,7 +27,7 @@ function oidcSettings(over: Record<string, unknown> = {}) {
     discoveryUrl: `${issuer}/.well-known/openid-configuration`,
     clientId: "hop-test",
     clientSecret: "hop-test-secret",
-    label: "Acme login",
+    label: "Acme",
     autoCreate: true,
     allowedDomains: ["acme.test"],
     defaultRole: "viewer",
@@ -55,7 +55,7 @@ test("single sign-on creates an account automatically for an allowed domain", as
 
   nextIdentity("sso.person@acme.test", "Sso Person");
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
   await expect(page.getByText("Sso Person")).toBeVisible();
   // Default role is viewer: no admin pages.
@@ -70,7 +70,7 @@ test("single sign-on refuses a domain that is not allowed", async ({ page, reque
 
   nextIdentity("intruder@elsewhere.test", "Intruder");
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
   await expect(page.getByText("This account is not allowed to sign in here.")).toBeVisible();
 });
@@ -84,7 +84,7 @@ test("an invited person can continue with single sign-on", async ({ page, reques
 
   nextIdentity("invited.sso@acme.test", "Invited Sso");
   await page.goto(new URL(invite.url).pathname);
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
   await expect(page.getByText("Invited Sso")).toBeVisible();
 });
@@ -97,7 +97,7 @@ test("without auto-create, an unknown person cannot sign in", async ({ page, req
 
   nextIdentity("stranger@acme.test", "Stranger");
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page.getByText("This account is not allowed to sign in here.")).toBeVisible({ timeout: 20_000 });
 });
 
@@ -110,7 +110,7 @@ test("an existing user signs in through single sign-on with the same email", asy
 
   nextIdentity(existing.email, existing.name);
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page).toHaveURL(/\/links$/, { timeout: 20_000 });
   await loginAs(page, admin, "/settings"); // sanity: settings page opens and shows the redirect URL
   await expect(page.getByText("/api/auth/callback/oidc")).toBeVisible();
@@ -127,7 +127,7 @@ test("an unverified email at the provider does not take over an existing account
 
   nextIdentity(victim.email, "Attacker", false);
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
   await expect(page.getByText(UNVERIFIED)).toBeVisible();
   expect(((await (await page.request.get("/api/me")).json()) as { user: unknown }).user).toBeNull();
@@ -141,16 +141,35 @@ test("an unverified email does not use an invitation or the allowed domains", as
 
   nextIdentity("invited.unverified@acme.test", "Sneaky", false);
   await page.goto(new URL(invite.url).pathname);
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page.getByText(UNVERIFIED)).toBeVisible({ timeout: 20_000 });
 
   nextIdentity("newcomer@acme.test", "Newcomer", false);
   await page.goto("/login");
-  await page.getByRole("button", { name: "Acme login" }).click();
+  await page.getByRole("button", { name: "Sign in with Acme" }).click();
   await expect(page.getByText(UNVERIFIED)).toBeVisible({ timeout: 20_000 });
 
   const users = (await (await api.get("/api/users")).json()) as { users: { email: string }[] };
   expect(users.users.map((u) => u.email)).not.toContain("invited.unverified@acme.test");
   expect(users.users.map((u) => u.email)).not.toContain("newcomer@acme.test");
   await api.dispose();
+});
+
+test("without a name, the sign-in button names the provider in the visitor's language", async ({ browser, request, playwright }) => {
+  const admin = await createUser(request, { role: "admin" });
+  const api = await apiAs(playwright, admin);
+  expect((await api.put("/api/settings/oidc", { data: oidcSettings({ label: "" }) })).ok()).toBeTruthy();
+  await api.dispose();
+
+  const en = await browser.newContext({ locale: "en-US" });
+  const enPage = await en.newPage();
+  await enPage.goto("/login");
+  await expect(enPage.getByRole("button", { name: "Sign in with SSO" })).toBeVisible();
+  await en.close();
+
+  const it = await browser.newContext({ locale: "it-IT" });
+  const itPage = await it.newPage();
+  await itPage.goto("/login");
+  await expect(itPage.getByRole("button", { name: "Accedi con SSO" })).toBeVisible();
+  await it.close();
 });

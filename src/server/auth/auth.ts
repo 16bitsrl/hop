@@ -7,7 +7,7 @@ import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import * as schema from "../db/schema";
 import type { Role } from "../db/schema";
 import { getOidcSettings, isOidcConfigured } from "../lib/settings";
-import { actionMail, getMailer } from "../mail";
+import { actionMail, getMailer, mailLanguage, mailMessages } from "../mail";
 import type { Platform } from "../platform/types";
 
 /** Internal header carrying the client address to Better Auth's rate limiter. */
@@ -68,18 +68,12 @@ export async function createAuth(platform: Platform, opts: { oidc?: boolean } = 
       minPasswordLength: 8,
       resetPasswordTokenExpiresIn: 60 * 60,
       revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => {
+      sendResetPassword: async ({ user, url }, request) => {
         const mailer = await getMailer(platform);
         if (!mailer) return;
-        await mailer.send(
-          actionMail({
-            to: user.email,
-            subject: "Reset your password",
-            intro: "Someone asked to reset the password of your account. If it was you, use the link below. It works for one hour.",
-            button: "Choose a new password",
-            url,
-          }),
-        );
+        const lang = mailLanguage((user as { locale?: string | null }).locale, request?.headers.get("accept-language"));
+        const m = mailMessages[lang].reset;
+        await mailer.send(actionMail({ lang, appUrl: config.appUrl, to: user.email, subject: m.subject, intro: m.intro, button: m.button, url }));
       },
     },
     account: {
