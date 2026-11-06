@@ -447,6 +447,21 @@ test.describe("links API", () => {
     const svg = await admin.post("/api/media", { data: Buffer.from("<svg/>"), headers: { "content-type": "image/svg+xml" } });
     expect(svg.status()).toBe(400);
   });
+  test("media upload is refused when no image storage is configured", async ({ request, playwright }) => {
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "base64",
+    );
+    // Test-only header: the server behaves as if no image storage was configured.
+    const off = { "x-test-no-blobs": "1" };
+    expect(await (await admin.get("/api/media", { headers: off })).json()).toEqual({ uploads: false });
+    expect(await (await admin.get("/api/media")).json()).toEqual({ uploads: true });
+    const up = await admin.post("/api/media", { data: png, headers: { "content-type": "image/png", ...off } });
+    expect(up.status()).toBe(503);
+    expect((await up.json()).error).toBe("uploads_unavailable");
+    expect((await request.get(`http://app.localhost:${new URL(SHORT).port}/media/00000000-0000-0000-0000-000000000000.png`, { headers: off })).status()).toBe(404);
+  });
   test("the largest smart link allowed is accepted", async ({ request, playwright }) => {
     const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
     await ensureDomain(admin);

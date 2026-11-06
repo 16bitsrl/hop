@@ -384,6 +384,17 @@ test.describe("links UI", () => {
     expect((await follow(request, l.slug)).status()).toBe(302);
   });
 
+  test("share: without image storage the upload field is gone, the image address stays", async ({ page, request, playwright }) => {
+    const { user, api } = await setup(request, playwright);
+    const l = await createLink(api, { url: "https://example.com/no-storage" });
+    // Test-only header: the server behaves as if no image storage was configured.
+    await page.setExtraHTTPHeaders({ "x-test-no-blobs": "1" });
+    await loginAs(page, user, `/links/${l.id}`);
+    await tab(page, "Share");
+    await expect(page.getByLabel("Image address")).toBeVisible();
+    await expect(page.getByLabel("Upload image")).toHaveCount(0);
+  });
+
   test("history shows who changed what", async ({ page, request, playwright }) => {
     const { user, api } = await setup(request, playwright);
     const l = await createLink(api, { url: "https://example.com/h", title: "First title" });

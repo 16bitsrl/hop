@@ -1,5 +1,5 @@
 import { Hono, type Context } from "hono";
-import { requireRole } from "../auth/permissions";
+import { requireRole, requireUser } from "../auth/permissions";
 import type { AppEnv } from "../env";
 import { readBodyCapped } from "../lib/body";
 
@@ -26,8 +26,13 @@ function looksLike(type: string, b: Uint8Array): boolean {
   }
 }
 
+/** GET /api/media: whether this deployment can store uploaded images. */
+mediaRoutes.get("/media", requireUser, (c) => c.json({ uploads: c.var.platform.blobs !== null }));
+
 /** POST /api/media with the raw image as body. Returns `{ url }`. */
 mediaRoutes.post("/media", requireRole("admin", "member"), async (c) => {
+  const blobs = c.var.platform.blobs;
+  if (!blobs) return c.json({ error: "uploads_unavailable" }, 503);
   const type = (c.req.header("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
   const ext = TYPES[type];
   if (!ext) return c.json({ error: "unsupported_image" }, 400);
@@ -35,7 +40,7 @@ mediaRoutes.post("/media", requireRole("admin", "member"), async (c) => {
   if (!body) return c.json({ error: "image_too_large" }, 400);
   if (body.byteLength === 0 || !looksLike(type, body)) return c.json({ error: "unsupported_image" }, 400);
   const file = `${crypto.randomUUID()}.${ext}`;
-  await c.var.platform.blobs.put(`media/${file}`, body, type);
+  await blobs.put(`media/${file}`, body, type);
   return c.json({ url: `${c.var.platform.config.appUrl}/media/${file}` }, 201);
 });
 
@@ -43,7 +48,7 @@ mediaRoutes.post("/media", requireRole("admin", "member"), async (c) => {
 export async function serveMedia(c: Context<AppEnv>): Promise<Response> {
   const file = c.req.param("file") ?? "";
   if (!/^[a-f0-9-]{36}\.(png|jpg|gif|webp)$/.test(file)) return c.notFound();
-  const blob = await c.var.platform.blobs.get(`media/${file}`);
+  const blob = await c.var.platform.blobs?.get(`media/${file}`);
   if (!blob) return c.notFound();
   return new Response(blob.body, {
     headers: {

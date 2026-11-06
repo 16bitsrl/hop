@@ -19,7 +19,10 @@ export function createApp(opts: {
   const app = new Hono<AppEnv>();
 
   app.use("*", async (c, next) => {
-    c.set("platform", opts.platform(c.req.raw));
+    const platform = opts.platform(c.req.raw);
+    // Test-only: behave as if no image storage was configured. A copy, since Node shares one platform.
+    const noBlobs = platform.config.testMode && c.req.header("x-test-no-blobs") === "1";
+    c.set("platform", noBlobs ? { ...platform, blobs: null } : platform);
     c.set("user", null);
     await next();
   });

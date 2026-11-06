@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { DownloadIcon, SparklesIcon, WandSparklesIcon, XIcon } from "lucide-react";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
-import { ApiError } from "../../lib/api";
+import { api, ApiError } from "../../lib/api";
 import { downloadBlob } from "../../lib/clipboard";
 import { errorMessage } from "../../lib/errors";
 import { applyUtm, parseUtm, UTM_FIELDS, type Utm } from "../../lib/utm";
@@ -166,6 +166,11 @@ function SocialCard({ link }: { link: Link }) {
   const [title, setTitle] = useState(link.ogTitle ?? "");
   const [description, setDescription] = useState(link.ogDescription ?? "");
   const [image, setImage] = useState(link.ogImage ?? "");
+  const uploads = useQuery({
+    queryKey: ["media"],
+    queryFn: async () => (await api<{ uploads: boolean }>("/api/media")).uploads,
+    staleTime: Infinity,
+  }).data;
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
@@ -213,20 +218,22 @@ function SocialCard({ link }: { link: Link }) {
           <FormField label={t("social.imageUrl")}>
             {(id) => <Input id={id} type="url" placeholder="https://" value={image} onChange={(e) => setImage(e.target.value)} />}
           </FormField>
-          <FormField label={t("social.upload")} hint={t("social.uploadHint")}>
-            {(id) => (
-              <Input
-                id={id}
-                type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (file) upload.mutate(file);
-                }}
-              />
-            )}
-          </FormField>
+          {uploads && (
+            <FormField label={t("social.upload")} hint={t("social.uploadHint")}>
+              {(id) => (
+                <Input
+                  id={id}
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) upload.mutate(file);
+                  }}
+                />
+              )}
+            </FormField>
+          )}
           <div>
             <Button disabled={readOnly} loading={patch.isPending} onClick={() => patch.mutate({ ogTitle: title, ogDescription: description, ogImage: image })}>
               {t("social.save")}

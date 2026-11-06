@@ -65,7 +65,8 @@ export interface Config {
 export interface Platform {
   name: "cloudflare" | "node";
   db: DB;
-  blobs: BlobStore;
+  /** Null when the deployment has no storage for uploaded images. */
+  blobs: BlobStore | null;
   /** Always null on creation: resolve it with `getMailer(platform)` from `src/server/mail`. */
   mailer: Mailer | null;
   /** Sends mail over SMTP with the platform's own client (worker-mailer on Workers, nodemailer on Node). */

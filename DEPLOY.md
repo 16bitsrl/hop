@@ -41,6 +41,8 @@ Prerequisites: a Cloudflare account, `pnpm install`, and `pnpm exec wrangler log
 
    Put the printed `database_id` in `wrangler.jsonc` (`d1_databases[0].database_id`). Keep `bucket_name` equal to the bucket you created.
 
+   The R2 bucket only holds the images people upload for a link's share preview. It is optional: remove the `r2_buckets` entry to deploy without it (R2 needs a payment method on the account, even within the free tier). Without it the upload field is hidden; a preview image can still be set by its address.
+
 2. **Hosts**: `APP_HOST` and `APP_URL` are secrets, so `wrangler.jsonc` stays free of your own values:
 
    ```sh

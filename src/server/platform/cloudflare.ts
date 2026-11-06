@@ -5,7 +5,8 @@ import type { BlobStore, Mailer, Platform, SmtpConfig } from "./types";
 
 export interface CloudflareEnv {
   DB: D1Database;
-  BLOBS: R2Bucket;
+  /** Optional: without it, preview images cannot be uploaded. */
+  BLOBS?: R2Bucket;
   ASSETS: Fetcher;
   APP_HOST: string;
   APP_URL: string;
@@ -61,7 +62,7 @@ export function cloudflarePlatform(env: CloudflareEnv, ctx: ExecutionContext): P
   return {
     name: "cloudflare",
     db: drizzle(env.DB, { schema }),
-    blobs: r2Store(env.BLOBS),
+    blobs: env.BLOBS ? r2Store(env.BLOBS) : null,
     mailer: null, // resolved on demand by getMailer() in src/server/mail
     createSmtpMailer: workerMailer,
     config: {
