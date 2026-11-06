@@ -88,7 +88,11 @@ test("landing page and 404 page are built in", async ({ request }) => {
   expect(await rootIt.text()).toContain("arrivi subito");
   const nf = await get(request, uniq("missing"), { "accept-language": "it" });
   expect(nf.status()).toBe(404);
-  expect(await nf.text()).toContain("non trovato");
+  const nfHtml = await nf.text();
+  expect(nfHtml).toContain("non trovato");
+  // It carries the mark and a way back to the short domain's home.
+  expect(nfHtml).toContain('<svg class="mark"');
+  expect(nfHtml).toContain(`<a class="home" href="/">Vai a ${new URL(SHORT).host}</a>`);
 });
 
 test("disabled and expired links", async ({ request }) => {

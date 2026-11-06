@@ -39,6 +39,7 @@ const T = {
     openingLink: "Go to the website",
     redirecting: "Redirecting",
     redirectingLink: "Continue",
+    goHome: "Go to",
   },
   it: {
     landingText: "Link brevi: ne apri uno e arrivi subito alla pagina giusta.",
@@ -58,6 +59,7 @@ const T = {
     openingLink: "Vai al sito web",
     redirecting: "Reindirizzamento",
     redirectingLink: "Continua",
+    goHome: "Vai a",
   },
 } as const;
 
@@ -80,9 +82,15 @@ input{width:100%;min-height:2.75rem;padding:.65rem .75rem;border:1px solid var(-
 button{min-height:2.75rem;padding:.65rem;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);font:inherit;font-weight:600;cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .err{color:var(--err);font-size:.875rem;margin:0}
-body.landing{background:radial-gradient(60rem 30rem at 50% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%),var(--bg)}
-body.landing{grid-template-columns:minmax(0,1fr);justify-items:center}
-.landing main{max-width:40rem;min-width:0;background:none;border:0;padding:0}
+main>:last-child{margin-bottom:0}
+body.landing,body.notice{background:radial-gradient(60rem 30rem at 50% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%),var(--bg);grid-template-columns:minmax(0,1fr);justify-items:center}
+.landing main,.notice main{max-width:40rem;min-width:0;background:none;border:0;padding:0}
+.notice main{max-width:24rem}
+.notice .mark{width:4rem;height:4rem;margin-bottom:1.5rem;animation:none;opacity:.9}
+.notice h1{font-size:1.75rem;line-height:1.15;letter-spacing:-.025em;margin:0 0 .625rem;text-wrap:balance}
+.notice p{margin:0 0 2rem;text-wrap:pretty}
+.home{display:inline-flex;align-items:center;min-height:2.75rem;padding:.65rem 1.25rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);font-weight:600;font-size:.9375rem;text-decoration:none;transition:border-color .15s,color .15s}
+.home:hover{border-color:var(--accent);color:var(--accent)}
 .mark{width:5.5rem;height:5.5rem;display:block;margin:0 auto 1.75rem;filter:drop-shadow(0 .6rem 1.2rem color-mix(in srgb,#0f7a5c 35%,transparent));animation:hop 2.8s cubic-bezier(.3,0,.3,1) infinite}
 @keyframes hop{0%,55%,100%{transform:translateY(0) scale(1,1)}62%{transform:translateY(.15rem) scale(1.06,.94)}75%{transform:translateY(-.9rem) scale(.97,1.03)}88%{transform:translateY(0) scale(1.03,.97)}}
 @media(prefers-reduced-motion:reduce){.mark{animation:none}}
@@ -137,18 +145,19 @@ function page(
   return new Response(html, { status: opts.status ?? 200, headers: { ...HEADERS, "content-security-policy": csp, ...opts.extra } });
 }
 
-function simple(lang: Lang, title: string, text: string, status: number, cache = "no-store"): Response {
-  return page(lang, title, `<h1>${esc(title)}</h1><p>${esc(text)}</p>`, { status, extra: { "cache-control": cache } });
-}
-
 /** What the bare short domain shows: its name, the mark, and a short link landing on a long one. */
 export function landingPage(lang: Lang, host: string): Response {
   const t = T[lang];
   const body = `${MARK}<h1>${esc(host)}</h1><p class="lead">${t.landingText}</p><div class="demo" aria-hidden="true"><span class="short">${esc(host)}/abc</span><svg class="arc" viewBox="0 0 48 24"><path d="M4 20 C14 2 34 2 44 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1 5"/><path d="M38 17 L44 20 L45 13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="long">https://www.example.com/a/very/long/address/for/the/page?ref=newsletter&amp;utm_campaign=autumn</span></div><p class="hint">${t.landingHint}</p>`;
   return page(lang, host, body, { bodyClass: "landing", extra: { "cache-control": "no-store" } });
 }
-export const notFoundPage = (lang: Lang) => simple(lang, T[lang].notFoundTitle, T[lang].notFoundText, 404);
-export const expiredPage = (lang: Lang) => simple(lang, T[lang].expiredTitle, T[lang].expiredText, 410);
+/** A dead end on a short domain (link missing or expired): the mark, what happened, and a way home. */
+function notice(lang: Lang, host: string, title: string, text: string, status: number): Response {
+  const body = `${MARK}<h1>${esc(title)}</h1><p>${esc(text)}</p><a class="home" href="/">${T[lang].goHome} ${esc(host)}</a>`;
+  return page(lang, title, body, { status, bodyClass: "notice", extra: { "cache-control": "no-store" } });
+}
+export const notFoundPage = (lang: Lang, host: string) => notice(lang, host, T[lang].notFoundTitle, T[lang].notFoundText, 404);
+export const expiredPage = (lang: Lang, host: string) => notice(lang, host, T[lang].expiredTitle, T[lang].expiredText, 410);
 
 export function passwordPage(lang: Lang, error: boolean | "locked", retryAfter = 0): Response {
   const t = T[lang];

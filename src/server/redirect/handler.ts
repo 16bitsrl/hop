@@ -88,7 +88,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   const { domain, link } = row;
 
   const notFound = () =>
-    isHttpUrl(domain.notFoundUrl) ? redirect(domain.notFoundUrl, 302) : notFoundPage(lang);
+    isHttpUrl(domain.notFoundUrl) ? redirect(domain.notFoundUrl, 302) : notFoundPage(lang, url.host);
 
   if (slug === "") {
     return isHttpUrl(domain.rootUrl) ? redirect(domain.rootUrl, 302) : landingPage(lang, url.host);
@@ -115,7 +115,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
     (link.expiresAt && link.expiresAt.getTime() <= Date.now()) ||
     (link.maxClicks != null && link.clickCount >= link.maxClicks)
   ) {
-    return fallbackOr(() => expiredPage(lang));
+    return fallbackOr(() => expiredPage(lang, url.host));
   }
 
   const secret = platform.config.authSecret;
@@ -155,7 +155,7 @@ export async function handleShortDomain(c: Context<AppEnv>): Promise<Response> {
   // requests cannot all get through. Bots and preview crawlers never use a visit.
   let counted = false;
   if (link.maxClicks != null && req.method === "GET" && !isBotUa(ua)) {
-    if (!(await consumeVisit(platform.db, link.id))) return fallbackOr(() => expiredPage(lang));
+    if (!(await consumeVisit(platform.db, link.id))) return fallbackOr(() => expiredPage(lang, url.host));
     counted = true;
   }
 
