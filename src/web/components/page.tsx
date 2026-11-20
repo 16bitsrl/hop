@@ -2,11 +2,13 @@ import { LockIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
+import { useDocumentTitle } from "../lib/document-title";
 import { isAdmin, useMe } from "../lib/session";
 import { EmptyState } from "./states";
 
 /** Page title row. Put the main action last in `actions`. */
 export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
       <div className="min-w-0">

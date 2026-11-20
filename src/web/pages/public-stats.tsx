@@ -7,6 +7,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import { Breakdowns, KpiRow, RangePicker, SeriesChart, useStatsControls } from "../features/stats/components";
 import { usePublicSummary } from "../features/stats/queries";
 import { ApiError } from "../lib/api";
+import { useDocumentTitle } from "../lib/document-title";
 
 /** Read-only statistics of a link, reachable without signing in at /s/<linkId> when its owner turned them on. */
 export function PublicStatsPage() {
@@ -15,6 +16,7 @@ export function PublicStatsPage() {
   const { range, setRange, params } = useStatsControls();
   const { data, error, isFetching, refetch } = usePublicSummary(linkId, params);
   const notPublic = error instanceof ApiError && error.status === 404;
+  useDocumentTitle(t("public.title"));
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-4 px-4 py-8">

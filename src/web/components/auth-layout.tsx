@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { useDocumentTitle } from "../lib/document-title";
 
 /** Centered card used by sign-in, setup, invite and password pages. */
 export function AuthCard({ title, description, children }: { title: string; description?: ReactNode; children: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="mb-6 flex items-center gap-2">

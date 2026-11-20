@@ -5,6 +5,7 @@ import { Shell } from "./components/shell";
 import { CompassIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState, ErrorState } from "@/components/states";
+import { useDocumentTitle } from "./lib/document-title";
 import { rememberReturnTo } from "./lib/return-to";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
@@ -29,6 +30,7 @@ export type RouterContext = { queryClient: QueryClient };
 
 function NotFound() {
   const { t } = useTranslation();
+  useDocumentTitle(t("notFound"));
   return (
     <div className="flex min-h-dvh items-center justify-center px-4">
       <EmptyState
