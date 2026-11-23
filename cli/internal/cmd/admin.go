@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/16bitsrl/hop/cli/internal/api"
+	"github.com/16bitsrl/hop/cli/internal/config"
 	"github.com/16bitsrl/hop/cli/internal/ui"
 )
 
@@ -509,8 +510,12 @@ func (a *app) profileCmd() *cobra.Command {
 				return err
 			}
 			if s := a.cfg.Servers[srv.name]; s != nil && out.User.Name != "" {
-				s.User = out.User.Name
-				_ = a.cfg.Save()
+				_, _ = config.Update(func(c *config.Config) error {
+					if s := c.Servers[srv.name]; s != nil {
+						s.User = out.User.Name
+					}
+					return nil
+				})
 			}
 			if a.jsonOut {
 				return printJSON(out)

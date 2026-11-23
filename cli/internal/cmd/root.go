@@ -63,9 +63,9 @@ func Run(version string, args []string) int {
 		ui.SetThousands(".")
 	}
 	update.CleanUp()
-	refreshSkills()
 
 	a := &app{version: version, cfg: cfg}
+	a.refreshSkills()
 	if cfgErr != nil {
 		ui.Warning(t("The settings file could not be read, so it is ignored: %s", cfg.Path()))
 	}
@@ -218,7 +218,12 @@ func (a *app) connect() (*server, error) {
 	if ref == "" {
 		ref = os.Getenv("HOP_SERVER")
 	}
-	envToken := os.Getenv("HOP_TOKEN")
+	// The key in HOP_TOKEN belongs to the server in HOP_SERVER: it is never sent to another one
+	// picked with --server.
+	envToken := ""
+	if a.serverFlag == "" && os.Getenv("HOP_SERVER") != "" {
+		envToken = os.Getenv("HOP_TOKEN")
+	}
 	if ref == "" {
 		ref = a.cfg.Default
 	}
@@ -238,6 +243,9 @@ func (a *app) connect() (*server, error) {
 		if envToken != "" {
 			base, err := normalizeServerURL(ref)
 			if err != nil {
+				return nil, err
+			}
+			if err := requireSafeTransport(base, false); err != nil {
 				return nil, err
 			}
 			return &server{name: hostOf(base), url: base, Client: api.New(base, envToken, a.version)}, nil
@@ -274,6 +282,20 @@ func normalizeServerURL(raw string) (string, error) {
 		return "", usage(t("“%s” is not a valid server address.", raw))
 	}
 	return u.Scheme + "://" + strings.ToLower(u.Host), nil
+}
+
+// requireSafeTransport refuses to send a key without encryption, except to this computer itself
+// or when the person said so (--insecure, or HOP_ALLOW_HTTP for scripts).
+func requireSafeTransport(base string, allowed bool) error {
+	u, err := url.Parse(base)
+	if err != nil || u.Scheme == "https" || allowed || os.Getenv("HOP_ALLOW_HTTP") != "" {
+		return nil
+	}
+	host := u.Hostname()
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") || host == "127.0.0.1" || host == "::1" {
+		return nil
+	}
+	return failHint(t("%s does not use https, so your key would travel where others can read it.", base), t("Use the https:// address. If this server really has none, add --insecure (HOP_ALLOW_HTTP=1 in scripts)."))
 }
 
 func hostOf(base string) string {

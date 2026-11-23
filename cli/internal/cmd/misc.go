@@ -16,6 +16,13 @@ import (
 	"github.com/16bitsrl/hop/cli/internal/update"
 )
 
+// noteLatest records the newest version just seen, keeping the rest of what the app remembers.
+func (a *app) noteLatest(version string) {
+	state := a.cfg.LoadState()
+	state.UpdateCheckedAt, state.LatestVersion = time.Now(), version
+	_ = a.cfg.SaveState(state)
+}
+
 func errorsAs(err error, target any) bool { return errors.As(err, target) }
 
 /* ------------------------------ update ------------------------------ */
@@ -37,7 +44,7 @@ func (a *app) installUpdate(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_ = a.cfg.SaveState(config.State{UpdateCheckedAt: time.Now(), LatestVersion: rel.Version})
+	a.noteLatest(rel.Version)
 	ui.Success(t("hop is now at version %s (it was %s).", ui.Bold.Render(rel.Version), a.version))
 	return nil
 }
@@ -65,7 +72,7 @@ func (a *app) updateCmd() *cobra.Command {
 			if err != nil {
 				return failHint(t("Could not look for a new version."), err.Error())
 			}
-			_ = a.cfg.SaveState(config.State{UpdateCheckedAt: time.Now(), LatestVersion: rel.Version})
+			a.noteLatest(rel.Version)
 			newer := update.Newer(rel.Version, a.version)
 			if a.jsonOut {
 				return printJSON(map[string]any{"current": a.version, "latest": rel.Version, "updateAvailable": newer})
@@ -146,29 +153,35 @@ func (a *app) configCmd() *cobra.Command {
 		Args:    exactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
 			value := strings.ToLower(strings.TrimSpace(args[1]))
+			var change func(c *config.Config)
 			switch strings.ToLower(args[0]) {
 			case "updates":
 				switch value {
 				case "notify", "auto", "off":
-					a.cfg.Updates = value
+					change = func(c *config.Config) { c.Updates = value }
 				default:
 					return usage(t("updates can be notify, auto or off."))
 				}
 			case "language":
 				switch {
 				case value == "auto" || value == "system":
-					a.cfg.Language = ""
+					change = func(c *config.Config) { c.Language = "" }
 				case value == "en" || value == "it":
-					a.cfg.Language = value
+					change = func(c *config.Config) { c.Language = value }
 				default:
 					return usage(t("The language can be en, it or auto."))
 				}
 			default:
 				return usage(t("You can change: updates, language."))
 			}
-			if err := a.cfg.Save(); err != nil {
+			cfg, err := config.Update(func(c *config.Config) error {
+				change(c)
+				return nil
+			})
+			if err != nil {
 				return err
 			}
+			a.cfg = cfg
 			i18n.Init(a.cfg.Language)
 			ui.Success(t("Saved %s", ui.Bold.Render(strings.ToLower(args[0]))))
 			return nil

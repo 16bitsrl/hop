@@ -37,7 +37,9 @@ hop login https://hop.example.com
 
 Your browser opens on a page of your hop server that shows a short code: check that it is the one in your terminal and press **Connect**. It works with passwords, passkeys and single sign-on, and also when the terminal is on another computer (open the address it prints, or go to `/cli` on your server and type the code).
 
-The app gets its own key, listed in your profile with the name of the computer, so you can revoke it there at any time. `hop logout` revokes it too. The key is kept in the system keychain when there is one, otherwise in a settings file only you can read.
+The app gets its own key, listed in your profile with the name of the computer, so you can revoke it there at any time. `hop logout` revokes it too. The key is kept in the system keychain when there is one, otherwise in a settings file only you can read. Keys are only sent over https (plain http is accepted for `localhost`, or with `--insecure`).
+
+To sign in with an API key you created yourself, pass it on the standard input so it stays out of your shell history: `hop login hop.example.com --with-token < key.txt`.
 
 ### Several servers
 
@@ -97,7 +99,7 @@ What needs a signed-in person stays in the web app, by design: inviting people a
 hop skill              # for Claude Code; --target codex|gemini|agents, or --all
 ```
 
-This writes the Agent Skill of hop (a `SKILL.md` file) where agents look for it, so they know how to create links, read statistics and the rest without being told. The file keeps itself current: whenever `hop` runs, it brings the copies it finds up to date with the installed version.
+This writes the Agent Skill of hop (a `SKILL.md` file) where agents look for it, so they know how to create links, read statistics and the rest without being told. The file keeps itself current: whenever `hop` runs, it brings the copies it wrote up to date with the installed version. A copy you edited is left as it is.
 
 ## Updates
 
@@ -122,7 +124,8 @@ hop completion zsh             # Tab completion for bash, zsh, fish and PowerShe
 
 | Variable | What it does |
 | --- | --- |
-| `HOP_SERVER`, `HOP_TOKEN` | Server and key for scripts, instead of signing in |
+| `HOP_SERVER`, `HOP_TOKEN` | Server and key for scripts, instead of signing in. The key is only ever sent to that server |
+| `HOP_ALLOW_HTTP` | Set to anything to allow a server without https (like `hop login --insecure`). Never needed for `localhost` |
 | `HOP_LANG` | Language: `en` or `it` |
 | `HOP_CONFIG_DIR` | Where the settings live (default `~/.config/hop`, `%AppData%\hop` on Windows) |
 | `HOP_NO_UPDATE_CHECK` | Set to anything to never look for new versions |

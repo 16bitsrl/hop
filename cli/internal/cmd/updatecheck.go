@@ -53,9 +53,14 @@ func (a *app) startUpdateCheck(cmd *cobra.Command) {
 		return
 	}
 	a.updates = &updateWatch{}
-	if !checkDue(a.cfg.LoadState(), time.Now()) {
+	state := a.cfg.LoadState()
+	if !checkDue(state, time.Now()) {
 		return
 	}
+	// The attempt is noted before it starts: when the answer is slow or never comes, the next
+	// commands are not held up again; it is tried once more in an hour.
+	state.UpdateCheckedAt = time.Now().Add(time.Hour - updateCheckEvery)
+	_ = a.cfg.SaveState(state)
 	a.updates.done = make(chan *update.Release, 1)
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)

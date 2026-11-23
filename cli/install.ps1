@@ -52,12 +52,24 @@ try {
   New-Item -ItemType Directory -Force -Path $dir | Out-Null
   $target = Join-Path $dir "hop.exe"
   # A running hop.exe cannot be overwritten, but it can be renamed out of the way.
-  if (Test-Path $target) {
-    Remove-Item "$target.old" -Force -ErrorAction SilentlyContinue
-    Rename-Item $target "$target.old" -Force
+  # The new program is first put beside the old one, so a failure leaves hop as it was.
+  $staged = "$target.new"
+  Move-Item (Join-Path $tmp "hop.exe") $staged -Force
+  $old = "$target.hop-old"
+  $hadOld = Test-Path $target
+  if ($hadOld) {
+    Remove-Item $old -Force -ErrorAction SilentlyContinue
+    Rename-Item $target $old -Force
   }
-  Move-Item (Join-Path $tmp "hop.exe") $target -Force
-  Remove-Item "$target.old" -Force -ErrorAction SilentlyContinue
+  try {
+    Move-Item $staged $target -Force
+  }
+  catch {
+    if ($hadOld) { Rename-Item $old $target -Force }
+    Remove-Item $staged -Force -ErrorAction SilentlyContinue
+    throw
+  }
+  Remove-Item $old -Force -ErrorAction SilentlyContinue
 }
 finally {
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue

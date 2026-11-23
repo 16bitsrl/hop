@@ -147,14 +147,21 @@ func (s *server) ownerID(ctx context.Context, ref string) (string, error) {
 // ("go.example.com/sale", with or without https://) or just its ending ("sale").
 func (s *server) findLink(ctx context.Context, ref string) (*api.Link, error) {
 	ref = strings.TrimSpace(ref)
+	var byID *api.Link
 	if uuidPattern.MatchString(ref) {
 		var out struct {
 			Link api.Link `json:"link"`
 		}
-		if err := s.Get(ctx, "/api/links/"+ref, nil, &out); err != nil {
+		err := s.Get(ctx, "/api/links/"+ref, nil, &out)
+		var apiErr *api.Error
+		switch {
+		case err == nil:
+			byID = &out.Link
+		case errorsAs(err, &apiErr) && apiErr.Status == 404:
+			// Not an id: an ending may look like one.
+		default:
 			return nil, err
 		}
-		return &out.Link, nil
 	}
 	clean := strings.TrimPrefix(strings.TrimPrefix(ref, "https://"), "http://")
 	clean = strings.TrimSuffix(strings.TrimSuffix(clean, "/"), "+")
@@ -165,8 +172,19 @@ func (s *server) findLink(ctx context.Context, ref string) (*api.Link, error) {
 	if slug == "" {
 		return nil, usage(t("“%s” is not a link.", ref))
 	}
+	q := api.Query{"slug": slug, "pageSize": "100"}
+	if host != "" {
+		// Ask for that domain only: the same ending may exist on many.
+		if domains, err := s.domains(ctx); err == nil {
+			for _, d := range domains {
+				if d.Host == host || d.Host == strings.Split(host, ":")[0] {
+					q["domain"] = d.ID
+				}
+			}
+		}
+	}
 	var page api.LinkPage
-	if err := s.Get(ctx, "/api/links", api.Query{"slug": slug, "pageSize": "100"}, &page); err != nil {
+	if err := s.Get(ctx, "/api/links", q, &page); err != nil {
 		return nil, err
 	}
 	var matches []api.Link
@@ -179,6 +197,15 @@ func (s *server) findLink(ctx context.Context, ref string) (*api.Link, error) {
 			continue
 		}
 		matches = append(matches, l)
+	}
+	if byID != nil {
+		// The same text is the id of one link and the ending of another: never guess which.
+		for _, l := range matches {
+			if l.ID != byID.ID {
+				return nil, failHint(t("“%s” is the id of one link and the ending of another. Say which one with its short address.", ref), byID.Host+"/"+byID.Slug+", "+l.Host+"/"+l.Slug)
+			}
+		}
+		return byID, nil
 	}
 	switch len(matches) {
 	case 1:

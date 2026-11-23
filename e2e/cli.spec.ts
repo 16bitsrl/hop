@@ -265,15 +265,68 @@ test("the skill for AI agents is written where they look for it and follows the 
   expect(readFileSync(codex, "utf8")).toBe(doc);
   expect(hop.run("skill", "--target", "../elsewhere").code).toBe(2);
 
-  // A copy left by an older version is brought up to date by any command.
-  writeFileSync(claude, doc.replace("hop create", "hop make"));
-  // A file that is not this app's skill is never touched, nor is anything when the person opted out.
-  writeFileSync(codex, "---\nname: something-else\n---\nmine\n");
+  // A copy left by an older version (still exactly what that version wrote) is brought up to date by any command.
+  const older = doc.replace("hop create", "hop make");
+  const statePath = path.join(hop.configDir, "state.json");
+  const state = JSON.parse(readFileSync(statePath, "utf8")) as { skills: Record<string, string> };
+  const claudeKey = Object.keys(state.skills).find((k) => k.includes(".claude"))!;
+  const codexKey = Object.keys(state.skills).find((k) => k.includes(".codex"))!;
+  const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+  state.skills[claudeKey] = sha(older);
+  state.skills[codexKey] = sha(older);
+  writeFileSync(statePath, JSON.stringify(state));
+  writeFileSync(claude, older);
+  // A copy the person edited is theirs: it is never replaced. Nor is anything when they opted out.
+  writeFileSync(codex, `${older}\nMy own notes.\n`);
   expect(hop.with({ HOP_NO_SKILL_AUTOUPDATE: "1" }).run("version").code).toBe(0);
-  expect(readFileSync(claude, "utf8")).toContain("hop make");
+  expect(readFileSync(claude, "utf8")).toBe(older);
   expect(hop.run("version").code).toBe(0);
   expect(readFileSync(claude, "utf8")).toBe(doc);
-  expect(readFileSync(codex, "utf8")).toContain("something-else");
+  expect(readFileSync(codex, "utf8")).toContain("My own notes.");
+});
+
+test("keys only travel where they belong: https, the server they were issued for, the page of that server", async ({ request, playwright }) => {
+  const { hop, user } = await signedIn(playwright, request, "member");
+  // Without https a key is not sent, unless the person insists.
+  const clear = hop.run("login", "http://hop.example.test", "--token", "hop_x");
+  expect(clear.code).toBe(1);
+  expect(clear.stderr).toContain("does not use https");
+  expect(hop.with({ HOP_SERVER: "http://hop.example.test", HOP_TOKEN: "hop_x" }).run("list").stderr).toContain("does not use https");
+
+  const other = await standIn("hop", "Someone Else");
+  const otherHost = `127.0.0.1:${other.port}`;
+  try {
+    // The page to open is on the server the person named, whatever that server answers.
+    const login = hop.start("login", `http://${otherHost}`);
+    expect(await login.done).toBe(1);
+    expect(login.output()).toContain(`http://${otherHost}/cli/ABCD-EFGH`);
+    expect(login.output()).not.toContain("evil.example");
+
+    expect(hop.run("login", `http://${otherHost}`, "--token", "hop_fake").code).toBe(0);
+    expect(hop.run("use", HOST).code).toBe(0);
+    // HOP_TOKEN goes with HOP_SERVER: --server elsewhere uses that server's own key.
+    const env = hop.with({ HOP_SERVER: APP, HOP_TOKEN: "hop_not-for-the-other-server" });
+    expect(JSON.parse(env.run("whoami", "--json", "--server", otherHost).stdout).user.name).toBe("Someone Else");
+    // HOP_SERVER picks the server for signing out too: the default stays.
+    expect(hop.with({ HOP_SERVER: otherHost }).run("logout").stderr).toContain(`Signed out of ${otherHost}`);
+    expect(JSON.parse(hop.run("whoami", "--json").stdout).user.id).toBe(user.id);
+  } finally {
+    other.stop();
+  }
+});
+
+test("a link whose ending looks like another link's id is never picked by guess", async ({ request, playwright }) => {
+  const { hop, session } = await signedIn(playwright, request, "member");
+  const first = JSON.parse(hop.run("create", "https://example.com/first", "--no-title-lookup", "--json").stdout).link;
+  expect(hop.run("create", "https://example.com/second", "--slug", first.id, "--no-title-lookup").code).toBe(0);
+  const ambiguous = hop.run("rm", first.id, "--yes");
+  expect(ambiguous.code).toBe(1);
+  expect(ambiguous.stderr).toContain("the id of one link and the ending of another");
+  expect((await session.get(`/api/links/${first.id}`)).status()).toBe(200);
+  // The short address says which one.
+  expect(JSON.parse(hop.run("show", `${SHORT_HOST}/${first.id}`, "--json").stdout).link.url).toBe("https://example.com/second");
+  expect(JSON.parse(hop.run("show", `${SHORT_HOST}/${first.slug}`, "--json").stdout).link.id).toBe(first.id);
+  await session.dispose();
 });
 
 test("tags, folders, domains, blocked websites, settings and profile", async ({ request, playwright }) => {

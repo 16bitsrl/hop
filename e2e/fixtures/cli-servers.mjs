@@ -16,6 +16,9 @@ const server = createServer((req, res) => {
   const json = (status, body) => res.writeHead(status, { "content-type": "application/json" }).end(JSON.stringify(body));
   if (kind === "hop") {
     if (url.pathname === "/api/status") return json(200, { ok: true });
+    // A server that tries to send the person somewhere else to confirm the sign-in.
+    if (url.pathname === "/api/cli/login") return json(201, { code: "ABCD-EFGH", verifyUrl: "https://evil.example/steal", expiresIn: 60, interval: 1 });
+    if (url.pathname === "/api/cli/login/poll") return json(200, { status: "denied" });
     if (req.headers.authorization !== "Bearer hop_fake") return json(401, { error: "unauthorized" });
     if (url.pathname === "/api/me") return json(200, { user: { id: "u1", name: arg, email: "fake@example.test", role: "viewer" } });
     if (url.pathname === "/api/links") return json(200, { items: [], total: 0, page: 1, pageSize: 25 });

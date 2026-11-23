@@ -242,14 +242,35 @@ func extract(archive []byte, archiveName, binary string) ([]byte, error) {
 	}
 }
 
-// replace swaps the program file. The running one is renamed first: Windows does not allow
-// overwriting a program while it runs, but it allows renaming it.
+// replace swaps the program file. The new one is first written whole beside it, so a failure at
+// any point leaves a working program in place.
 func replace(exe string, binary []byte) error {
-	next := exe + ".new"
-	if err := os.WriteFile(next, binary, 0o755); err != nil {
+	tmp, err := os.CreateTemp(filepath.Dir(exe), filepath.Base(exe)+".*.new")
+	if err != nil {
 		return err
 	}
-	old := exe + ".old"
+	next := tmp.Name()
+	_, err = tmp.Write(binary)
+	if cerr := tmp.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Chmod(next, 0o755)
+	}
+	if err != nil {
+		_ = os.Remove(next)
+		return err
+	}
+	if runtime.GOOS != "windows" {
+		// One step: the name points at the old program or at the new one, never at nothing.
+		if err := os.Rename(next, exe); err != nil {
+			_ = os.Remove(next)
+			return err
+		}
+		return nil
+	}
+	// Windows does not allow replacing a program while it runs, but it allows renaming it away.
+	old := exe + oldSuffix
 	_ = os.Remove(old)
 	if err := os.Rename(exe, old); err != nil {
 		_ = os.Remove(next)
@@ -260,16 +281,22 @@ func replace(exe string, binary []byte) error {
 		_ = os.Remove(next)
 		return err
 	}
-	_ = os.Remove(old) // fails on Windows while running: CleanUp removes it at the next start
+	_ = os.Remove(old) // fails while the old program runs: CleanUp removes it at the next start
 	return nil
 }
 
-// CleanUp removes what an earlier update left behind.
+// oldSuffix marks the program an update on Windows moved out of the way.
+const oldSuffix = ".hop-old"
+
+// CleanUp removes what an earlier update on Windows left behind.
 func CleanUp() {
+	if runtime.GOOS != "windows" {
+		return
+	}
 	if exe, err := os.Executable(); err == nil {
 		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
 			exe = resolved
 		}
-		_ = os.Remove(exe + ".old")
+		_ = os.Remove(exe + oldSuffix)
 	}
 }

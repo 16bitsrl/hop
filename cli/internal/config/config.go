@@ -46,6 +46,9 @@ type Config struct {
 type State struct {
 	UpdateCheckedAt time.Time `json:"updateCheckedAt,omitzero"`
 	LatestVersion   string    `json:"latestVersion,omitempty"`
+	// Skills: the copies of the agent skill this app wrote (file path -> SHA-256 of what it wrote),
+	// so that only untouched copies are ever refreshed.
+	Skills map[string]string `json:"skills,omitempty"`
 }
 
 // Dir is where the files live: $HOP_CONFIG_DIR, else $XDG_CONFIG_HOME/hop, else %AppData%\hop on
@@ -102,11 +105,73 @@ func writeJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, append(data, '\n'), 0o600); err != nil {
+	return WriteFileAtomic(path, append(data, '\n'), 0o600)
+}
+
+// WriteFileAtomic replaces a file in one step: a reader sees the old content or the new one, never
+// half of it, and two writers at once cannot mix their work.
+func WriteFileAtomic(path string, data []byte, mode os.FileMode) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*.tmp")
+	if err != nil {
 		return err
 	}
-	return os.Rename(tmp, path)
+	name := tmp.Name()
+	_, err = tmp.Write(data)
+	if cerr := tmp.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Chmod(name, mode)
+	}
+	if err == nil {
+		err = os.Rename(name, path)
+	}
+	if err != nil {
+		_ = os.Remove(name)
+	}
+	return err
+}
+
+// Update changes the configuration safely when several terminals use the app at once: it takes a
+// lock, reads the file as it is now, applies the change and writes it back.
+func Update(apply func(c *Config) error) (*Config, error) {
+	unlock, err := lock(Dir())
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+	c, err := Load()
+	if err != nil {
+		return c, err
+	}
+	if err := apply(c); err != nil {
+		return c, err
+	}
+	return c, c.Save()
+}
+
+func lock(dir string) (func(), error) {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, err
+	}
+	path := filepath.Join(dir, "config.lock")
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+		if err == nil {
+			_ = f.Close()
+			return func() { _ = os.Remove(path) }, nil
+		}
+		// A lock left behind by a run that was killed.
+		if info, serr := os.Stat(path); serr == nil && time.Since(info.ModTime()) > 30*time.Second {
+			_ = os.Remove(path)
+			continue
+		}
+		if time.Now().After(deadline) {
+			return nil, errors.New("the settings are in use by another hop command")
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 }
 
 // Names lists the known servers, sorted.

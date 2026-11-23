@@ -8,6 +8,7 @@ import { apiKeys, cliLogins } from "../db/schema";
 import type { AppEnv } from "../env";
 import { audit } from "../lib/audit";
 import { fail, parseJson } from "../lib/validate";
+import { runBatch } from "../db/batch";
 import type { DB } from "../platform/types";
 import { MAX_ACTIVE_KEYS } from "./api-keys";
 
@@ -56,17 +57,17 @@ cliLoginRoutes.post("/cli/login", async (c) => {
   const { db, config } = c.var.platform;
   const now = Date.now();
   await db.delete(cliLogins).where(lt(cliLogins.expiresAt, new Date(now)));
+  const [known, used] = await Promise.all([
+    db.select({ id: cliLogins.id }).from(cliLogins).where(eq(cliLogins.keyHash, body.keyHash)).get(),
+    db.select({ id: apiKeys.id }).from(apiKeys).where(eq(apiKeys.hash, body.keyHash)).get(),
+  ]);
+  if (known || used) return fail(c, 409, "key_exists");
   // Starting a request needs no sign-in, so the table is kept small: when it is full the oldest
   // requests make room. A burst of junk can then only cancel sign-ins in progress at that moment,
   // not lock everybody out for the next ten minutes.
   const waiting = await db.select({ id: cliLogins.id }).from(cliLogins).where(eq(cliLogins.status, "pending")).orderBy(asc(cliLogins.createdAt), asc(cliLogins.id));
   const excess = waiting.slice(0, Math.max(0, waiting.length - MAX_PENDING + 1)).map((r) => r.id);
   for (let i = 0; i < excess.length; i += 50) await db.delete(cliLogins).where(inArray(cliLogins.id, excess.slice(i, i + 50)));
-  const [known, used] = await Promise.all([
-    db.select({ id: cliLogins.id }).from(cliLogins).where(eq(cliLogins.keyHash, body.keyHash)).get(),
-    db.select({ id: apiKeys.id }).from(apiKeys).where(eq(apiKeys.hash, body.keyHash)).get(),
-  ]);
-  if (known || used) return fail(c, 409, "key_exists");
   const code = newCode();
   // The time is set here, to the millisecond: the column's own default only counts seconds, too coarse to tell which request is the oldest.
   await db.insert(cliLogins).values({ id: crypto.randomUUID(), code, ...body, createdAt: new Date(now), expiresAt: new Date(now + LIFETIME_MS) });
@@ -118,14 +119,19 @@ cliLoginRoutes.post("/cli/login/:code/approve", async (c) => {
   if (!row) return fail(c, 404, "invalid_cli_code");
   const active = await db.select({ id: apiKeys.id }).from(apiKeys).where(and(eq(apiKeys.userId, me.id), isNull(apiKeys.revokedAt)));
   if (active.length >= MAX_ACTIVE_KEYS) return fail(c, 409, "too_many_keys");
-  // Only one of two approvals at the same moment wins.
-  const [won] = await db.update(cliLogins).set({ status: "approved" }).where(and(eq(cliLogins.id, row.id), eq(cliLogins.status, "pending"))).returning();
-  if (!won) return fail(c, 404, "invalid_cli_code");
-  const [key] = await db
-    .insert(apiKeys)
-    .values({ id: crypto.randomUUID(), userId: me.id, name: row.name, prefix: row.prefix, hash: row.keyHash })
-    .returning();
-  await audit(c, { action: "key.create", entityType: "api_key", entityId: key!.id, data: { name: row.name, prefix: row.prefix, source: "cli" } });
+  // The key and the approval are written together or not at all: the terminal never sees "approved"
+  // before its key works, and a failure leaves the request waiting. Of two approvals at the same
+  // moment only one gets through, because the key's hash can be stored once.
+  const keyId = crypto.randomUUID();
+  try {
+    await runBatch(db, [
+      db.insert(apiKeys).values({ id: keyId, userId: me.id, name: row.name, prefix: row.prefix, hash: row.keyHash }),
+      db.update(cliLogins).set({ status: "approved" }).where(and(eq(cliLogins.id, row.id), eq(cliLogins.status, "pending"))),
+    ]);
+  } catch {
+    return fail(c, 404, "invalid_cli_code");
+  }
+  await audit(c, { action: "key.create", entityType: "api_key", entityId: keyId, data: { name: row.name, prefix: row.prefix, source: "cli" } });
   return c.json({ ok: true });
 });
 

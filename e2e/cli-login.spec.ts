@@ -134,3 +134,22 @@ test("a flood of requests cannot lock people out: the oldest make room", async (
   await start(request, latest, "a real person");
   expect(await poll(request, latest.keyHash)).toBe("pending");
 });
+
+test("approving never leaves a request approved without its key, and a full key list refuses cleanly", async ({ request, playwright }) => {
+  const member = await createUser(request, { role: "member" });
+  const session = await apiAs(playwright, member);
+  for (let i = 0; i < 20; i++) expect((await session.post("/api/api-keys", { data: { name: `key ${i}` } })).status()).toBe(201);
+  const key = newDeviceKey();
+  const started = await start(request, key);
+  expect((await session.post(`/api/cli/login/${started.code}/approve`)).status()).toBe(409);
+  expect(await poll(request, key.keyHash)).toBe("pending");
+
+  // Two approvals of the same request at once: one key, one success.
+  const other = await apiAs(playwright, await createUser(request, { role: "member" }));
+  const both = await Promise.all([other.post(`/api/cli/login/${started.code}/approve`), other.post(`/api/cli/login/${started.code}/approve`)]);
+  expect(both.map((r) => r.status()).sort()).toEqual([200, 404]);
+  expect(await poll(request, key.keyHash)).toBe("approved");
+  const keys = (await (await other.get("/api/api-keys")).json()).keys as unknown[];
+  expect(keys).toHaveLength(1);
+  await Promise.all([session.dispose(), other.dispose()]);
+});

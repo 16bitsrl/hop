@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -37,7 +38,7 @@ func roleName(role string) string {
 
 func (a *app) loginCmd() *cobra.Command {
 	var token, deviceName string
-	var tokenFromStdin, noBrowser bool
+	var tokenFromStdin, noBrowser, insecure bool
 	cmd := &cobra.Command{
 		Use:   "login [server]",
 		Short: t("Sign in to a hop server"),
@@ -45,8 +46,8 @@ func (a *app) loginCmd() *cobra.Command {
 			t("Your browser opens on a page where you confirm the sign-in: it works with passwords, passkeys and single sign-on. You can sign in to as many servers as you like; the last one becomes the default."),
 		Example: "hop login https://hop.example.com\n" +
 			"# " + t("With an API key created in your profile (for scripts and CI)") + "\n" +
-			"hop login hop.example.com --token hop_…\n" +
-			"echo $KEY | hop login hop.example.com --with-token",
+			"hop login hop.example.com --with-token < key.txt\n" +
+			"echo \"$HOP_KEY\" | hop login hop.example.com --with-token",
 		Args: maxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
@@ -67,6 +68,9 @@ func (a *app) loginCmd() *cobra.Command {
 			}
 			base, err := normalizeServerURL(address)
 			if err != nil {
+				return err
+			}
+			if err := requireSafeTransport(base, insecure); err != nil {
 				return err
 			}
 			name := hostOf(base)
@@ -106,22 +110,27 @@ func (a *app) loginCmd() *cobra.Command {
 			if user == nil {
 				return failHint(t("The server did not accept this key."), t("Check that you copied it whole and that it was not revoked."))
 			}
-			// The wait in the browser can be long: read the settings again, so a sign-in to another
-			// server finished meanwhile in another terminal is not lost.
-			if fresh, err := config.Load(); err == nil {
-				a.cfg = fresh
-			}
-			// Signing in again replaces the key this app made before: the old one is revoked, not left behind.
-			if old := a.cfg.Servers[name]; old != nil && old.OwnKey {
-				if oldToken := a.cfg.Token(name); oldToken != "" && oldToken != token {
-					revokeKey(ctx, base, oldToken, a.version)
+			// The settings are read again under a lock: the wait in the browser can be long, and a
+			// sign-in to another server finished meanwhile in another terminal must not be lost.
+			var oldURL, oldToken string
+			cfg, err := config.Update(func(c *config.Config) error {
+				// Signing in again replaces the key this app made before.
+				if old := c.Servers[name]; old != nil && old.OwnKey {
+					oldURL, oldToken = old.URL, c.Token(name)
 				}
-			}
-			a.cfg.Servers[name] = &config.Server{URL: base, User: user.Name, Email: user.Email, Role: user.Role, OwnKey: ownKey}
-			a.cfg.SetToken(name, token)
-			a.cfg.Default = name
-			if err := a.cfg.Save(); err != nil {
+				c.Servers[name] = &config.Server{URL: base, User: user.Name, Email: user.Email, Role: user.Role, OwnKey: ownKey}
+				c.SetToken(name, token)
+				c.Default = name
+				return nil
+			})
+			if err != nil {
 				return err
+			}
+			a.cfg = cfg
+			// The old key is revoked where it was issued, never sent to the address typed now:
+			// the same host over http, say, is not the same place.
+			if oldToken != "" && oldToken != token {
+				revokeKey(ctx, oldURL, oldToken, a.version)
 			}
 			if a.jsonOut {
 				return printJSON(map[string]any{"server": name, "url": base, "user": user})
@@ -136,7 +145,8 @@ func (a *app) loginCmd() *cobra.Command {
 		},
 	}
 	f := cmd.Flags()
-	f.StringVar(&token, "token", "", t("Sign in with this API key instead of the browser"))
+	f.StringVar(&token, "token", "", t("Sign in with this API key instead of the browser (other programs on this computer can see it: prefer --with-token)"))
+	f.BoolVar(&insecure, "insecure", false, t("Allow a server without https"))
 	f.BoolVar(&tokenFromStdin, "with-token", false, t("Read the API key from the standard input"))
 	f.BoolVar(&noBrowser, "no-browser", false, t("Don't open the browser, only show the address to visit"))
 	f.StringVar(&deviceName, "name", "", t("How this computer is called in your list of keys (default: its name on the network)"))
@@ -152,6 +162,8 @@ func whoAmI(ctx context.Context, c *api.Client) (*api.User, error) {
 	}
 	return me.User, nil
 }
+
+var loginCode = regexp.MustCompile(`^[A-Z0-9]{4}-[A-Z0-9]{4}$`)
 
 func defaultDeviceName() string {
 	host, _ := os.Hostname()
@@ -189,11 +201,17 @@ func (a *app) browserLogin(ctx context.Context, client *api.Client, deviceName s
 	err := client.Do(ctx, http.MethodPost, "/api/cli/login", nil, map[string]string{"name": deviceName, "keyHash": keyHash, "prefix": secret[:8]}, &started)
 	var apiErr *api.Error
 	if errors.As(err, &apiErr) && (apiErr.Status == 404 || apiErr.Status == 405) {
-		return "", failHint(t("This server is too old to sign in from the browser."), t("Update the server, or create an API key in your profile there and run `hop login %s --token <key>`.", client.BaseURL))
+		return "", failHint(t("This server is too old to sign in from the browser."), t("Update the server, or create an API key in your profile there and run `hop login %s --with-token`, then paste the key.", client.BaseURL))
 	}
 	if err != nil {
 		return "", err
 	}
+	// The address to open is built here from the server the person named: what the server says is
+	// only trusted for the code, and only when it looks like one.
+	if !loginCode.MatchString(started.Code) {
+		return "", fail(t("%s doesn't look like a hop server.", hostOf(client.BaseURL)))
+	}
+	started.VerifyURL = client.BaseURL + "/cli/" + started.Code
 
 	ui.Eprintln()
 	for _, line := range strings.Split(ui.Box(ui.Muted.Render(t("Your code"))+"   "+ui.Bold.Render(started.Code)), "\n") {
@@ -281,7 +299,11 @@ func (a *app) logoutCmd() *cobra.Command {
 			if len(args) == 1 {
 				a.serverFlag = args[0]
 			}
+			// The same order as every other command: the server named here, then HOP_SERVER, then the default.
 			ref := a.serverFlag
+			if ref == "" {
+				ref = os.Getenv("HOP_SERVER")
+			}
 			if ref == "" {
 				ref = a.cfg.Default
 			}
@@ -297,10 +319,14 @@ func (a *app) logoutCmd() *cobra.Command {
 				revoked = revokeKey(cmd.Context(), a.cfg.Servers[name].URL, token, a.version)
 			}
 			ownKey := a.cfg.Servers[name].OwnKey
-			a.cfg.Remove(name)
-			if err := a.cfg.Save(); err != nil {
+			cfg, err := config.Update(func(c *config.Config) error {
+				c.Remove(name)
+				return nil
+			})
+			if err != nil {
 				return err
 			}
+			a.cfg = cfg
 			ui.Success(t("Signed out of %s.", ui.Bold.Render(name)))
 			switch {
 			case !ownKey:
@@ -383,8 +409,12 @@ func (a *app) useCmd() *cobra.Command {
 				}
 				return failHint(t("You are not signed in to %s.", args[0]), t("Run `hop login %s` first, or `hop servers` to see the ones you know.", args[0]))
 			}
-			a.cfg.Default = name
-			if err := a.cfg.Save(); err != nil {
+			if _, err := config.Update(func(c *config.Config) error {
+				if c.Servers[name] != nil {
+					c.Default = name
+				}
+				return nil
+			}); err != nil {
 				return err
 			}
 			ui.Success(t("The default server is now %s.", ui.Bold.Render(name)))
@@ -411,8 +441,12 @@ func (a *app) whoamiCmd() *cobra.Command {
 				return failHint(t("Your sign-in is not valid anymore."), t("Run `hop login` again."))
 			}
 			if s := a.cfg.Servers[srv.name]; s != nil && (s.User != user.Name || s.Role != user.Role || s.Email != user.Email) {
-				s.User, s.Email, s.Role = user.Name, user.Email, user.Role
-				_ = a.cfg.Save()
+				_, _ = config.Update(func(c *config.Config) error {
+					if s := c.Servers[srv.name]; s != nil {
+						s.User, s.Email, s.Role = user.Name, user.Email, user.Role
+					}
+					return nil
+				})
 			}
 			if a.jsonOut {
 				return printJSON(map[string]any{"server": srv.name, "url": srv.url, "user": user})

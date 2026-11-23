@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/16bitsrl/hop/cli/internal/config"
 	"github.com/16bitsrl/hop/cli/internal/ui"
 )
 
@@ -24,31 +27,40 @@ func skillDir(base, target string) string {
 	return filepath.Join(base, "."+target, "skills", "hop")
 }
 
-// looksLikeHopSkill guards the refresh: only a file this app wrote is ever replaced.
-func looksLikeHopSkill(content string) bool {
-	return strings.HasPrefix(content, "---\nname: hop\n") && strings.Contains(content, "# hop CLI")
+func digest(content []byte) string {
+	sum := sha256.Sum256(content)
+	return hex.EncodeToString(sum[:])
 }
 
-// refreshSkills brings the copies of the skill already installed up to date with this version of
-// the app, so that after `hop update` agents read about the commands that exist now. It is silent
-// and touches nothing that is not this app's own skill.
-func refreshSkills() {
+// refreshSkills brings the copies of the skill this app wrote up to date with this version, so that
+// after `hop update` agents read about the commands that exist now. It is silent, and it only
+// replaces a copy that is still exactly what an earlier version wrote: a copy someone edited, or
+// any other file, is left alone.
+func (a *app) refreshSkills() {
 	if os.Getenv("HOP_NO_SKILL_AUTOUPDATE") != "" {
 		return
 	}
-	bases := []string{"."}
-	if home, err := os.UserHomeDir(); err == nil {
-		bases = append(bases, home)
+	state := a.cfg.LoadState()
+	if len(state.Skills) == 0 {
+		return
 	}
-	for _, base := range bases {
-		for _, target := range skillTargets {
-			path := filepath.Join(skillDir(base, target), "SKILL.md")
-			current, err := os.ReadFile(path)
-			if err != nil || string(current) == skillDoc || !looksLikeHopSkill(string(current)) {
-				continue
-			}
-			_ = os.WriteFile(path, []byte(skillDoc), 0o644)
+	now := digest([]byte(skillDoc))
+	changed := false
+	for path, written := range state.Skills {
+		if written == now {
+			continue
 		}
+		current, err := os.ReadFile(path)
+		if err != nil || digest(current) != written {
+			continue
+		}
+		if config.WriteFileAtomic(path, []byte(skillDoc), 0o644) == nil {
+			state.Skills[path] = now
+			changed = true
+		}
+	}
+	if changed {
+		_ = a.cfg.SaveState(state)
 	}
 }
 
@@ -59,7 +71,7 @@ func (a *app) skillCmd() *cobra.Command {
 		Use:   "skill",
 		Short: t("Teach AI agents how to use hop"),
 		Long: t("Write the Agent Skill of hop (a SKILL.md file) where AI agents such as Claude Code, Codex and Gemini look for it, so they know how to use this app.") + "\n\n" +
-			t("Once written, the file keeps itself current: every time hop runs it brings the copies it finds up to date with the installed version. Set HOP_NO_SKILL_AUTOUPDATE to turn that off."),
+			t("Once written, the file keeps itself current: every time hop runs it brings the copies it wrote up to date with the installed version. A copy you edited is left as it is. Set HOP_NO_SKILL_AUTOUPDATE to turn that off."),
 		Example: "hop skill\nhop skill --all\nhop skill --target codex --project\nhop skill --print",
 		Args:    noArgs,
 		RunE: func(*cobra.Command, []string) error {
@@ -95,9 +107,22 @@ func (a *app) skillCmd() *cobra.Command {
 				if err := os.MkdirAll(d, 0o755); err != nil {
 					return fail(t("The file could not be written: %s", err.Error()))
 				}
-				if err := os.WriteFile(path, []byte(skillDoc), 0o644); err != nil {
+				// Through a link, the file it points to is the one replaced.
+				if real, err := filepath.EvalSymlinks(path); err == nil {
+					path = real
+				}
+				if abs, err := filepath.Abs(path); err == nil {
+					path = abs
+				}
+				if err := config.WriteFileAtomic(path, []byte(skillDoc), 0o644); err != nil {
 					return fail(t("The file could not be written: %s", err.Error()))
 				}
+				state := a.cfg.LoadState()
+				if state.Skills == nil {
+					state.Skills = map[string]string{}
+				}
+				state.Skills[path] = digest([]byte(skillDoc))
+				_ = a.cfg.SaveState(state)
 				written = append(written, path)
 				if !a.jsonOut {
 					ui.Success(t("Skill written to %s", path))

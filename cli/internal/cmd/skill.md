@@ -32,8 +32,9 @@ a page where the person confirms a short code. **You cannot confirm it yourself*
 start the command, show the person the address and the code it prints, and wait
 (the code lasts 10 minutes). Without a browser on this machine add `--no-browser`
 and give them the address. In CI or other unattended places use an API key instead:
-`HOP_SERVER=https://hop.example.com HOP_TOKEN=hop_… hop …`, or
-`hop login <server> --token <key>`.
+`HOP_SERVER=https://hop.example.com HOP_TOKEN=hop_… hop …` (the key is only sent
+to that server), or `hop login <server> --with-token` with the key on the standard
+input. Keys travel over https only.
 
 ## Rules for agents
 
