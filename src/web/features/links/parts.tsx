@@ -1,4 +1,4 @@
-import { CircleAlertIcon, CircleCheckIcon, CirclePauseIcon, ClockAlertIcon, LockIcon, XIcon } from "lucide-react";
+import { CircleAlertIcon, CircleCheckIcon, CirclePauseIcon, ClockAlertIcon, GlobeIcon, LockIcon, XIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,29 @@ export function StateBadges({ states }: { states: LinkState[] }) {
         );
       })}
     </>
+  );
+}
+
+const originOf = (url: string) => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+};
+
+/** The destination site's icon, or a globe when it has none. */
+export function SiteIcon({ url }: { url: string }) {
+  const origin = originOf(url);
+  const [failed, setFailed] = useState<string | null>(null);
+  return (
+    <span data-slot="site-icon" className="flex size-4 shrink-0 items-center justify-center" aria-hidden="true">
+      {origin && failed !== origin ? (
+        <img src={`/api/links/site-icon?origin=${encodeURIComponent(origin)}`} alt="" loading="lazy" className="size-4 rounded-sm object-contain" onError={() => setFailed(origin)} />
+      ) : (
+        <GlobeIcon className="size-4 text-muted-foreground" />
+      )}
+    </span>
   );
 }
 

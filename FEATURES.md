@@ -18,7 +18,7 @@ A tour of everything hop does, from creating a link to reading its statistics. S
 
 ![The links list](.github/screenshots/links.png)
 
-The list shows every link of the team with its destination, tags, clicks and status. Search by ending, destination, title or notes, and filter by owner, tag, folder, domain and status (active, disabled, expired, password protected, broken). Select several links to add or remove a tag, move them to a folder, turn them on or off, or delete them in one go.
+The list shows every link of the team with its destination (and the icon of the site it points to), tags, clicks and status. Search by ending, destination, title or notes, and filter by owner, tag, folder, domain and status (active, disabled, expired, password protected, broken). Select several links to add or remove a tag, move them to a folder, turn them on or off, or delete them in one go.
 
 ![Creating a link](.github/screenshots/create-link.png)
 

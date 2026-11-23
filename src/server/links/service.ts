@@ -9,6 +9,7 @@ import { getSetting } from "../lib/settings";
 import { hashLinkPassword } from "../lib/password";
 import type { Config, DB, Platform } from "../platform/types";
 import { fetchPageMeta, isPrivateHost, type PageMeta } from "./meta";
+import { fetchSiteIcon, type SiteIcon } from "./site-icon";
 import { destinationUrls, type CreateLinkInput, type UpdateLinkInput } from "./schemas";
 import { checkDestinations } from "./safety";
 import { DEFAULT_SLUG_SETTINGS, generateSlug, type SlugSettings } from "./slug";
@@ -287,6 +288,12 @@ export async function assertSafe(platform: Platform, urls: string[]): Promise<vo
 export async function lookupPageMeta(config: Config, url: string): Promise<PageMeta | null> {
   if (config.testMode && !isPrivateHost(new URL(url).hostname)) return null;
   return fetchPageMeta(url, { allowPrivate: config.testMode });
+}
+
+/** Site icon lookup for an origin. Same rule: the test environment stays off the public internet. */
+export async function lookupSiteIcon(config: Config, origin: string): Promise<SiteIcon | "none" | "failed"> {
+  if (config.testMode && !isPrivateHost(new URL(origin).hostname)) return "none";
+  return fetchSiteIcon(origin, { allowPrivate: config.testMode });
 }
 
 /** Creates a link owned by `me`. Used by the API and by the CSV import. */

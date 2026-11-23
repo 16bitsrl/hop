@@ -24,7 +24,7 @@ import { directoryQuery, domainsQuery, foldersQuery, tagsQuery, type Link } from
 import { CreateLinkDialog } from "../features/links/create-dialog";
 import { FoldersDialog } from "../features/links/folders-dialog";
 import { ImportDialog } from "../features/links/import-dialog";
-import { folderOptions, StateBadges, TagChip } from "../features/links/parts";
+import { folderOptions, SiteIcon, StateBadges, TagChip } from "../features/links/parts";
 import { api, qs } from "../lib/api";
 import { formatDate } from "../lib/cn";
 import { inBatches } from "../lib/batches";
@@ -335,9 +335,12 @@ export function LinksPage() {
                     </p>
                   </TableCell>
                   <TableCell>
-                    <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="block truncate text-muted-foreground hover:text-foreground hover:underline">
-                      {l.url}
-                    </a>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <SiteIcon url={l.url} />
+                      <a href={l.url} target="_blank" rel="noreferrer" title={l.url} className="truncate text-muted-foreground hover:text-foreground hover:underline">
+                        {l.url}
+                      </a>
+                    </div>
                   </TableCell>
                   <TableCell className="hidden truncate text-muted-foreground 2xl:table-cell">{l.ownerName ?? "—"}</TableCell>
                   <TableCell>
@@ -376,7 +379,10 @@ export function LinksPage() {
                       {l.slug}
                     </RouterLink>
                     {l.title && <p className="truncate text-[13px]">{l.title}</p>}
-                    <p className="truncate text-[13px] text-muted-foreground">{l.url}</p>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <SiteIcon url={l.url} />
+                      <p className="truncate text-[13px] text-muted-foreground">{l.url}</p>
+                    </div>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <StateBadges states={l.states} />
                       {l.tags.map((x) => (

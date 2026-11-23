@@ -20,14 +20,20 @@ const clean = (s: string | undefined | null): string | null => {
   return v ? v.slice(0, 500) : null;
 };
 
+/** The attributes of one HTML tag, names lowercased. */
+export function tagAttributes(tag: string): Map<string, string> {
+  const attrs = new Map<string, string>();
+  for (const a of tag.matchAll(/([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g)) {
+    attrs.set(a[1]!.toLowerCase(), a[2] ?? a[3] ?? a[4] ?? "");
+  }
+  return attrs;
+}
+
 /** Reads `<title>`, `og:title`, `og:description`, `description` and `og:image` from HTML. */
 export function parseHtmlMeta(html: string): PageMeta {
   const metas = new Map<string, string>();
   for (const tag of html.matchAll(/<meta\b[^>]*>/gi)) {
-    const attrs = new Map<string, string>();
-    for (const a of tag[0].matchAll(/([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g)) {
-      attrs.set(a[1]!.toLowerCase(), a[2] ?? a[3] ?? a[4] ?? "");
-    }
+    const attrs = tagAttributes(tag[0]);
     const key = (attrs.get("property") ?? attrs.get("name"))?.toLowerCase();
     const content = attrs.get("content");
     if (key && content !== undefined && !metas.has(key)) metas.set(key, content);
@@ -60,21 +66,26 @@ export async function fetchPageMeta(
     if (!res.ok) return null;
     const type = res.headers.get("content-type") ?? "";
     if (type && !/html|xml/i.test(type)) return null;
-    const reader = res.body?.getReader();
-    if (!reader) return parseHtmlMeta((await res.text()).slice(0, MAX_BYTES));
-    const decoder = new TextDecoder();
-    let html = "";
-    let received = 0;
-    while (received < MAX_BYTES) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      received += value.byteLength;
-      html += decoder.decode(value, { stream: true });
-      if (/<\/head>/i.test(html)) break;
-    }
-    void reader.cancel().catch(() => {});
-    return parseHtmlMeta(html);
+    return parseHtmlMeta(await readHtmlHead(res));
   } catch {
     return null;
   }
+}
+
+/** Reads an HTML response up to `</head>` (at most 256 KB), then stops downloading. */
+export async function readHtmlHead(res: Response): Promise<string> {
+  const reader = res.body?.getReader();
+  if (!reader) return (await res.text()).slice(0, MAX_BYTES);
+  const decoder = new TextDecoder();
+  let html = "";
+  let received = 0;
+  while (received < MAX_BYTES) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    html += decoder.decode(value, { stream: true });
+    if (/<\/head>/i.test(html)) break;
+  }
+  void reader.cancel().catch(() => {});
+  return html;
 }

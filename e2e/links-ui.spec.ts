@@ -513,4 +513,29 @@ test.describe("links UI", () => {
     const l = await createLink(api, { url: "https://example.com/pd" });
     expect(l.domainId).toBe(other.id);
   });
+
+  test("the links list shows the destination site's icon, or a placeholder when it has none", async ({ page, request, playwright }) => {
+    const { user, api } = await setup(request, playwright, "viewer");
+    const admin = await apiAs(playwright, await createUser(request, { role: "admin" }));
+    // The test server's own home page declares an icon; nothing listens on port 9.
+    const withIcon = await createLink(admin, { url: `${APP}/api/_test/page?${uniq("i")}`, slug: uniq("icon") });
+    const noIcon = await createLink(admin, { url: `http://127.0.0.1:9/${uniq("x")}`, slug: uniq("noicon") });
+
+    // Only signed-in people can ask for icons.
+    expect((await request.get(`/api/links/site-icon?origin=${encodeURIComponent(APP)}`)).status()).toBe(401);
+    const icon = await api.get(`/api/links/site-icon?origin=${encodeURIComponent(APP)}`);
+    expect(icon.status()).toBe(200);
+    expect(icon.headers()["content-type"]).toMatch(/^image\//);
+    expect((await api.get(`/api/links/site-icon?origin=${encodeURIComponent("http://127.0.0.1:9")}`)).status()).toBe(404);
+    // Only the sites links point to: the server is not a fetcher for any address.
+    expect((await api.get(`/api/links/site-icon?origin=${encodeURIComponent("http://127.0.0.1:10")}`)).status()).toBe(404);
+
+    await loginAs(page, user, "/links");
+    const loaded = page.getByRole("row").filter({ hasText: withIcon.slug }).locator("[data-slot=site-icon] img");
+    await expect(loaded).toBeVisible();
+    await expect.poll(() => loaded.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
+    const missing = page.getByRole("row").filter({ hasText: noIcon.slug }).locator("[data-slot=site-icon]");
+    await expect(missing.locator("svg")).toBeVisible();
+    await expect(missing.locator("img")).toHaveCount(0);
+  });
 });

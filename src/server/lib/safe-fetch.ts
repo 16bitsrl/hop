@@ -123,6 +123,8 @@ export interface SafeFetchOptions extends SafeFetchInit {
   maxRedirects?: number;
   /** Replaces the transport (tests). */
   fetchImpl?: typeof fetch;
+  /** Told the address that finally answered, after redirects. */
+  onFinalUrl?: (url: URL) => void;
 }
 
 /**
@@ -144,7 +146,10 @@ export async function safeFetch(url: string | URL, opts: SafeFetchOptions = {}):
     if (!allowPrivate && isPrivateHost(current.hostname)) throw new UnsafeUrlError("private_address");
     const res = await send(current, { method, headers: opts.headers, signal: opts.signal }, { allowPrivate });
     const location = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
-    if (!location) return res;
+    if (!location) {
+      opts.onFinalUrl?.(current);
+      return res;
+    }
     void res.body?.cancel().catch(() => {});
     if (hop >= max) throw new UnsafeUrlError("too_many_redirects");
     current = new URL(location, current);

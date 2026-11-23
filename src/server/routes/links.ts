@@ -17,6 +17,7 @@ import {
   getLinkRow,
   linkErrorHandler,
   lookupPageMeta,
+  lookupSiteIcon,
   resolveDomain,
   serializeLinks,
   setLinkTags,
@@ -118,6 +119,26 @@ linksRoutes.get("/links/meta", requireRole("admin", "member"), async (c) => {
   if (!isHttpUrl(url)) return c.json({ error: "invalid_url" }, 400);
   const meta = await lookupPageMeta(c.var.platform.config, url);
   return c.json(meta ?? { title: null, description: null, image: null });
+});
+
+/** The destination site's icon, for the links list. Any signed-in user. */
+linksRoutes.get("/links/site-icon", async (c) => {
+  const origin = c.req.query("origin") ?? "";
+  if (!isHttpUrl(origin)) return c.json({ error: "invalid_url" }, 400);
+  const site = new URL(origin).origin;
+  // Only sites that some link points to, so the server cannot be used to contact any address.
+  const prefix = (sep: string) => `${site.replace(/[!%_]/g, (m) => `!${m}`)}${sep}%`;
+  const [known] = await c.var.platform.db
+    .select({ id: links.id })
+    .from(links)
+    .where(or(eq(links.url, site), ...["/", "?", "#"].map((sep) => sql`${links.url} like ${prefix(sep)} escape '!'`)))
+    .limit(1);
+  if (!known) return c.body(null, 404, { "cache-control": "private, max-age=3600" });
+  const icon = await lookupSiteIcon(c.var.platform.config, site);
+  // A site without an icon is asked again after a day; one that did not answer, after ten minutes.
+  if (icon === "none") return c.body(null, 404, { "cache-control": "private, max-age=86400" });
+  if (icon === "failed") return c.body(null, 404, { "cache-control": "private, max-age=600" });
+  return new Response(icon.body, { headers: { "content-type": icon.type, "cache-control": "private, max-age=604800", "x-content-type-options": "nosniff" } });
 });
 
 /* ---------------------------------------------------------------- */
