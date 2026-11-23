@@ -110,6 +110,11 @@ test("admins see every key on the users page and can revoke them", async ({ page
 test("the API help page explains the main endpoints", async ({ page, request }) => {
   const member = await createUser(request, { role: "member" });
   await loginAs(page, member, "/profile");
+  // The profile says how to get the command line app and connect it to this installation.
+  const cliCard = page.getByTestId("cli");
+  await expect(cliCard.getByText("Use hop from your terminal")).toBeVisible();
+  await expect(cliCard.getByText("install.sh | sh")).toBeVisible();
+  await expect(cliCard.getByText(`hop login ${APP}`)).toBeVisible();
   await page.getByRole("link", { name: "API help" }).click();
   await expect(page).toHaveURL(/\/api-help/);
   await expect(page.getByRole("heading", { name: "Using the API" })).toBeVisible();

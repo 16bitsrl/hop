@@ -4,31 +4,8 @@ import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/page";
 import { ArrowLeftIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CopyButton } from "@/components/copy-button";
+import { CliCommands, Code } from "../features/cli/commands";
 import { bookmarklet } from "../lib/share";
-
-function Code({ children }: { children: string }) {
-  return (
-    <div className="relative">
-      <pre className="overflow-x-auto rounded-lg border bg-muted p-3 pr-24 font-mono text-[12.5px] leading-relaxed">{children}</pre>
-      <div className="absolute right-2 top-2">
-        <CopyButton value={children} />
-      </div>
-    </div>
-  );
-}
-
-/** Where the installers of the command line app live. */
-const INSTALL = "https://raw.githubusercontent.com/16bitsrl/hop/main/cli";
-
-function Labeled({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <p className="text-[13px] font-medium">{label}</p>
-      {children}
-    </div>
-  );
-}
 
 function Section({ title, text, children }: { title: string; text: string; children: ReactNode }) {
   return (
@@ -58,15 +35,7 @@ export function ApiHelpPage() {
       <PageHeader title={t("help.title")} description={t("help.description")} />
       <div className="flex max-w-3xl flex-col gap-4">
         <Section title={t("help.cli.title")} text={t("help.cli.text")}>
-          <Labeled label={t("help.cli.unix")}>
-            <Code>{`curl -fsSL ${INSTALL}/install.sh | sh`}</Code>
-          </Labeled>
-          <Labeled label={t("help.cli.windows")}>
-            <Code>{`irm ${INSTALL}/install.ps1 | iex`}</Code>
-          </Labeled>
-          <Labeled label={t("help.cli.login")}>
-            <Code>{`hop login ${base}`}</Code>
-          </Labeled>
+          <CliCommands />
         </Section>
         <Section title={t("help.auth.title")} text={t("help.auth.text")}>
           <Code>{`Authorization: Bearer hop_your_key_here`}</Code>

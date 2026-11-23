@@ -19,6 +19,7 @@ import { authClient } from "../lib/auth-client";
 import { formatDate } from "../lib/cn";
 import { errorMessage } from "../lib/errors";
 import { MyApiKeysCard } from "../features/api-keys/keys";
+import { CliCommands } from "../features/cli/commands";
 import { domainsQuery } from "../features/links/api";
 import { appConfigQuery, meQuery, useMe, type Me } from "../lib/session";
 import { useTheme, type Theme } from "../lib/theme";
@@ -34,6 +35,7 @@ export function ProfilePage() {
         <PreferencesCard />
         {config?.passwordLogin !== false && <PasswordCard />}
         <PasskeysCard />
+        <CliCard />
         <MyApiKeysCard />
       </div>
     </>
@@ -51,6 +53,22 @@ function useUpdateMe() {
     },
     onError: (e) => toast.error(errorMessage(t, e)),
   });
+}
+
+/** The command line app: how to get it and connect it to this installation. */
+function CliCard() {
+  const { t } = useTranslation("apiKeys");
+  return (
+    <Card data-testid="cli">
+      <CardHeader>
+        <CardTitle>{t("help.cli.title")}</CardTitle>
+        <CardDescription>{t("help.cli.text")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CliCommands />
+      </CardContent>
+    </Card>
+  );
 }
 
 function AccountCard() {
