@@ -304,12 +304,11 @@ export function LinksPage() {
                 <TableHead className="w-10">
                   <Checkbox aria-label={t("bulk.selectAll")} checked={allSelected} onCheckedChange={(on) => toggleAll(on)} />
                 </TableHead>
-                <TableHead className="w-[30%]">{t("columns.link")}</TableHead>
+                <TableHead className="w-[28%]">{t("columns.link")}</TableHead>
                 <TableHead>{t("columns.destination")}</TableHead>
-                <TableHead className="hidden w-36 2xl:table-cell">{t("columns.owner")}</TableHead>
-                <TableHead className="w-[15%]">{t("columns.tags")}</TableHead>
-                <TableHead className="w-20 text-right">{t("columns.clicks")}</TableHead>
-                <TableHead className="w-44">{t("columns.status")}</TableHead>
+                <TableHead className="w-[14%]">{t("columns.tags")}</TableHead>
+                <TableHead className="w-16 text-right">{t("columns.clicks")}</TableHead>
+                <TableHead className="w-36">{t("columns.status")}</TableHead>
                 <TableHead className="w-14">
                   <span className="sr-only">{t("columns.actions")}</span>
                 </TableHead>
@@ -342,7 +341,6 @@ export function LinksPage() {
                       </a>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden truncate text-muted-foreground 2xl:table-cell">{l.ownerName ?? "—"}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {l.tags.map((x) => (

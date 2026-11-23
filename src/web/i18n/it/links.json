@@ -41,7 +41,6 @@
   "columns": {
     "link": "Link",
     "destination": "Destinazione",
-    "owner": "Proprietario",
     "tags": "Tag",
     "clicks": "Clic",
     "status": "Stato",
