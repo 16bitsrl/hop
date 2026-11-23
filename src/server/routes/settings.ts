@@ -15,9 +15,10 @@ import { APP_NAME, getMailer, mailLanguage, mailMessages, noticeMail, resolveSmt
 
 export const settingsRoutes = new Hono<AppEnv>();
 
-// Settings decide who can sign in and where mail goes: only a signed-in session may change them, not an API key.
-settingsRoutes.use("/settings/*", requireRole("admin"), sessionOnlyForWrites);
-settingsRoutes.use("/settings", requireRole("admin"), sessionOnlyForWrites);
+settingsRoutes.use("/settings/*", requireRole("admin"));
+settingsRoutes.use("/settings", requireRole("admin"));
+// These decide who can sign in and where mail goes: only a signed-in session may change them, not an API key.
+for (const path of ["/settings/auth", "/settings/oidc", "/settings/smtp", "/settings/smtp/*"]) settingsRoutes.use(path, sessionOnlyForWrites);
 
 settingsRoutes.get("/settings", async (c) => {
   const { db, config } = c.var.platform;

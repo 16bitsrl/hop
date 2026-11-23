@@ -63,6 +63,8 @@ linksRoutes.get("/links", async (c) => {
       ),
     );
   }
+  // The exact ending, to find one link by what people call it.
+  if (q.slug) where.push(eq(links.slug, q.slug));
   if (q.owner) where.push(eq(links.ownerId, q.owner));
   if (q.domain) where.push(eq(links.domainId, q.domain));
   if (q.tag) where.push(sql`exists (select 1 from ${linkTags} where ${linkTags.linkId} = ${links.id} and ${linkTags.tagId} = ${q.tag})`);

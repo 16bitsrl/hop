@@ -10,6 +10,7 @@ import { rememberReturnTo } from "./lib/return-to";
 import { rememberShared } from "./lib/share";
 import { appConfigQuery, meQuery } from "./lib/session";
 import { AuditPage } from "./pages/audit";
+import { CliCodePage, CliLoginPage } from "./pages/cli-login";
 import { DashboardPage } from "./pages/dashboard";
 import { DomainsPage } from "./pages/domains";
 import { ForgotPasswordPage } from "./pages/forgot-password";
@@ -114,6 +115,18 @@ const inviteRoute = createRoute({
 // Public statistics of a link (when its owner turned them on): no sign-in, no shell.
 const publicStatsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/s/$linkId", component: PublicStatsPage });
 
+// Connecting the command line app: needs a signed-in person, shown without the shell like the sign-in page.
+const signedInOnly = async ({ context: { queryClient }, location }: { context: RouterContext; location: { href: string } }) => {
+  const config = await queryClient.ensureQueryData(appConfigQuery);
+  if (config.setupRequired) throw redirect({ to: "/setup" });
+  if (!(await queryClient.ensureQueryData(meQuery))) {
+    rememberReturnTo(location.href);
+    throw redirect({ to: "/login" });
+  }
+};
+const cliCodeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/cli", beforeLoad: signedInOnly, component: CliCodePage });
+const cliLoginRoute = createRoute({ getParentRoute: () => rootRoute, path: "/cli/$code", beforeLoad: signedInOnly, component: CliLoginPage });
+
 /* ---------------- signed-in pages (inside the shell) ---------------- */
 
 const appRoute = createRoute({
@@ -181,6 +194,8 @@ const routeTree = rootRoute.addChildren([
   resetRoute,
   inviteRoute,
   publicStatsRoute,
+  cliCodeRoute,
+  cliLoginRoute,
   appRoute.addChildren([indexRoute, linksRoute, linkDetailRoute, linkTabRoute, dashboardRoute, domainsRoute, usersRoute, auditRoute, settingsRoute, profileRoute, apiHelpRoute]),
 ]);
 

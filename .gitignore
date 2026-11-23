@@ -12,3 +12,7 @@ dev-dist
 # Real deployments and their secrets, kept local
 wrangler.deploy.jsonc
 .prod-*
+
+# The command line app, when built in place
+cli/hop
+cli/hop.exe

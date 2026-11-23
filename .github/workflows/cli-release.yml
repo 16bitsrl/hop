@@ -1,0 +1,35 @@
+# Publishes the command line app (cli/) when a tag like cli-v1.2.3 is pushed: tests it, builds the
+# program for macOS, Linux and Windows and attaches the archives and their checksums to a GitHub
+# Release. install.sh, install.ps1 and `hop update` download from there.
+name: cli release
+
+on:
+  push:
+    tags: ["cli-v[0-9]+.[0-9]+.[0-9]+*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
+      - name: Test
+        working-directory: cli
+        run: go vet ./... && go test ./...
+      - name: Build
+        run: cli/scripts/build-release.sh "${GITHUB_REF_NAME#cli-v}" dist
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=""
+          case "$GITHUB_REF_NAME" in *-*-*) flags="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" cli/dist/* $flags \
+            --title "hop CLI ${GITHUB_REF_NAME#cli-v}" \
+            --generate-notes

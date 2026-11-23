@@ -68,7 +68,7 @@ describe("translations", () => {
 
     it("uses sentence case, not Title Case", () => {
       // Two capitalized words in a row, or a capitalized word in the middle of a sentence, is Title Case.
-      const proper = /^(hop|YOURLS|Google|Workspace|Microsoft|Okta|Keycloak|OpenID|English|Italiano|Europe|Rome|Authorization|PNG|JPG|GIF|WebP|SVG|CSV|UTM|QR|HTTP|HTTPS|API|URL|SQL|DNS|SSL|TLS|STARTTLS|A|B|IT|US|ID|OK|Android|iOS|Invio)$/;
+      const proper = /^(hop|YOURLS|Google|Workspace|Microsoft|Okta|Keycloak|OpenID|English|Italiano|Europe|Rome|Authorization|PNG|JPG|GIF|WebP|SVG|CSV|UTM|QR|HTTP|HTTPS|API|URL|SQL|DNS|SSL|TLS|STARTTLS|A|B|IT|US|ID|OK|Android|iOS|Linux|Windows|Invio)$/;
       const offenders = all.filter(([, v]) => {
         const words = v.split(/\s+/).slice(1);
         return words.some((w, i) => {

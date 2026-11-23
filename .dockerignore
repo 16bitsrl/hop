@@ -10,6 +10,7 @@ data
 test-results
 playwright-report
 docs
+cli
 *.local
 *.md
 !README.md

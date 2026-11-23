@@ -332,3 +332,25 @@ export const blockedDomains = sqliteTable("blocked_domains", {
   reason: text("reason"),
   createdAt: createdAt(),
 });
+
+/* ------------------------------------------------------------------ */
+/* Sign-in from the command line app                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A request made by `hop login`: the terminal offers the hash of a key it generated and shows a short
+ * code; a signed-in person approves the code in the browser and the key becomes one of their API keys.
+ * The key itself never reaches the server before it is used.
+ */
+export const cliLogins = sqliteTable("cli_logins", {
+  id: id(),
+  /** What the person compares and types, e.g. "ABCD-EFGH". */
+  code: text("code").notNull().unique(),
+  keyHash: text("key_hash").notNull().unique(),
+  prefix: text("prefix").notNull(),
+  /** Name of the device, shown before approving and used as the key's label. */
+  name: text("name").notNull(),
+  status: text("status").$type<"pending" | "approved" | "denied">().notNull().default("pending"),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: createdAt(),
+});

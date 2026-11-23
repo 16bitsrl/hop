@@ -36,6 +36,7 @@
 | **Statistics** | Clicks over time, unique visitors, traffic sources, countries, cities, devices, systems, browsers, languages, per rule and per A/B variant; bots kept apart; team dashboard; CSV export; optional public page per link; `+` after a short link opens its statistics; configurable retention |
 | **Team** | Admin, member and viewer roles; invitations; activity log |
 | **Sign-in** | Email and password, passkeys, single sign-on (OpenID Connect: Google Workspace, Microsoft, Okta, Keycloak and others), password reset by email; password sign-in can be turned off |
+| **Terminal** | A command line app for macOS, Linux and Windows: create links, read statistics, get QR codes and manage several servers, with one-line install and self-update |
 | **Operations** | REST API with personal keys, full backup and restore, broken link checks, blocking of unsafe destinations (Google Safe Browsing), health check, Prometheus metrics |
 | **Interface** | English and Italian, light and dark theme, works on phones and installs as an app |
 
@@ -51,6 +52,19 @@ Every feature, with screenshots: **[FEATURES.md](FEATURES.md)**.
     <td><img src=".github/screenshots/dark.png" alt="Dark theme"></td>
   </tr>
 </table>
+
+## From your terminal
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/16bitsrl/hop/main/cli/install.sh | sh    # macOS, Linux
+irm https://raw.githubusercontent.com/16bitsrl/hop/main/cli/install.ps1 | iex         # Windows
+
+hop login https://hop.example.com      # your browser opens to confirm
+hop https://example.com/spring-sale --slug spring --qr
+hop stats spring
+```
+
+`hop` works with several servers, speaks English and Italian, has a `--json` mode for scripts and keeps itself up to date. Everything it does: **[cli/README.md](cli/README.md)**.
 
 ## Deploy
 

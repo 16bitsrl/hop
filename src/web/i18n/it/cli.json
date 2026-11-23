@@ -1,0 +1,27 @@
+{
+  "title": "Collega l'app da riga di comando",
+  "description": "Un terminale chiede di usare hop a tuo nome.",
+  "device": "Dispositivo",
+  "code": "Codice",
+  "codeCheck": "Controlla che questo codice sia lo stesso che vedi nel terminale.",
+  "account": "Accesso eseguito come",
+  "warning": "Continua solo se hai avviato tu questa richiesta. L'app potrà fare tutto quello che puoi fare tu.",
+  "connect": "Collega",
+  "cancel": "Annulla",
+  "done": {
+    "title": "App collegata",
+    "text": "Puoi tornare al terminale. Puoi togliere questo accesso quando vuoi dal tuo profilo."
+  },
+  "denied": {
+    "title": "Richiesta rifiutata",
+    "text": "Non è stato collegato nulla. Puoi chiudere questa pagina."
+  },
+  "invalid": {
+    "title": "Questo codice non è più valido",
+    "text": "Ripeti l'accesso dal terminale per averne uno nuovo."
+  },
+  "enter": {
+    "hint": "Scrivi il codice che vedi nel terminale.",
+    "submit": "Continua"
+  }
+}

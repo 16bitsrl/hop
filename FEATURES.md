@@ -141,6 +141,8 @@ curl https://hop.example.com/api/links \
 
 The **API** page in the app explains how to find, create, change and delete links and read statistics, with examples. Admins can see and revoke everyone's keys.
 
+The **command line app** does the same from your terminal, on macOS, Linux and Windows: `hop create`, `hop list`, `hop stats`, `hop qr` and the rest. Signing in opens your browser to confirm, so there is no key to copy, and the app can be signed in to several hop servers at once. It installs with one line and updates itself. See [cli/README.md](cli/README.md).
+
 There is also a **bookmarklet** to shorten the page you are on, and on Android the installed app appears in the **share menu**.
 
 ## Data, backups and migration

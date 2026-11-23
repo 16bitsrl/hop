@@ -19,7 +19,7 @@ import { fail, parseJson } from "../lib/validate";
  */
 export const apiKeyRoutes = new Hono<AppEnv>();
 
-const MAX_ACTIVE_KEYS = 20;
+export const MAX_ACTIVE_KEYS = 20;
 
 apiKeyRoutes.use("/api-keys", requireUser, sessionOnly);
 apiKeyRoutes.use("/api-keys/*", requireUser, sessionOnly);

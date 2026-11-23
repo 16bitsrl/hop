@@ -52,5 +52,6 @@
   "folder_not_yours_inside": "Questa cartella contiene link o cartelle di altre persone, quindi può eliminarla solo un amministratore.",
   "bad_origin": "Questa richiesta non arriva dall'app hop. Ricarica la pagina e riprova.",
   "unsupported_media_type": "Questa richiesta non è stata capita. Ricarica la pagina e riprova.",
-  "too_many_keys": "Hai troppe chiavi attive. Revocane una prima."
+  "too_many_keys": "Hai troppe chiavi attive. Revocane una prima.",
+  "invalid_cli_code": "Questo codice non è più valido."
 }

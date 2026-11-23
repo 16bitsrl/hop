@@ -33,6 +33,13 @@
     "title": "Using the API",
     "description": "Everything you can do in hop, you can also do from your own scripts. Here are the basics.",
     "back": "Back to your profile",
+    "cli": {
+      "title": "Use hop from your terminal",
+      "text": "Install the command line app, then sign in: your browser opens to confirm, with no key to copy. Create links, read statistics, get QR codes and more.",
+      "unix": "macOS and Linux",
+      "windows": "Windows (PowerShell)",
+      "login": "Then sign in"
+    },
     "auth": {
       "title": "Sign in with a key",
       "text": "Create a key in your profile, then send it with every request in the Authorization header. A key has exactly the same permissions as you."

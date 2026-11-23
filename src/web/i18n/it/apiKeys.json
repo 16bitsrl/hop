@@ -33,6 +33,13 @@
     "title": "Usare l'API",
     "description": "Tutto quello che fai in hop lo puoi fare anche dai tuoi script. Ecco le basi.",
     "back": "Torna al tuo profilo",
+    "cli": {
+      "title": "Usa hop dal terminale",
+      "text": "Installa l'app da riga di comando, poi accedi: si apre il browser per confermare, senza chiavi da copiare. Crea link, leggi le statistiche, ottieni i codici QR e altro.",
+      "unix": "macOS e Linux",
+      "windows": "Windows (PowerShell)",
+      "login": "Poi accedi"
+    },
     "auth": {
       "title": "Accedere con una chiave",
       "text": "Crea una chiave nel tuo profilo, poi inviala a ogni richiesta nell'intestazione Authorization. Una chiave ha esattamente i tuoi stessi permessi."

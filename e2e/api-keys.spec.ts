@@ -117,6 +117,10 @@ test("the API help page explains the main endpoints", async ({ page, request }) 
   await expect(page.getByText("/api/links").first()).toBeVisible();
   await expect(page.getByText("curl").first()).toBeVisible();
   await expect(page.getByText(APP).first()).toBeVisible(); // examples use this installation's address
+  // The command line app: how to install it and sign in to this installation.
+  await expect(page.getByRole("heading", { name: "Use hop from your terminal" })).toBeVisible();
+  await expect(page.getByText("install.sh | sh")).toBeVisible();
+  await expect(page.getByText(`hop login ${APP}`)).toBeVisible();
 });
 
 test("an admin API key cannot manage users, settings, backups or imports, only a signed-in session can", async ({ request, playwright }) => {
@@ -134,6 +138,8 @@ test("an admin API key cannot manage users, settings, backups or imports, only a
   expect((await key.patch(`/api/users/${other.id}`, { data: { role: "admin" } })).status()).toBe(403);
   expect((await key.put("/api/settings/auth", { data: { passwordLogin: true } })).status()).toBe(403);
   expect((await key.put("/api/settings/smtp", { data: { host: "evil.test", port: 25, user: "", from: "a@b.test", tls: "none" } })).status()).toBe(403);
+  expect((await key.put("/api/settings/oidc", { data: { enabled: false, discoveryUrl: "", clientId: "", label: "", autoCreate: false, allowedDomains: [], defaultRole: "admin" } })).status()).toBe(403);
+  expect((await key.post("/api/settings/smtp/test", { data: { to: "a@b.test" } })).status()).toBe(403);
   expect((await key.get("/api/data/backup")).status()).toBe(403);
   expect((await key.post("/api/data/yourls/conflicts", { data: { domainId: "x", keywords: [] } })).status()).toBe(403);
 
