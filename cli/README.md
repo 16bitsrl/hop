@@ -71,7 +71,7 @@ Every command takes `--json`. Without a terminal there are no colours, no questi
 | **In bulk** | `import` and `export` with CSV files |
 | **Organise** | `domains`, `tags`, `folders` |
 | **Manage** | `settings`, `blocked`, `users`, `activity`, `profile`, and `api` for anything else |
-| **The app itself** | `update`, `config`, `completion`, `version` |
+| **The app itself** | `update`, `config`, `skill`, `completion`, `version` |
 
 A link is named by its ending (`spring`), its short address (`go.example.com/spring`) or its id.
 
@@ -90,6 +90,14 @@ hop settings set stats.keep 365
 `hop help` lists every command and `hop help <command>` explains one, with examples.
 
 What needs a signed-in person stays in the web app, by design: inviting people and changing roles, sign-in and email settings, backups. An API key can never give itself more access.
+
+## For AI agents
+
+```sh
+hop skill              # for Claude Code; --target codex|gemini|agents, or --all
+```
+
+This writes the Agent Skill of hop (a `SKILL.md` file) where agents look for it, so they know how to create links, read statistics and the rest without being told. The file keeps itself current: whenever `hop` runs, it brings the copies it finds up to date with the installed version.
 
 ## Updates
 
@@ -118,6 +126,7 @@ hop completion zsh             # Tab completion for bash, zsh, fish and PowerShe
 | `HOP_LANG` | Language: `en` or `it` |
 | `HOP_CONFIG_DIR` | Where the settings live (default `~/.config/hop`, `%AppData%\hop` on Windows) |
 | `HOP_NO_UPDATE_CHECK` | Set to anything to never look for new versions |
+| `HOP_NO_SKILL_AUTOUPDATE` | Set to anything to leave installed copies of the agent skill alone |
 | `HOP_NO_KEYRING` | Set to anything to keep keys in the settings file instead of the system keychain |
 | `NO_COLOR` | Set to anything to turn colours off (like `--no-color`) |
 

@@ -152,6 +152,10 @@ func placeholder(f *pflag.Flag) string {
 		word = t("colour")
 	case "size", "limit", "page", "max-clicks":
 		word = t("number")
+	case "dir":
+		word = t("folder")
+	case "target":
+		word = "claude|codex|gemini|agents"
 	case "folder", "in":
 		word = t("folder")
 	case "tag", "add-tag", "remove-tag":

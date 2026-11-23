@@ -63,6 +63,7 @@ func Run(version string, args []string) int {
 		ui.SetThousands(".")
 	}
 	update.CleanUp()
+	refreshSkills()
 
 	a := &app{version: version, cfg: cfg}
 	if cfgErr != nil {
@@ -129,7 +130,7 @@ func (a *app) newRoot() *cobra.Command {
 	add("organize", a.domainsCmd(), a.tagsCmd(), a.foldersCmd())
 	add("manage", a.settingsCmd(), a.blockedCmd(), a.usersCmd(), a.auditCmd(), a.apiCmd())
 	add("account", a.loginCmd(), a.logoutCmd(), a.serversCmd(), a.useCmd(), a.whoamiCmd(), a.profileCmd())
-	add("app", a.updateCmd(), a.configCmd(), a.completionCmd(), a.versionCmd())
+	add("app", a.updateCmd(), a.configCmd(), a.skillCmd(), a.completionCmd(), a.versionCmd())
 
 	root.SetHelpCommand(&cobra.Command{
 		Use:    "help [command]",

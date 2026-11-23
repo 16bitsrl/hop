@@ -106,6 +106,11 @@ func (a *app) loginCmd() *cobra.Command {
 			if user == nil {
 				return failHint(t("The server did not accept this key."), t("Check that you copied it whole and that it was not revoked."))
 			}
+			// The wait in the browser can be long: read the settings again, so a sign-in to another
+			// server finished meanwhile in another terminal is not lost.
+			if fresh, err := config.Load(); err == nil {
+				a.cfg = fresh
+			}
 			// Signing in again replaces the key this app made before: the old one is revoked, not left behind.
 			if old := a.cfg.Servers[name]; old != nil && old.OwnKey {
 				if oldToken := a.cfg.Token(name); oldToken != "" && oldToken != token {

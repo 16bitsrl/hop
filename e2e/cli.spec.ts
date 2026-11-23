@@ -249,6 +249,33 @@ test("the app speaks Italian on Italian systems, and a pasted key is never revok
   await Promise.all([withKey.dispose(), session.dispose()]);
 });
 
+test("the skill for AI agents is written where they look for it and follows the installed version", async () => {
+  const home = mkdtempSync(path.join(tmpdir(), "hop-cli-home-"));
+  const hop = cli({ env: { HOME: home, USERPROFILE: home } });
+  const doc = hop.run("skill", "--print").stdout;
+  expect(doc).toMatch(/^---\nname: hop\n/);
+  expect(doc).toContain("hop create");
+
+  const one = hop.run("skill");
+  expect(one.code, one.stderr).toBe(0);
+  const claude = path.join(home, ".claude", "skills", "hop", "SKILL.md");
+  expect(readFileSync(claude, "utf8")).toBe(doc);
+  expect(hop.run("skill", "--all").code).toBe(0);
+  const codex = path.join(home, ".codex", "skills", "hop", "SKILL.md");
+  expect(readFileSync(codex, "utf8")).toBe(doc);
+  expect(hop.run("skill", "--target", "../elsewhere").code).toBe(2);
+
+  // A copy left by an older version is brought up to date by any command.
+  writeFileSync(claude, doc.replace("hop create", "hop make"));
+  // A file that is not this app's skill is never touched, nor is anything when the person opted out.
+  writeFileSync(codex, "---\nname: something-else\n---\nmine\n");
+  expect(hop.with({ HOP_NO_SKILL_AUTOUPDATE: "1" }).run("version").code).toBe(0);
+  expect(readFileSync(claude, "utf8")).toContain("hop make");
+  expect(hop.run("version").code).toBe(0);
+  expect(readFileSync(claude, "utf8")).toBe(doc);
+  expect(readFileSync(codex, "utf8")).toContain("something-else");
+});
+
 test("tags, folders, domains, blocked websites, settings and profile", async ({ request, playwright }) => {
   const { hop, session } = await signedIn(playwright, request, "admin");
 
